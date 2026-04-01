@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrinho — Faz Bem</title>
+  <style>
+    :root{ --green-1:#2b8a3e; --bg:#f7f9f7; font-family: Inter, sans-serif; }
+    body { margin:0; background: var(--bg); padding-bottom: 140px; }
+    
+    header { background: white; padding: 16px 24px; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 12px; }
+    .back-btn { text-decoration: none; color: #666; font-size: 24px; font-weight:bold; }
+    h1 { margin: 0; font-size: 20px; color: var(--green-1); }
+
+    main { max-width: 600px; margin: 0 auto; padding: 24px; }
+
+    
+    .cart-item { 
+        background: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; 
+        display: flex; justify-content: space-between; align-items: center; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+    }
+    .item-info h4 { margin: 0 0 4px 0; color:#333; }
+    .item-info span { font-size: 14px; color: var(--green-1); font-weight: bold; }
+    
+    .qtd-ctrl { display: flex; align-items: center; gap: 10px; }
+    .btn-circle { 
+        width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ddd; 
+        background: white; cursor: pointer; font-weight: bold; color: #555;
+    }
+    .btn-circle:hover { background: #f0f0f0; }
+
+    
+    .payment-section { margin-top: 32px; background: white; padding: 20px; border-radius: 12px; }
+    .payment-option { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; }
+    .payment-option input { transform: scale(1.2); }
+    
+   
+    .footer-checkout { 
+        position: fixed; bottom: 0; left: 0; width: 100%; background: white; 
+        padding: 20px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); 
+        display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; 
+    }
+    .total-label { font-size: 14px; color: #666; margin-bottom: 4px;}
+    .total-val { font-size: 22px; font-weight: 800; color: var(--green-1); }
+    
+    .btn-finish { 
+        background: var(--green-1); color: white; border: none; padding: 14px 28px; 
+        border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; 
+        transition: background 0.2s;
+    }
+    .btn-finish:hover { background: #15803d; }
+    .btn-finish:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="catalogo.html" class="back-btn">←</a>
+    <h1>Minha Cesta</h1>
+  </header>
+
+  <main>
+    <div id="lista-itens">
+       <div style="text-align:center; padding:40px; color:#999">Sua cesta está vazia.</div>
+    </div>
+
+    <div class="payment-section" id="pagamento-box" style="display:none">
+        <h3 style="margin-top:0; font-size:16px;">Forma de Pagamento</h3>
+        
+        <label class="payment-option">
+            <input type="radio" name="pagamento" value="PIX" checked>
+            <div>
+                <strong>PIX (Chave Aleatória)</strong>
+                <div style="font-size:12px; color:#666">Envie o comprovante no WhatsApp</div>
+            </div>
+        </label>
+
+        <label class="payment-option">
+            <input type="radio" name="pagamento" value="Dinheiro">
+            <div>
+                <strong>Dinheiro na Entrega</strong>
+                <div style="font-size:12px; color:#666">Pagamento para o entregador</div>
+            </div>
+        </label>
+    </div>
+  </main>
+
+  <div class="footer-checkout">
+    <div>
+      <div class="total-label">Total a pagar</div>
+      <div class="total-val" id="total-display">R$ 0,00</div>
+    </div>
+    <button class="btn-finish" id="btn-finalizar" onclick="finalizarPedido()" disabled>Finalizar Pedido</button>
+  </div>
+
+  <script>
+    
+    let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
+
+    function renderizarCarrinho() {
+      const container = document.getElementById('lista-itens');
+      const totalDisplay = document.getElementById('total-display');
+      const btn = document.getElementById('btn-finalizar');
+      const pagBox = document.getElementById('pagamento-box');
+
+      if (carrinho.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999">Sua cesta está vazia.<br><a href="catalogo.html" style="color:var(--green-1)">Voltar ao catálogo</a></div>';
+        totalDisplay.innerText = 'R$ 0,00';
+        btn.disabled = true;
+        pagBox.style.display = 'none';
+        return;
+      }
+
+      pagBox.style.display = 'block';
+      let html = '';
+      let total = 0;
+
+      carrinho.forEach((item, index) => {
+        let subtotal = item.preco * item.quantidade;
+        total += subtotal;
+
+        html += `
+          <div class="cart-item">
+            <div class="item-info">
+              <h4>${item.nome}</h4>
+              <span>R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</span>
+            </div>
+            <div class="qtd-ctrl">
+              <button class="btn-circle" onclick="alterarQtd(${index}, -1)">-</button>
+              <span style="font-weight:600; min-width:20px; text-align:center">${item.quantidade}</span>
+              <button class="btn-circle" onclick="alterarQtd(${index}, 1)">+</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      totalDisplay.innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+      btn.disabled = false;
+    }  
+
+    function alterarQtd(index, delta) {
+      carrinho[index].quantidade += delta;
+      
+      if (carrinho[index].quantidade <= 0) {
+        if(confirm('Remover ' + carrinho[index].nome + ' da cesta?')) {
+          carrinho.splice(index, 1);
+        } else {
+          carrinho[index].quantidade = 1; 
+        }
+      }
+      
+      localStorage.setItem('fazbem_carrinho', JSON.stringify(carrinho));
+      renderizarCarrinho();
+    }
+
+    async function finalizarPedido() {
+      
+      const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
+      
+      if(!confirm(`Confirmar pedido no valor total?\nPagamento via: ${pagamento}`)) return;
+
+      const btn = document.getElementById('btn-finalizar');
+      btn.innerText = "Processando...";
+      btn.disabled = true;
+
+      const totalCalculado = carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+
+      try {
+        const res = await fetch('api_checkout_v2.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+              itens: carrinho, 
+              total: totalCalculado,
+              pagamento: pagamento 
+          })
+        });
+        
+        
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch(e) { json = { success: false, message: "Erro no servidor: " + text }; }
+        
+        if (json.success) {
+          alert('✅ Pedido Confirmado!\n\nSeus itens já estão reservados e o estoque atualizado.');
+          localStorage.removeItem('fazbem_carrinho'); // Limpa carrinho
+          window.location.href = 'catalogo.html'; // Volta para loja
+        } else {
+          alert('❌ ' + json.message);
+          if(json.message.includes('login')) window.location.href = 'login.html';
+        }
+
+      } catch (e) {
+        alert('Erro de conexão ao finalizar.');
+        console.error(e);
+      } finally {
+        btn.innerText = "Finalizar Pedido";
+        btn.disabled = false;
+      }
+    }
+
+    
+    renderizarCarrinho();
+  </script>
+</body>
+</html>
