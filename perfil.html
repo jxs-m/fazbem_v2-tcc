@@ -116,51 +116,61 @@
 
     async function carregarPerfil() {
       try {
-        const res = await fetch('api_minha_assinatura_v2.php');
-        const json = await res.json();
+        const resPerfil = await fetch('api_perfil_v2.php');
+        const jsonPerfil = await resPerfil.json();
 
-        if(!json.success) {
-            if(json.message && json.message.includes('autenticado')) window.location.href = 'login.html';
+        if(!jsonPerfil.success) {
+            // Se não estiver logado, manda para o login
+            if(jsonPerfil.message && jsonPerfil.message.includes('negado')) {
+                window.location.href = 'login.html';
+            }
             return;
         }
 
-        const u = json.usuario;
-        
-        
+        // Preenche o HTML com os dados que vieram da base de dados
+        const u = jsonPerfil.usuario;
         document.getElementById('dados-pessoais').innerHTML = `<strong>${u.nome}</strong><br>${u.email}<br>${u.endereco}`;
 
+        // 2. Buscar o status da Assinatura
+        const resAssinatura = await fetch('api_minha_assinatura_v2.php');
+        const jsonAssinatura = await resAssinatura.json();
         
         const badge = document.getElementById('status-badge');
         const btnContainer = document.getElementById('btn-container');
         const selectPlano = document.getElementById('select-plano');
 
-        
-        selectPlano.value = u.frequencia;
+        // Se o cliente tiver uma assinatura, atualiza os botões e a etiqueta
+        if(jsonAssinatura.success && jsonAssinatura.data) {
+            const ass = jsonAssinatura.data;
+            selectPlano.value = ass.frequencia;
 
-        badge.innerText = u.status;
-        badge.className = 'status-badge'; 
+            badge.innerText = ass.status;
+            badge.className = 'status-badge'; 
 
-        if (u.status === 'Ativa') {
-            badge.classList.add('st-ativa');
-            btnContainer.innerHTML = `<button class="btn btn-pause" onclick="alterarStatus('pausar')">⏸ Pausar Entregas</button>`;
-        } else if (u.status === 'Pausada') {
-            badge.classList.add('st-pausada');
-            btnContainer.innerHTML = `<button class="btn btn-resume" onclick="alterarStatus('reativar')">▶ Retomar Entregas</button>`;
+            if (ass.status === 'Ativa') {
+                badge.classList.add('st-ativa');
+                btnContainer.innerHTML = `<button class="btn btn-pause" onclick="alterarStatus('pausar')">⏸ Pausar Entregas</button>`;
+            } else if (ass.status === 'Pausada') {
+                badge.classList.add('st-pausada');
+                btnContainer.innerHTML = `<button class="btn btn-resume" onclick="alterarStatus('reativar')">▶ Retomar Entregas</button>`;
+            } else {
+                badge.classList.add('st-cancelada');
+                btnContainer.innerHTML = `<button class="btn btn-resume" onclick="alterarStatus('reativar')">Reassinar</button>`;
+            }
         } else {
-            badge.classList.add('st-cancelada');
-            btnContainer.innerHTML = `<button class="btn btn-resume" onclick="alterarStatus('reativar')">Reassinar</button>`;
+            badge.innerText = 'Sem Assinatura';
+            badge.className = 'status-badge st-cancelada';
+            btnContainer.innerHTML = '';
         }
 
-        // Preferências
+        // 3. Preferências (Como ainda não há tabela no BD para isto, evitamos o erro e colocamos um aviso)
         const lista = document.getElementById('lista-prefs');
-        lista.innerHTML = '';
-        json.preferencias.forEach(p => {
-            lista.innerHTML += `<li><span>${p.descricao}</span></li>`;
-        });
+        lista.innerHTML = '<li><span style="color:#999;">Nenhuma preferência fixa definida.</span></li>';
 
-      } catch(e) { console.error(e); }
+      } catch(e) { 
+          console.error("Erro ao carregar perfil:", e); 
+      }
     }
-
     
     async function mudarPlano() {
         const novoPlano = document.getElementById('select-plano').value;

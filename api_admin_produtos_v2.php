@@ -18,9 +18,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     $produtoModel = new Produto();
 
-    // ==========================================
-    // REQUISIÇÃO GET: Listar todos os produtos na tabela
-    // ==========================================
+   
     if ($method === 'GET') {
         $produtos = $produtoModel->listarTodos();
         echo json_encode(['success' => true, 'data' => $produtos]);
@@ -28,52 +26,57 @@ try {
     }
 
     // ==========================================
-    // REQUISIÇÃO POST: Cadastrar novo produto + Upload de Imagem
+    // REQUISIÇÃO POST: Cadastrar ou Editar produto + Upload de Imagem
     // ==========================================
     if ($method === 'POST') {
+        $id = $_POST['id'] ?? ''; // Se vier ID, é edição. Se não vier, é novo.
         $nome = $_POST['nome'] ?? '';
         $categoria = $_POST['categoria'] ?? '';
-        $preco = str_replace(',', '.', $_POST['preco'] ?? '0'); // Garante formato decimal
+        $preco = str_replace(',', '.', $_POST['preco'] ?? '0');
         $unidade = $_POST['unidade'] ?? '';
         $estoque = $_POST['estoque'] ?? 0;
 
-        // Validação básica
-        if (empty($nome) || empty($categoria) || !isset($_FILES['imagem'])) {
-            throw new Exception("Dados incompletos ou imagem ausente.");
-        }
-
-        $imagem = $_FILES['imagem'];
-
-        // Validação de erro no arquivo
-        if ($imagem['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception("Erro no upload da imagem. Código: " . $imagem['error']);
-        }
-
-        // Validação de segurança: aceitar apenas imagens reais
-        $extensao = strtolower(pathinfo($imagem['name'], PATHINFO_EXTENSION));
-        $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
         
-        if (!in_array($extensao, $permitidas)) {
-            throw new Exception("Formato de imagem inválido. Use JPG, PNG ou WEBP.");
+        if (empty($nome) || empty($categoria)) {
+            throw new Exception("Nome e categoria são obrigatórios.");
         }
 
-        // Gera nome único para evitar sobreposição (ex: 64a8b7c.jpg)
-        $novoNome = uniqid() . '.' . $extensao;
-        $caminhoFisico = __DIR__ . '/uploads/' . $novoNome;
-        $caminhoBanco = 'uploads/' . $novoNome;
+        $caminhoBanco = null;
 
-        // Move o arquivo da pasta temporária do servidor para a nossa pasta uploads
-        if (!move_uploaded_file($imagem['tmp_name'], $caminhoFisico)) {
-            throw new Exception("Falha ao salvar a imagem no servidor. Verifique as permissões da pasta.");
+        if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
+            $imagem = $_FILES['imagem'];
+            
+            $extensao = strtolower(pathinfo($imagem['name'], PATHINFO_EXTENSION));
+            $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
+            
+            if (!in_array($extensao, $permitidas)) {
+                throw new Exception("Formato de imagem inválido. Use JPG, PNG ou WEBP.");
+            }
+
+            $novoNome = uniqid() . '.' . $extensao;
+            $caminhoFisico = __DIR__ . '/uploads/' . $novoNome;
+            $caminhoBanco = 'uploads/' . $novoNome;
+
+            if (!move_uploaded_file($imagem['tmp_name'], $caminhoFisico)) {
+                throw new Exception("Falha ao guardar a imagem no servidor.");
+            }
+        } else if (empty($id)) {
+            // Se for um produto novo (sem ID), a imagem é estritamente obrigatória
+            throw new Exception("A imagem é obrigatória para novos produtos.");
         }
 
-        // Salva tudo no banco de dados usando a nossa classe
-        $salvou = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $caminhoBanco);
-
-        if ($salvou) {
-            echo json_encode(['success' => true, 'message' => 'Produto cadastrado com sucesso!']);
+         if (!empty($id)) {
+            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $caminhoBanco);
+            $mensagem = 'Produto atualizado com sucesso!';
         } else {
-            throw new Exception("Erro ao salvar no banco de dados.");
+            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $caminhoBanco);
+            $mensagem = 'Produto cadastrado com sucesso!';
+        }
+
+        if ($sucesso) {
+            echo json_encode(['success' => true, 'message' => $mensagem]);
+        } else {
+            throw new Exception("Erro ao processar na base de dados.");
         }
         exit;
     }
