@@ -6,6 +6,7 @@ function showSection(id) {
 
             if (id === 'pedidos') carregarPedidos();
             if (id === 'produtos') carregarProdutos();
+            if (id === 'producao') carregarProducao();
             if (id === 'clientes') carregarClientes();
             if (id === 'dashboard') carregarDashboardCounts();
         }
@@ -72,7 +73,9 @@ function showSection(id) {
                 if (json.success) {
                     const info = json.info;
                     document.getElementById('det-id').innerText = info.id;
-                    document.getElementById('det-cliente').innerHTML = `<div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${escapeHTML(info.nome)}</div><div>📞 ${escapeHTML(info.telefone)}</div><div style="margin-top:8px;">📍 ${escapeHTML(info.endereco)}</div><small>Ref: ${escapeHTML(info.ponto_referencia || 'Sem referência')}</small>`;
+                    const phoneWpp = info.telefone.replace(/\D/g, '');
+                    const linkWpp = `https://wa.me/55${phoneWpp}?text=${encodeURIComponent('Olá ' + info.nome + ', somos da Faz Bem! Referente ao seu pedido #' + info.id + '...')}`;
+                    document.getElementById('det-cliente').innerHTML = `<div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${escapeHTML(info.nome)}</div><div>📞 ${escapeHTML(info.telefone)} <a href="${linkWpp}" target="_blank" style="background:#25D366; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:12px; margin-left:8px; display:inline-block">💬 WhatsApp</a></div><div style="margin-top:8px;">📍 ${escapeHTML(info.endereco)}</div><small>Ref: ${escapeHTML(info.ponto_referencia || 'Sem referência')}</small>`;
 
                     const divItens = document.getElementById('det-itens');
                     divItens.innerHTML = '';
@@ -110,7 +113,7 @@ function showSection(id) {
                     tbody.innerHTML = ''; let critico = 0;
                     json.data.forEach(p => {
                         if (p.estoque_atual < 10) critico++;
-                        tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual < 10 ? 'low-stock' : ''}">${p.estoque_atual}</td><td style="text-align:right"><button class="btn btn-edit" onclick='editarProd(${JSON.stringify(p)})'>✏️</button><button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></td></tr>`;
+                        tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual < 10 ? 'low-stock' : ''}">${p.estoque_atual}</td><td style="text-align:right"><button class="btn btn-edit" title="Ajustar Estoque" onclick='abrirModalEstoque(${JSON.stringify(p)})'>📦</button> <button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p)})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></td></tr>`;
                     });
                     document.getElementById('dash-estoque').innerText = critico;
                 }
@@ -165,6 +168,49 @@ function showSection(id) {
             carregarProdutos();
         }
 
+        async function carregarProducao() {
+            const tbody = document.getElementById('lista-producao');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Calculando necessidades...</td></tr>';
+            try {
+                const res = await fetch('api_producao_v2.php');
+                const json = await res.json();
+                if (json.success) {
+                    tbody.innerHTML = '';
+                    
+                    const kitsCount = parseInt(json.kitsNaSemana);
+                    const limite = parseInt(json.limiteMaximo);
+                    
+                    const dashKits = document.getElementById('dash-kits-semana');
+                    dashKits.innerText = kitsCount;
+                    if (kitsCount >= limite) {
+                        dashKits.style.color = 'var(--danger)';
+                    } else {
+                        dashKits.style.color = '#16a34a'; // verde
+                    }
+
+                    if (json.hortalicasNecessarias.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum pedido engatilhado para a semana.</td></tr>';
+                        return;
+                    }
+
+                    json.hortalicasNecessarias.forEach(h => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>#${h.id}</td>
+                                <td><strong>${escapeHTML(h.nome)}</strong></td>
+                                <td>${escapeHTML(h.unidade)}</td>
+                                <td style="font-size: 18px; font-weight: bold; color: var(--green-primary);">${h.total_necessario}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4">Erro ao processar relatório</td></tr>';
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="4">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
         let todosClientes = [];
 
         async function carregarClientes() {
@@ -201,6 +247,47 @@ function showSection(id) {
 
         function carregarDashboardCounts() { carregarDashboardV2(); carregarPedidos(); carregarProdutos(); carregarClientes(); }
         function abrirModalProd() { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('prodId').value = ''; document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; document.getElementById('prodUnidade').value = ''; document.getElementById('prodEstoque').value = ''; document.getElementById('prodFotoInput').value = ''; document.getElementById('prodFotoBase64').value = ''; document.getElementById('previewImg').style.display = 'none'; document.getElementById('modalTitle').innerText = 'Novo Produto'; }
+        
+        function abrirModalEstoque(p) {
+            document.getElementById('modalEstoque').style.display = 'flex';
+            document.getElementById('estProdId').value = p.id;
+            document.getElementById('estProdNome').innerText = p.nome;
+            document.getElementById('estProdUni').innerText = p.unidade;
+            document.getElementById('estQtde').value = '';
+            document.getElementById('estDesc').value = '';
+            document.getElementById('estTipo').value = 'Entrada';
+        }
+
+        async function salvarMovimentacao() {
+            const data = {
+                produto_id: document.getElementById('estProdId').value,
+                tipo: document.getElementById('estTipo').value,
+                quantidade: document.getElementById('estQtde').value,
+                descricao: document.getElementById('estDesc').value
+            };
+            
+            if(!data.quantidade || data.quantidade <= 0) return alert('Insira uma quantidade válida!');
+
+            const btn = document.getElementById('btnSalvarEstoque');
+            btn.innerText = "Registrando..."; btn.disabled = true;
+
+            try {
+                const res = await fetch('api_estoque_v2.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+                const json = await res.json();
+                if(json.success) {
+                    fecharModal('modalEstoque');
+                    carregarProdutos();
+                    carregarDashboardV2();
+                } else {
+                    alert('Erro: ' + json.message);
+                }
+            } catch(e) {
+                alert('Erro na conexão');
+            } finally {
+                btn.innerText = "Registrar"; btn.disabled = false;
+            }
+        }
+
         function editarProd(p) { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('modalTitle').innerText = 'Editar Produto'; document.getElementById('prodId').value = p.id; document.getElementById('prodNome').value = p.nome; document.getElementById('prodCategoria').value = p.categoria; document.getElementById('prodPreco').value = p.preco; document.getElementById('prodUnidade').value = p.unidade; document.getElementById('prodEstoque').value = p.estoque_atual; const preview = document.getElementById('previewImg'); const hidden = document.getElementById('prodFotoBase64'); if (p.imagem_url) { preview.src = p.imagem_url; preview.style.display = 'block'; hidden.value = p.imagem_url; } else { preview.style.display = 'none'; hidden.value = ''; } }
         function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
         window.onclick = function (e) { if (e.target.className === 'modal') e.target.style.display = 'none'; }

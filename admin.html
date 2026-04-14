@@ -16,6 +16,7 @@
             <a onclick="showSection('dashboard')" id="nav-dashboard" class="active">📊 Dashboard</a>
             <a onclick="showSection('pedidos')" id="nav-pedidos">📦 Pedidos</a>
             <a onclick="showSection('produtos')" id="nav-produtos">🥬 Catálogo</a>
+            <a onclick="showSection('producao')" id="nav-producao">🏭 Produção (Kits)</a>
             <a onclick="showSection('clientes')" id="nav-clientes">👥 Clientes</a>
             <a href="logout.php" class="logout">🚪 Sair</a>
         </nav>
@@ -67,6 +68,36 @@
             </div>
         </div>
 
+        <div id="sec-producao" style="display:none;">
+            <div class="header-actions">
+                <h2 style="margin:0; border:none;">Separação e Produção Semanal</h2>
+                <button class="btn btn-primary" onclick="carregarProducao()">🔄 Atualizar</button>
+            </div>
+
+            <div class="dashboard-grid" style="margin-bottom: 24px;">
+                <div class="card">
+                    <h3>Kits Previstos na Semana</h3>
+                    <div class="val" id="dash-kits-semana">--</div>
+                    <small style="color:#666;">Limite logístico: 200</small>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom:12px; color:var(--green-primary)">Consolidado de Hortaliças Necessárias</h3>
+            <div class="table-container">
+                <table id="tabela-producao">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Hortaliça</th>
+                            <th>Unidade de Medida</th>
+                            <th>Quantidade Total Necessária</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-producao"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div id="sec-produtos" style="display:none;">
             <div class="header-actions">
                 <h2 style="margin:0; border:none;">Catálogo</h2>
@@ -80,7 +111,7 @@
                             <th>Categoria</th>
                             <th>Preço</th>
                             <th>Estoque</th>
-                            <th style="text-align:right">Ações</th>
+                            <th style="text-align:right; width: 140px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="lista-produtos"></tbody>
@@ -223,6 +254,35 @@
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
                 <button class="btn" style="background:#e5e7eb" onclick="fecharModal('modalCliente')">Cancelar</button>
                 <button class="btn btn-primary" id="btnSalvarCli" onclick="salvarCliente()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="modalEstoque" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--green-primary)">Movimentar Estoque</h3>
+            <div style="font-weight:bold; margin-bottom:15px; color:#4b5563" id="estProdNome">Produto...</div>
+            <input type="hidden" id="estProdId">
+            <div class="form-group">
+                <label>Tipo de Movimentação</label>
+                <select id="estTipo">
+                    <option value="Entrada">📥 Entrada (Compra / Fornecedor)</option>
+                    <option value="Saída">📤 Saída (Ajuste / Venda Manual)</option>
+                    <option value="Descarte">🗑️ Descarte (Perda / Estragado)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Quantidade (<span id="estProdUni">un</span>)</label>
+                <input type="number" id="estQtde" placeholder="Ex: 50" min="1">
+            </div>
+            <div class="form-group">
+                <label>Descrição / Motivo (Opcional)</label>
+                <input type="text" id="estDesc" placeholder="Ex: Compra CEASA CEAGESP">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
+                <button class="btn" style="background:#e5e7eb" onclick="fecharModal('modalEstoque')">Cancelar</button>
+                <button class="btn btn-primary" id="btnSalvarEstoque" onclick="salvarMovimentacao()">Registrar</button>
             </div>
         </div>
     </div>

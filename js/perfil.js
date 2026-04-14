@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const u = jsonPerfil.usuario;
         document.getElementById('dados-pessoais').innerHTML = `<strong>${escapeHTML(u.nome)}</strong><br>${escapeHTML(u.email)}<br>${escapeHTML(u.endereco)}`;
+        
+        let saldo = parseFloat(u.saldo_compensacao || 0).toFixed(2).replace('.', ',');
+        document.getElementById('saldo-carteira').innerText = `R$ ${saldo}`;
 
         const resAssinatura = await fetch('api_minha_assinatura_v2.php');
         const jsonAssinatura = await resAssinatura.json();

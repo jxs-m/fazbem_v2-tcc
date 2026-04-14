@@ -32,10 +32,26 @@ try {
     $frequencia = $assinaturaAtual['frequencia'] ?? 'Semanal';
     $status = $assinaturaAtual['status'] ?? 'Pausada';
 
-     switch ($data['acao']) {
+         switch ($data['acao']) {
         case 'pausar':
             $status = 'Pausada';
-            $mensagem = 'Entregas pausadas com sucesso.';
+            
+            
+            $pdo = Database::getConexao();
+            $pdo->beginTransaction();
+            
+            $sqlWallet = "UPDATE usuarios SET saldo_compensacao = saldo_compensacao + 50.00 WHERE id = ?";
+            $stmtWallet = $pdo->prepare($sqlWallet);
+            $stmtWallet->execute([$usuario_id]);
+            
+            
+            $sqlTrans = "INSERT INTO transacoes_financeiras (usuario_id, tipo, valor, motivo) VALUES (?, 'Credito', 50.00, 'Pausa na Assinatura (Compensação Semanal)')";
+            $stmtTrans = $pdo->prepare($sqlTrans);
+            $stmtTrans->execute([$usuario_id]);
+            
+            $pdo->commit();
+
+            $mensagem = 'Entregas pausadas com sucesso. R$ 50,00 foram adicionados à sua carteira (Compensação).';
             break;
         case 'reativar':
             $status = 'Ativa';

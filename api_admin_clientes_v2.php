@@ -29,7 +29,6 @@ try {
 
    
     if ($method === 'POST') {
-        // Recebe os dados enviados pelo JavaScript
         $data = json_decode(file_get_contents('php://input'), true);
 
         if (empty($data['id']) || empty($data['nome']) || empty($data['telefone'])) {

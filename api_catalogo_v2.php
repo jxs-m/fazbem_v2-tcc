@@ -2,18 +2,24 @@
 // Caminho: faz_bem_v2/api_catalogo_v2.php
 header('Content-Type: application/json');
 
-// Puxa o Model de Produtos que já está pronto e testado
 require_once __DIR__ . '/app/Models/Produto.php';
+require_once __DIR__ . '/app/Models/Producao.php';
 
 try {
     $produtoModel = new Produto();
+    $producaoModel = new Producao();
     
-    // Busca todos os produtos na base de dados
+    $aberto = $producaoModel->catalogoAberto();
+    $kitsDisponiveis = 200 - $producaoModel->obterContagemKitsSemana();
+
+    if ($kitsDisponiveis < 0) $kitsDisponiveis = 0;
+
     $produtos = $produtoModel->listarTodos();
 
-    // Devolve para o front-end
     echo json_encode([
         'success' => true, 
+        'isOpen' => $aberto,
+        'kitsDisponiveis' => $kitsDisponiveis,
         'data' => $produtos
     ]);
 
