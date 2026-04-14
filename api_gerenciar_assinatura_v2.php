@@ -51,7 +51,21 @@ try {
             $mensagem = 'Plano alterado para ' . $frequencia . ' com sucesso.';
             break;
         case 'nova_preferencia':
-         echo json_encode(['success' => true, 'message' => 'Preferência salva.']);
+            if (empty($data['descricao'])) {
+                throw new Exception("Descrição da preferência é obrigatória.");
+            }
+            require_once __DIR__ . '/app/Models/Preferencia.php';
+            $prefModel = new Preferencia();
+            $tipo = $data['tipo'] ?? 'Troca Fixa';
+            $prefModel->adicionar($usuario_id, $tipo, $data['descricao']);
+            echo json_encode(['success' => true, 'message' => 'Preferência salva com sucesso.']);
+            exit;
+        case 'remover_preferencia':
+            if (empty($data['pref_id'])) throw new Exception("ID da preferência não informado.");
+            require_once __DIR__ . '/app/Models/Preferencia.php';
+            $prefModel = new Preferencia();
+            $prefModel->remover($data['pref_id'], $usuario_id);
+            echo json_encode(['success' => true, 'message' => 'Preferência removida.']);
             exit;
         default:
             throw new Exception("Ação desconhecida.");

@@ -49,8 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const lista = document.getElementById('lista-prefs');
-        lista.innerHTML = '<li><span style="color:#999;">Nenhuma preferência fixa definida.</span></li>';
-
+        lista.innerHTML = '';
+        if (jsonPerfil.preferencias && jsonPerfil.preferencias.length > 0) {
+            jsonPerfil.preferencias.forEach(p => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span style="flex: 1; display: flex; align-items: center;"><strong>${escapeHTML(p.tipo)}:</strong>&nbsp;${escapeHTML(p.descricao)}</span> <button style="flex: 0 0 auto; border: none; border-radius: 4px; cursor: pointer; padding: 4px 8px; font-size: 12px; font-weight: bold; background: #fee2e2; color: #dc2626;" onclick="removerPreferencia(${p.id})">X</button>`;
+                lista.appendChild(li);
+            });
+        } else {
+            lista.innerHTML = '<li><span style="color:#999;">Nenhuma preferência fixa definida.</span></li>';
+        }
       } catch (e) {
         console.error("Erro ao carregar perfil:", e);
       }
@@ -104,6 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'nova_preferencia', tipo: 'Troca Fixa', descricao: desc }) });
         document.getElementById('nova-pref').value = '';
+        carregarPerfil();
+      } catch (e) { alert('Erro'); }
+    }
+
+    async function removerPreferencia(id) {
+      if (!confirm('Deseja remover essa preferência?')) return;
+      try {
+        await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'remover_preferencia', pref_id: id }) });
         carregarPerfil();
       } catch (e) { alert('Erro'); }
     }

@@ -23,15 +23,19 @@ try {
 
     if ($method === 'GET') {
         $pedidoModel = new Pedido();
+        require_once __DIR__ . '/app/Models/Preferencia.php';
+        $prefModel = new Preferencia();
 
         $dadosUsuario = $usuarioModel->buscarPorId($usuario_id);
         
         $historicoPedidos = $pedidoModel->buscarPorUsuario($usuario_id);
+        $preferencias = $prefModel->buscarPorUsuario($usuario_id);
 
         echo json_encode([
             'success' => true,
             'usuario' => $dadosUsuario,
-            'pedidos' => $historicoPedidos
+            'pedidos' => $historicoPedidos,
+            'preferencias' => $preferencias
         ]);
         exit;
     }

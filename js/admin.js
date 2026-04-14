@@ -174,13 +174,14 @@ function showSection(id) {
 
         function renderizarClientes(lista) {
             const tbody = document.getElementById('lista-clientes'); tbody.innerHTML = '';
-            if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Nenhum cliente.</td></tr>'; return; }
+            if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">Nenhum cliente.</td></tr>'; return; }
             lista.forEach(c => {
                 let corSt = c.status === 'Ativa' ? '#166534' : (c.status === 'Pausada' ? '#9a3412' : '#991b1b');
                 let bgSt = c.status === 'Ativa' ? '#dcfce7' : (c.status === 'Pausada' ? '#ffedd5' : '#fee2e2');
                 let freqBadge = c.frequencia === 'Semanal' ? '📅 Semanal' : '🗓 Quinzenal';
                 let totalGasto = parseFloat(c.total_gasto || 0).toFixed(2).replace('.', ',');
-                tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></td></tr>`;
+                let pref = c.preferencias ? escapeHTML(c.preferencias) : '-';
+                tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><small>${pref}</small></td><td><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></td></tr>`;
             });
         }
 
