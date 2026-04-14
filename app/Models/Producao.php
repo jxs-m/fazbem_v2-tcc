@@ -10,9 +10,9 @@ class Producao {
         $this->pdo = Database::getConexao();
     }
 
-    // Calcula quantos kits já estão engatilhados na semana (domingo a sábado)
+    
     public function obterContagemKitsSemana() {
-        // Quantidade de assinaturas ativas
+      
         $sqlAssinaturas = "SELECT COUNT(*) as total FROM assinaturas WHERE status = 'Ativa'";
         $stmtAssinaturas = $this->pdo->query($sqlAssinaturas);
         $totalAssinaturas = $stmtAssinaturas->fetch()['total'];
@@ -27,7 +27,6 @@ class Producao {
         return $totalAssinaturas + $totalAvulsos;
     }
 
-    // Relatório de hortaliças necessárias (consolidação dos pedidos da semana)
     public function gerarRelatorioHortalicas() {
         $sql = "SELECT p.id, p.nome, p.unidade, IFNULL(SUM(ip.quantidade), 0) as total_necessario
                 FROM produtos p
@@ -40,7 +39,6 @@ class Producao {
     }
 
     public function catalogoAberto() {
-        // Aberto de Domingo (18h) até Terça (12h)
         date_default_timezone_set('America/Sao_Paulo');
         $diaSemana = date('w'); // 0 = Domingo, 1 = Segunda, 2 = Terça
         $hora = date('H');
@@ -54,7 +52,6 @@ class Producao {
             $aberto = true;
         }
 
-        // Verifica limite logístico
         if ($this->obterContagemKitsSemana() >= 200) {
             $aberto = false;
         }

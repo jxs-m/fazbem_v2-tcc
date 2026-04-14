@@ -73,10 +73,9 @@ class Pedido {
             $stmtPedido = $this->pdo->prepare($sqlPedido);
             $stmtPedido->execute([$usuario_id, $valor_total]);
             
-            // Pega o número (ID) do pedido que acabou de ser gerado
+           
             $pedido_id = $this->pdo->lastInsertId();
 
-            // 2. Prepara os comandos para os itens e para o estoque
             $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) 
                         VALUES (?, ?, ?, ?)";
             $stmtItem = $this->pdo->prepare($sqlItem);
@@ -84,22 +83,22 @@ class Pedido {
             $sqlEstoque = "UPDATE produtos SET estoque_atual = estoque_atual - ? WHERE id = ?";
             $stmtEstoque = $this->pdo->prepare($sqlEstoque);
 
-            // 3. Roda um loop em cada produto do carrinho do cliente
+            
             foreach ($carrinho as $item) {
-                // Salva o item vinculado ao número do pedido
+                
                 $stmtItem->execute([$pedido_id, $item['id'], $item['quantidade'], $item['preco']]);
                 
-                // Desconta a quantidade comprada do estoque atual do produto
+                
                 $stmtEstoque->execute([$item['quantidade'], $item['id']]);
             }
 
-            // Se o código chegou até aqui sem erros, confirma a gravação de tudo!
+            
             $this->pdo->commit();
             
-            return $pedido_id; // Retorna o número do pedido para a tela de sucesso
+            return $pedido_id; 
 
         } catch (Exception $e) {
-            // Deu algum erro (ex: acabou a luz do servidor)? Desfaz tudo!
+            
             $this->pdo->rollBack();
             throw $e;
         }

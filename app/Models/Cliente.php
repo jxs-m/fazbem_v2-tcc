@@ -10,7 +10,6 @@ class Cliente {
         $this->pdo = Database::getConexao();
     }
 
-    // 1. Listar todos os clientes e o total gasto
     public function listarTodos() {
         $sql = "SELECT u.id, u.nome, u.email, u.telefone, u.endereco, 
                        a.frequencia, a.status,
@@ -25,7 +24,6 @@ class Cliente {
         return $stmt->fetchAll();
     }
 
-    // 2. Atualizar dados do cliente (Transação Segura)
     public function atualizar($id, $nome, $telefone, $endereco, $frequencia, $status) {
         try {
             $this->pdo->beginTransaction();

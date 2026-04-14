@@ -10,7 +10,6 @@ class Assinatura {
         $this->pdo = Database::getConexao();
     }
 
-    // Busca a assinatura atual do cliente
     public function buscarPorUsuario($usuario_id) {
         $sql = "SELECT * FROM assinaturas WHERE usuario_id = ?";
         $stmt = $this->pdo->prepare($sql);
@@ -18,7 +17,6 @@ class Assinatura {
         return $stmt->fetch();
     }
 
-    // Cria ou atualiza a assinatura
     public function atualizar($usuario_id, $frequencia, $status) {
         $assinaturaExistente = $this->buscarPorUsuario($usuario_id);
 

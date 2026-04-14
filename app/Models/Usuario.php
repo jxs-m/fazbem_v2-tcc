@@ -73,7 +73,6 @@ class Usuario {
     }
 
     public function buscarPorId($id) {
-        // Não trazemos a senha por segurança
         $sql = "SELECT id, nome, email, telefone, endereco, ponto_referencia 
                 FROM usuarios WHERE id = ?";
         $stmt = $this->pdo->prepare($sql);

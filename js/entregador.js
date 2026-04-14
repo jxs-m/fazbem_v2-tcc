@@ -22,7 +22,7 @@ async function carregarEntregas() {
         const res = await fetch('api_logistica_v2.php');
         const json = await res.json();
         const container = document.getElementById('entregas-list');
-        
+
         if (json.success) {
             container.innerHTML = '';
             limparMarkers();
@@ -50,12 +50,10 @@ async function carregarEntregas() {
 
                 bounds.push([lat, lng]);
 
-                // Adicionar no Mapa
                 const marker = L.marker([lat, lng]).addTo(map)
                     .bindPopup(`<b>${e.nome}</b><br>${e.logradouro}`);
                 markers.push(marker);
 
-                // Botão de Próximo Status
                 let btnAction = '';
                 if (e.status_entrega === 'Em separação') {
                     btnAction = `<button class="btn btn-action" onclick="atualizarStatus(${e.pedido_id}, 'Saiu para entrega')">📍 Iniciar Rota</button>`;
