@@ -1,122 +1,192 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload de Produto V2</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; padding: 40px; }
-        .form-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { color: #2b8a3e; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: #374151; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
-        .btn { background: #2b8a3e; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn:hover { background: #15803d; }
-        #preview { max-width: 100%; height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; border: 1px solid #ddd; }
-        .status { margin-top: 15px; text-align: center; font-weight: bold; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h2 {
+            color: #2b8a3e;
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background: #2b8a3e;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #15803d;
+        }
+
+        #preview {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .status {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="form-container">
-    <h2>Cadastrar Novo Produto</h2>
-    
-    <form id="formUpload">
-        <div class="form-group">
-            <label>Nome do Produto</label>
-            <input type="text" name="nome" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Categoria</label>
-            <select name="categoria">
-                <option value="Legumes">Legumes</option>
-                <option value="Verduras">Verduras</option>
-                <option value="Frutas">Frutas</option>
-                <option value="Processados">Processados</option>
-                <option value="Outros">Outros</option>
-            </select>
-        </div>
-        
-        <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex: 1;">
-                <label>Preço (R$)</label>
-                <input type="number" step="0.01" name="preco" required>
+    <div class="form-container">
+        <h2>Cadastrar Novo Produto</h2>
+
+        <form id="formUpload">
+            <div class="form-group">
+                <label>Nome do Produto</label>
+                <input type="text" name="nome" required>
             </div>
-            <div class="form-group" style="flex: 1;">
-                <label>Unidade (ex: kg, un)</label>
-                <input type="text" name="unidade" value="un" required>
+
+            <div class="form-group">
+                <label>Categoria</label>
+                <select name="categoria">
+                    <option value="Legumes">Legumes</option>
+                    <option value="Verduras">Verduras</option>
+                    <option value="Frutas">Frutas</option>
+                    <option value="Processados">Processados</option>
+                    <option value="Outros">Outros</option>
+                </select>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>Estoque Inicial</label>
-            <input type="number" name="estoque" value="10" required>
-        </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Preço (R$)</label>
+                    <input type="number" step="0.01" name="preco" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Unidade (ex: kg, un)</label>
+                    <input type="text" name="unidade" value="un" required>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Imagem Física (.jpg, .png, .webp)</label>
-            <input type="file" name="imagem" accept="image/*" required onchange="mostrarPreview(this)">
-            <img id="preview" alt="Pré-visualização">
-        </div>
+            <div class="form-group">
+                <label>Estoque Inicial</label>
+                <input type="number" name="estoque" value="10" required>
+            </div>
 
-        <button type="button" class="btn" onclick="enviarProduto()">Salvar Produto</button>
-        <div id="mensagem" class="status"></div>
-    </form>
-</div>
+            <div class="form-group">
+                <label>Imagem Física (.jpg, .png, .webp)</label>
+                <input type="file" name="imagem" accept="image/*" required onchange="mostrarPreview(this)">
+                <img id="preview" alt="Pré-visualização">
+            </div>
 
-<script src="utils.js"></script>
-<script>
-    // Função para mostrar a foto no ecrã antes de enviar
-    function mostrarPreview(input) {
-        const preview = document.getElementById('preview');
-        if (input.files && input.files[0]) {
-            preview.src = URL.createObjectURL(input.files[0]);
-            preview.style.display = 'block';
-        }
-    }
+            <button type="button" class="btn" onclick="enviarProduto()">Salvar Produto</button>
+            <div id="mensagem" class="status"></div>
+        </form>
+    </div>
 
-    // Função que faz o envio usando o FormData (Upload Físico)
-    async function enviarProduto() {
-        const form = document.getElementById('formUpload');
-        const msg = document.getElementById('mensagem');
-        
-        // Validação básica do HTML5
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
+    <script src="utils.js"></script>
+    <script>
 
-        msg.style.color = '#374151';
-        msg.innerText = 'Enviando para o servidor...';
-
-        try {
-            // O FormData empacota os textos e a imagem física automaticamente
-            const formData = new FormData(form);
-
-            const response = await fetch('api_admin_produtos_v2.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const json = await response.json();
-
-            if (json.success) {
-                msg.style.color = '#15803d';
-                msg.innerText = '✅ Produto cadastrado com sucesso!';
-                form.reset();
-                document.getElementById('preview').style.display = 'none';
-            } else {
-                msg.style.color = '#dc2626';
-                msg.innerText = '❌ Erro: ' + json.message;
+        function mostrarPreview(input) {
+            const preview = document.getElementById('preview');
+            if (input.files && input.files[0]) {
+                preview.src = URL.createObjectURL(input.files[0]);
+                preview.style.display = 'block';
             }
-        } catch (error) {
-            msg.style.color = '#dc2626';
-            msg.innerText = '❌ Erro de conexão com a API.';
         }
-    }
-</script>
+
+
+        async function enviarProduto() {
+            const form = document.getElementById('formUpload');
+            const msg = document.getElementById('mensagem');
+
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            msg.style.color = '#374151';
+            msg.innerText = 'Enviando para o servidor...';
+
+            try {
+
+                const formData = new FormData(form);
+
+                const response = await fetch('api_admin_produtos_v2.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const json = await response.json();
+
+                if (json.success) {
+                    msg.style.color = '#15803d';
+                    msg.innerText = '✅ Produto cadastrado com sucesso!';
+                    form.reset();
+                    document.getElementById('preview').style.display = 'none';
+                } else {
+                    msg.style.color = '#dc2626';
+                    msg.innerText = '❌ Erro: ' + json.message;
+                }
+            } catch (error) {
+                msg.style.color = '#dc2626';
+                msg.innerText = '❌ Erro de conexão com a API.';
+            }
+        }
+    </script>
 
 </body>
+
 </html>

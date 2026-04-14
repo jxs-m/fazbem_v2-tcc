@@ -13,12 +13,9 @@ class Security {
         return $_SESSION['csrf_token'];
     }
 
-    /**
-     * Valida o token CSRF vindo no cabeçalho X-CSRF-Token da requisição.
-     * Interrompe a execução com erro 403 se o token for inválido.
-     */
+   
     public static function checkCSRF() {
-        // Se a requisição for GET, OPTIONS, HEAD, não precisa validar
+       
         if (in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD', 'OPTIONS'])) {
             return true;
         }
@@ -34,7 +31,7 @@ class Security {
     }
 
     /**
-     * Rate Limiting simples usando um arquivo JSON baseado no IP e a URL consumida.
+     
      * @param int $maxAttempts Quantidade máxima de requisições permitidas
      * @param int $decaySeconds Tempo em segundos para limpar o registro
      */
@@ -43,14 +40,14 @@ class Security {
         $endpoint = $_SERVER['SCRIPT_NAME'];
         $cacheFile = __DIR__ . '/rate_limit.json';
 
-        // Carrega arquivo de cache ou cria array vazio
+        
         $data = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : [];
         if (!is_array($data)) $data = [];
 
         $key = $ip . '_' . $endpoint;
         $now = time();
 
-        // Inicializa se não existir
+        
         if (!isset($data[$key])) {
             $data[$key] = ['attempts' => 1, 'first_attempt' => $now];
         } else {
@@ -62,7 +59,7 @@ class Security {
             }
         }
 
-        // Bloqueia com erro HTTP 429 se excedeu
+       
         if ($data[$key]['attempts'] > $maxAttempts) {
             file_put_contents($cacheFile, json_encode($data));
             http_response_code(429);
@@ -70,7 +67,7 @@ class Security {
             exit;
         }
 
-        // Salva arquivo
+        
         file_put_contents($cacheFile, json_encode($data));
     }
 }

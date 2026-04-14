@@ -1,5 +1,4 @@
 // utils.js
-// Funções utilitárias comuns ao frontend do projeto fazbem
 
 /**
  * Escapa caracteres HTML perigosos para evitar Stored e Reflected XSS.
@@ -18,9 +17,6 @@ function escapeHTML(str) {
         .replace(/'/g, "&#039;");
 }
 
-// ============================================
-// CSRF Protection 
-// ============================================
 
 let csrfToken = null;
 let csrfPromise = null;

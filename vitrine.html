@@ -1,14 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vitrine V2 — Faz Bem</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f7f9f7; margin: 0; padding: 40px; color: #1f2937; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        h1 { color: #2b8a3e; text-align: center; margin-bottom: 40px; font-size: 32px; }
-        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9f7;
+            margin: 0;
+            padding: 40px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #2b8a3e;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 32px;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -19,21 +36,21 @@
             background: white;
             border-radius: 12px;
             padding: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             text-align: center;
             border: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
         }
 
-        /* A regra de ouro para as imagens não quebrarem o layout */
         .imagem-produto {
             width: 100%;
             height: 180px;
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 12px;
-            background-color: #f3f4f6; /* Cor de fundo caso a imagem demore a carregar */
+            background-color: #f3f4f6;
+            /* Cor de fundo caso a imagem demore a carregar */
         }
 
         .sem-foto {
@@ -48,10 +65,28 @@
             margin-bottom: 12px;
         }
 
-        .nome { font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827; }
-        .categoria { font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: bold; margin-bottom: 8px; }
-        .preco { color: #2b8a3e; font-weight: 800; font-size: 20px; margin-bottom: 16px; }
-        
+        .nome {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .categoria {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .preco {
+            color: #2b8a3e;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
         .btn-comprar {
             background: #2b8a3e;
             color: white;
@@ -63,50 +98,52 @@
             margin-top: auto;
             transition: 0.2s;
         }
-        .btn-comprar:hover { background: #15803d; }
+
+        .btn-comprar:hover {
+            background: #15803d;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>Nossa Vitrine Fresquinha 🌿</h1>
-    
-    <div class="grid" id="lista-vitrine">
-        <div style="grid-column: 1 / -1; text-align: center; color: #6b7280;">
-            A carregar os produtos do servidor...
+    <div class="container">
+        <h1>Nossa Vitrine Fresquinha 🌿</h1>
+
+        <div class="grid" id="lista-vitrine">
+            <div style="grid-column: 1 / -1; text-align: center; color: #6b7280;">
+                A carregar os produtos do servidor...
+            </div>
         </div>
     </div>
-</div>
 
-<script src="utils.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', carregarVitrine);
+    <script src="utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', carregarVitrine);
 
-    async function carregarVitrine() {
-        const container = document.getElementById('lista-vitrine');
-        
-        try {
-            // Chama a API pública (segura, apenas de leitura)
-            const response = await fetch('api_catalogo_v2.php');
-            const json = await response.json();
+        async function carregarVitrine() {
+            const container = document.getElementById('lista-vitrine');
 
-            if (json.success) {
-                container.innerHTML = ''; // Limpa a mensagem de carregamento
-                
-                if (json.data.length === 0) {
-                    container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">Nenhum produto cadastrado ainda.</p>';
-                    return;
-                }
+            try {
+                const response = await fetch('api_catalogo_v2.php');
+                const json = await response.json();
 
-                json.data.forEach(p => {
-                    const precoFormatado = parseFloat(p.preco).toFixed(2).replace('.', ',');
-                    
-                    // Lógica para mostrar a imagem física ou um ícone caso o administrador não tenha feito o upload de foto
-                    const displayImagem = p.imagem_url 
-                        ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="imagem-produto">` 
-                        : `<div class="sem-foto">📦</div>`;
+                if (json.success) {
+                    container.innerHTML = '';
 
-                    container.innerHTML += `
+                    if (json.data.length === 0) {
+                        container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">Nenhum produto cadastrado ainda.</p>';
+                        return;
+                    }
+
+                    json.data.forEach(p => {
+                        const precoFormatado = parseFloat(p.preco).toFixed(2).replace('.', ',');
+
+                        const displayImagem = p.imagem_url
+                            ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="imagem-produto">`
+                            : `<div class="sem-foto">📦</div>`;
+
+                        container.innerHTML += `
                         <div class="card">
                             ${displayImagem}
                             <div class="categoria">${escapeHTML(p.categoria)}</div>
@@ -115,15 +152,16 @@
                             <button class="btn-comprar" onclick="alert('Produto selecionado: ' + escapeHTML(p.nome))">Adicionar</button>
                         </div>
                     `;
-                });
-            } else {
-                container.innerHTML = `<p style="grid-column: 1/-1; color:red;">Erro: ${escapeHTML(json.message)}</p>`;
+                    });
+                } else {
+                    container.innerHTML = `<p style="grid-column: 1/-1; color:red;">Erro: ${escapeHTML(json.message)}</p>`;
+                }
+            } catch (error) {
+                container.innerHTML = '<p style="grid-column: 1/-1; color:red;">Falha de conexão com a API.</p>';
             }
-        } catch (error) {
-            container.innerHTML = '<p style="grid-column: 1/-1; color:red;">Falha de conexão com a API.</p>';
         }
-    }
-</script>
+    </script>
 
 </body>
+
 </html>

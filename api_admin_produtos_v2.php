@@ -8,7 +8,6 @@ Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Produto.php';
 
-// 1. Verificação de Segurança (Apenas administradores)
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado. Área restrita.']);
@@ -27,9 +26,6 @@ try {
         exit;
     }
 
-    // ==========================================
-    // REQUISIÇÃO POST: Cadastrar ou Editar produto + Upload de Imagem
-    // ==========================================
     if ($method === 'POST') {
         $id = $_POST['id'] ?? ''; // Se vier ID, é edição. Se não vier, é novo.
         $nome = $_POST['nome'] ?? '';

@@ -6,7 +6,6 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
-// Puxa o nosso Model recém-criado
 require_once __DIR__ . '/app/Models/Pedido.php';
 
 // 1. Verificação de Segurança (Bloqueia quem não é admin)
@@ -24,21 +23,18 @@ try {
    
     if ($method === 'GET') {
         
-        // Se vier um ID na URL (ex: api_admin_pedidos_v2.php?id=5), busca os detalhes para o Modal
+        // Se vier um ID na URL (php?id=5), busca os detalhes para o Modal
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
             
-            // Busca as informações gerais (Pedido + Cliente)
             $info = $pedidoModel->buscarDetalhes($id);
             
             if (!$info) {
                 throw new Exception("Pedido não encontrado.");
             }
 
-            // Busca os itens que compõem esse pedido
             $itens = $pedidoModel->buscarItens($id);
 
-            // Devolve tudo empacotado para o frontend montar a Folha de Separação
             echo json_encode([
                 'success' => true,
                 'info' => $info,
@@ -66,7 +62,6 @@ try {
             throw new Exception("Dados incompletos para atualização.");
         }
 
-        // Usa a Orientação a Objetos para atualizar o status
         $atualizou = $pedidoModel->atualizarStatus($data['id'], $data['tipo'], $data['valor']);
 
         if ($atualizou) {
@@ -77,7 +72,6 @@ try {
         exit;
     }
 
-    // Se chegar aqui, o método HTTP não é suportado
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método não permitido.']);
 

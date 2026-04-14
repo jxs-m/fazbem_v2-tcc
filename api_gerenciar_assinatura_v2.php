@@ -57,7 +57,6 @@ try {
             throw new Exception("Ação desconhecida.");
     }
 
-    // Atualiza na base de dados usando o Model
     $assinaturaModel->atualizar($usuario_id, $frequencia, $status);
 
     echo json_encode(['success' => true, 'message' => $mensagem]);
