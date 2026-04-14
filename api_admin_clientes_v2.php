@@ -3,6 +3,8 @@
 session_start();
 ob_clean();
 header('Content-Type: application/json');
+require_once __DIR__ . '/app/Security.php';
+Security::checkCSRF();
 
 // Puxa a nossa classe Cliente
 require_once __DIR__ . '/app/Models/Cliente.php';
@@ -64,6 +66,10 @@ try {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método não permitido.']);
 
+} catch (PDOException $e) {
+    error_log("DB Error em admin clientes: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Erro de banco de dados.']);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

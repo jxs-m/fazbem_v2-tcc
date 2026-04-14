@@ -3,6 +3,8 @@
 session_start();
 ob_clean();
 header('Content-Type: application/json');
+require_once __DIR__ . '/app/Security.php';
+Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Pedido.php';
 
@@ -47,8 +49,11 @@ try {
         'pedido_id' => $numero_pedido
     ]);
 
+} catch (PDOException $e) {
+    error_log("DB Error no checkout: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Erro interno ao processar pedido.']);
 } catch (Exception $e) {
-// ... resto do código continua igual{
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro ao processar pedido: ' . $e->getMessage()]);
 }

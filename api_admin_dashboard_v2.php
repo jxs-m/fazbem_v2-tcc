@@ -23,8 +23,12 @@ try {
         'data' => $resumo
     ]);
 
+} catch (PDOException $e) {
+    error_log("DB Error no dashboard: " . $e->getMessage());
+    http_response_code(500); 
+    echo json_encode(['success' => false, 'message' => 'Erro ao carregar métricas (Erro Interno).']);
 } catch (Exception $e) {
-    http_response_code(500); // 500 Internal Server Error
+    http_response_code(500); 
     echo json_encode(['success' => false, 'message' => 'Erro ao carregar métricas: ' . $e->getMessage()]);
 }
 ?>

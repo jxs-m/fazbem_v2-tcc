@@ -78,6 +78,7 @@
     </div>
 </div>
 
+<script src="utils.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', carregarVitrine);
 
@@ -102,21 +103,21 @@
                     
                     // Lógica para mostrar a imagem física ou um ícone caso o administrador não tenha feito o upload de foto
                     const displayImagem = p.imagem_url 
-                        ? `<img src="${p.imagem_url}" alt="${p.nome}" class="imagem-produto">` 
+                        ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="imagem-produto">` 
                         : `<div class="sem-foto">📦</div>`;
 
                     container.innerHTML += `
                         <div class="card">
                             ${displayImagem}
-                            <div class="categoria">${p.categoria}</div>
-                            <div class="nome">${p.nome}</div>
-                            <div class="preco">R$ ${precoFormatado} <span style="font-size:14px; font-weight:normal; color:#6b7280;">/ ${p.unidade}</span></div>
-                            <button class="btn-comprar" onclick="alert('Produto selecionado: ${p.nome}')">Adicionar</button>
+                            <div class="categoria">${escapeHTML(p.categoria)}</div>
+                            <div class="nome">${escapeHTML(p.nome)}</div>
+                            <div class="preco">R$ ${precoFormatado} <span style="font-size:14px; font-weight:normal; color:#6b7280;">/ ${escapeHTML(p.unidade)}</span></div>
+                            <button class="btn-comprar" onclick="alert('Produto selecionado: ' + escapeHTML(p.nome))">Adicionar</button>
                         </div>
                     `;
                 });
             } else {
-                container.innerHTML = `<p style="grid-column: 1/-1; color:red;">Erro: ${json.message}</p>`;
+                container.innerHTML = `<p style="grid-column: 1/-1; color:red;">Erro: ${escapeHTML(json.message)}</p>`;
             }
         } catch (error) {
             container.innerHTML = '<p style="grid-column: 1/-1; color:red;">Falha de conexão com a API.</p>';

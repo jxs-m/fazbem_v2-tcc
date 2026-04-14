@@ -2,6 +2,9 @@
 // Caminho: faz_bem_v2/api_cadastro_v2.php
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Usuario.php';
+require_once __DIR__ . '/app/Security.php';
+
+Security::checkRateLimit(5, 120);
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -38,6 +41,10 @@ try {
 
     echo json_encode(['success' => true, 'message' => 'Cadastro realizado com sucesso!']);
 
+} catch (PDOException $e) {
+    error_log("DB Error no cadastro: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Erro interno de banco de dados. Tente novamente.']);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro ao cadastrar: ' . $e->getMessage()]);

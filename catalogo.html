@@ -137,6 +137,7 @@
     </div>
   </main>
 
+  <script src="utils.js"></script>
   <script>
     let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
     atualizarContador();
@@ -206,18 +207,18 @@
         
         
         const imagemDisplay = p.imagem_url 
-            ? `<img src="${p.imagem_url}" alt="${p.nome}" class="imagem-produto">` 
+            ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="imagem-produto">` 
             : `<span class="prod-icon">${iconeCat}</span>`;
         htmlProdutos += `
           <div class="card">
             ${imagemDisplay}
-            <div class="prod-name">${p.nome}</div>
-            <div class="prod-price">R$ ${precoFormatado} <span class="prod-unit">/ ${p.unidade}</span></div>
+            <div class="prod-name">${escapeHTML(p.nome)}</div>
+            <div class="prod-price">R$ ${precoFormatado} <span class="prod-unit">/ ${escapeHTML(p.unidade)}</span></div>
             <div class="actions">
-              <button class="btn-add" onclick="adicionarCarrinho('${p.nome}', ${p.id}, '${p.preco}')">
+              <button class="btn-add" onclick="adicionarCarrinho('${escapeHTML(p.nome.replace(/'/g, "\\'"))}', ${p.id}, '${p.preco}')">
                 + Adicionar
               </button>
-              <button class="btn-swap" onclick="abrirTroca('${p.nome}')">
+              <button class="btn-swap" onclick="abrirTroca('${escapeHTML(p.nome.replace(/'/g, "\\'"))}')">
                 ⇄ Trocar Item
               </button>
             </div>

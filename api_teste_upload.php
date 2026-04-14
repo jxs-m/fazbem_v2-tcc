@@ -1,6 +1,8 @@
 <?php
 // api_teste_upload.php
 header('Content-Type: application/json');
+require_once __DIR__ . '/app/Security.php';
+Security::checkCSRF();
 
 
 require_once __DIR__ . '/app/Models/Produto.php';
@@ -69,6 +71,10 @@ try {
         throw new Exception("Erro ao guardar na base de dados.");
     }
 
+} catch (PDOException $e) {
+    error_log("DB Error no upload: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Erro interno ao salvar no banco de dados.']);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

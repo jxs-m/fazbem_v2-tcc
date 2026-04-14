@@ -94,6 +94,7 @@
     <button class="btn-finish" id="btn-finalizar" onclick="finalizarPedido()" disabled>Finalizar Pedido</button>
   </div>
 
+  <script src="utils.js"></script>
   <script>
     
     let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
@@ -123,7 +124,7 @@
         html += `
           <div class="cart-item">
             <div class="item-info">
-              <h4>${item.nome}</h4>
+              <h4>${escapeHTML(item.nome)}</h4>
               <span>R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</span>
             </div>
             <div class="qtd-ctrl">

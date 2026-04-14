@@ -310,6 +310,7 @@
         </div>
     </div>
 
+    <script src="utils.js"></script>
     <script>
         // === NAVEGAÇÃO ===
         function showSection(id) {
@@ -346,7 +347,7 @@
                         const selPag = `<select onchange="atualizarStatus(${p.id}, 'pagamento', this.value)" class="select-status ${p.status_pagamento==='Pago'?'st-pago':'st-pendente'}"><option value="Pendente" ${p.status_pagamento==='Pendente'?'selected':''}>Pendente</option><option value="Pago" ${p.status_pagamento==='Pago'?'selected':''}>Pago</option><option value="Cancelado" ${p.status_pagamento==='Cancelado'?'selected':''}>Cancelado</option></select>`;
                         const selEnt = `<select onchange="atualizarStatus(${p.id}, 'entrega', this.value)" class="select-status"><option value="Em separação" ${p.status_entrega==='Em separação'?'selected':''}>Em separação</option><option value="Saiu para entrega" ${p.status_entrega==='Saiu para entrega'?'selected':''}>Saiu para entrega</option><option value="Entregue" ${p.status_entrega==='Entregue'?'selected':''}>Entregue</option></select>`;
                         
-                        tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${p.cliente}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selPag}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button></td></tr>`;
+                        tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selPag}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button></td></tr>`;
                     });
 
                     // Atualiza o Card de Faturamento
@@ -387,7 +388,7 @@ async function carregarDashboardV2() {
                 if (json.success) {
                     const info = json.info;
                     document.getElementById('det-id').innerText = info.id;
-                    document.getElementById('det-cliente').innerHTML = `<div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${info.nome}</div><div>📞 ${info.telefone}</div><div style="margin-top:8px;">📍 ${info.endereco}</div><small>Ref: ${info.ponto_referencia||'Sem referência'}</small>`;
+                    document.getElementById('det-cliente').innerHTML = `<div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${escapeHTML(info.nome)}</div><div>📞 ${escapeHTML(info.telefone)}</div><div style="margin-top:8px;">📍 ${escapeHTML(info.endereco)}</div><small>Ref: ${escapeHTML(info.ponto_referencia||'Sem referência')}</small>`;
                     
                     const divItens = document.getElementById('det-itens');
                     divItens.innerHTML = '';
@@ -398,14 +399,14 @@ async function carregarDashboardV2() {
                         let subtotal = i.quantidade * i.preco_unitario;
                         somaTotal += subtotal;
                         
-                        divItens.innerHTML += `<div class="item-row"><span class="check-box"></span><div><strong>${i.quantidade}x</strong> ${i.nome} <small>(${i.unidade})</small></div></div>`;
+                        divItens.innerHTML += `<div class="item-row"><span class="check-box"></span><div><strong>${i.quantidade}x</strong> ${escapeHTML(i.nome)} <small>(${escapeHTML(i.unidade)})</small></div></div>`;
                     });
 
                     
                     document.getElementById('det-total').innerText = 'Total: R$ ' + somaTotal.toFixed(2).replace('.', ',');
                     
                     const divObs = document.getElementById('det-obs');
-                    if (info.obs_pontual) { divObs.style.display = 'block'; divObs.innerHTML = '⚠ OBS: ' + info.obs_pontual; } else { divObs.style.display = 'none'; }
+                    if (info.obs_pontual) { divObs.style.display = 'block'; divObs.innerHTML = '⚠ OBS: ' + escapeHTML(info.obs_pontual); } else { divObs.style.display = 'none'; }
                 }
             } catch (e) { alert('Erro'); }
         }
@@ -425,7 +426,7 @@ async function carregarDashboardV2() {
                     tbody.innerHTML = ''; let critico = 0;
                     json.data.forEach(p => {
                         if (p.estoque_atual < 10) critico++;
-                        tbody.innerHTML += `<tr><td><strong>${p.nome}</strong></td><td>${p.categoria}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${p.unidade}</td><td class="${p.estoque_atual<10?'low-stock':''}">${p.estoque_atual}</td><td style="text-align:right"><button class="btn btn-edit" onclick='editarProd(${JSON.stringify(p)})'>✏️</button><button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></td></tr>`;
+                        tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual<10?'low-stock':''}">${p.estoque_atual}</td><td style="text-align:right"><button class="btn btn-edit" onclick='editarProd(${JSON.stringify(p)})'>✏️</button><button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></td></tr>`;
                     });
                     document.getElementById('dash-estoque').innerText = critico;
                 }
@@ -500,7 +501,7 @@ async function carregarDashboardV2() {
                 let bgSt = c.status === 'Ativa' ? '#dcfce7' : (c.status === 'Pausada' ? '#ffedd5' : '#fee2e2');
                 let freqBadge = c.frequencia === 'Semanal' ? '📅 Semanal' : '🗓 Quinzenal';
                 let totalGasto = parseFloat(c.total_gasto || 0).toFixed(2).replace('.', ',');
-                tbody.innerHTML += `<tr><td><strong>${c.nome}</strong><br><small>${c.email}</small></td><td>${c.telefone}</td><td><small>${c.endereco}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></td></tr>`;
+                tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></td></tr>`;
             });
         }
 

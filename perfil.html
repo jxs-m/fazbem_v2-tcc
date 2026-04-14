@@ -108,6 +108,7 @@
 
   </main>
 
+  <script src="utils.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
         carregarPerfil();
@@ -129,7 +130,7 @@
 
         // Preenche o HTML com os dados que vieram da base de dados
         const u = jsonPerfil.usuario;
-        document.getElementById('dados-pessoais').innerHTML = `<strong>${u.nome}</strong><br>${u.email}<br>${u.endereco}`;
+        document.getElementById('dados-pessoais').innerHTML = `<strong>${escapeHTML(u.nome)}</strong><br>${escapeHTML(u.email)}<br>${escapeHTML(u.endereco)}`;
 
         // 2. Buscar o status da Assinatura
         const resAssinatura = await fetch('api_minha_assinatura_v2.php');
@@ -200,7 +201,7 @@
                 if(json.data.length === 0) { tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#999">Sem pedidos.</td></tr>'; return; }
                 json.data.forEach(p => {
                     let tagClass = p.status_entrega === 'Entregue' ? 'tag-green' : 'tag-yellow';
-                    tbody.innerHTML += `<tr><td><div style="font-weight:bold">${new Date(p.data_pedido).toLocaleDateString('pt-BR')}</div><span class="tag ${tagClass}">${p.status_entrega}</span></td><td style="text-align:right"><div style="font-weight:bold; color:#2b8a3e">R$ ${parseFloat(p.valor_total).toFixed(2).replace('.', ',')}</div><div style="font-size:12px">${p.status_pagamento}</div></td></tr>`;
+                    tbody.innerHTML += `<tr><td><div style="font-weight:bold">${new Date(p.data_pedido).toLocaleDateString('pt-BR')}</div><span class="tag ${tagClass}">${escapeHTML(p.status_entrega)}</span></td><td style="text-align:right"><div style="font-weight:bold; color:#2b8a3e">R$ ${parseFloat(p.valor_total).toFixed(2).replace('.', ',')}</div><div style="font-size:12px">${escapeHTML(p.status_pagamento)}</div></td></tr>`;
                 });
             }
         } catch(e) {}
