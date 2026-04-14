@@ -67,6 +67,6 @@ try {
     echo json_encode(['success' => false, 'message' => 'Erro interno de banco de dados.']);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Ocorreu um erro inesperado. Tente novamente.']);
 }
 ?>

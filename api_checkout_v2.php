@@ -49,6 +49,6 @@ try {
     echo json_encode(['success' => false, 'message' => 'Erro interno ao processar pedido.']);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro ao processar pedido: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Ocorreu um erro inesperado. Tente novamente.']);
 }
 ?>

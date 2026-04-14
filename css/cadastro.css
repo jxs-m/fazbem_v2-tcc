@@ -1,0 +1,98 @@
+:root {
+        --green-primary: #2b8a3e;
+        --green-light: #dcfce7;
+        --text-dark: #1f2937;
+        --bg-color: #f0fdf4;
+    }
+
+    body { 
+        margin: 0; 
+        font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+        background: var(--bg-color); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        min-height: 100vh; 
+        padding: 20px; 
+        box-sizing: border-box; 
+        color: var(--text-dark);
+    }
+
+    .container { 
+        background: white; 
+        padding: 40px; 
+        border-radius: 16px; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); 
+        width: 100%; 
+        max-width: 500px; 
+    }
+
+    .brand {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .brand span { font-size: 40px; display: block; margin-bottom: 10px; }
+    .brand h1 { margin: 0; color: var(--green-primary); font-size: 24px; }
+    .brand p { margin: 5px 0 0; color: #6b7280; font-size: 14px; }
+
+    .form-group { margin-bottom: 16px; }
+    
+    label { 
+        display: block; 
+        margin-bottom: 6px; 
+        font-weight: 600; 
+        color: #374151; 
+        font-size: 14px; 
+    }
+
+    input, select { 
+        width: 100%; 
+        padding: 12px; 
+        border: 1px solid #d1d5db; 
+        border-radius: 8px; 
+        font-size: 15px; 
+        box-sizing: border-box; 
+        transition: border-color 0.2s;
+        outline: none;
+    }
+
+    input:focus, select:focus { 
+        border-color: var(--green-primary); 
+        box-shadow: 0 0 0 3px var(--green-light); 
+    }
+
+    .row { display: flex; gap: 15px; }
+    .col { flex: 1; }
+
+    .btn { 
+        background: var(--green-primary); 
+        color: white; 
+        width: 100%; 
+        padding: 14px; 
+        border: none; 
+        border-radius: 8px; 
+        font-size: 16px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        transition: background 0.2s; 
+        margin-top: 10px; 
+    }
+
+    .btn:hover { background: #15803d; }
+    .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    .login-link { 
+        text-align: center; 
+        margin-top: 24px; 
+        font-size: 14px; 
+        color: #6b7280; 
+    }
+
+    .login-link a { 
+        color: var(--green-primary); 
+        text-decoration: none; 
+        font-weight: 700; 
+    }
+    
+    .login-link a:hover { text-decoration: underline; }

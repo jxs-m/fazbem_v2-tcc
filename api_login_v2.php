@@ -22,7 +22,7 @@ try {
 
     
     if ($user && password_verify($data['senha'], $user['senha'])) {
-        
+        session_regenerate_id(true);
         
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['nome'] = $user['nome'];
