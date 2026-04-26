@@ -8,7 +8,7 @@ Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Assinatura.php';
 
-// Segurança: Apenas clientes logados podem gerir as suas assinaturas
+// Segurança: Apenas clientes logados podem gerir as assinaturas
 if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'cliente') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado.']);

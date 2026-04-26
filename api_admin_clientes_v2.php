@@ -38,6 +38,8 @@ try {
         $endereco = $data['endereco'] ?? '';
         $frequencia = $data['frequencia'] ?? '';
         $status = $data['status'] ?? 'Ativa';
+        $latitude = isset($data['latitude']) && $data['latitude'] !== "" ? (float)$data['latitude'] : null;
+        $longitude = isset($data['longitude']) && $data['longitude'] !== "" ? (float)$data['longitude'] : null;
 
         $atualizou = $clienteModel->atualizar(
             $data['id'],
@@ -45,7 +47,9 @@ try {
             $data['telefone'],
             $endereco,
             $frequencia,
-            $status
+            $status,
+            $latitude,
+            $longitude
         );
 
         if ($atualizou) {

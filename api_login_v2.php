@@ -28,8 +28,13 @@ try {
         $_SESSION['nome'] = $user['nome'];
         $_SESSION['tipo_usuario'] = $user['tipo_usuario'];
 
-       
-        $redirect = ($user['tipo_usuario'] === 'admin') ? 'admin.html' : 'perfil.html';
+        if ($user['tipo_usuario'] === 'admin') {
+            $redirect = 'admin.html';
+        } elseif ($user['tipo_usuario'] === 'entregador') {
+            $redirect = 'entregador.html';
+        } else {
+            $redirect = 'perfil.html';
+        }
 
         echo json_encode(['success' => true, 'redirect' => $redirect]);
 

@@ -11,10 +11,12 @@ try {
        
         $sql = "SELECT p.id as pedido_id, p.valor_total, p.status_pagamento, p.status_entrega,
                        u.nome, u.telefone, 
-                       e.logradouro, e.ponto_referencia, e.latitude, e.longitude
+                       COALESCE(e.logradouro, u.endereco) as logradouro, 
+                       COALESCE(e.ponto_referencia, u.ponto_referencia) as ponto_referencia, 
+                       e.latitude, e.longitude
                 FROM pedidos p
                 JOIN usuarios u ON p.usuario_id = u.id
-                JOIN enderecos e ON e.usuario_id = u.id
+                LEFT JOIN enderecos e ON e.usuario_id = u.id
                 WHERE p.status_entrega IN ('Em separação', 'Saiu para entrega')
                 GROUP BY p.id
                 ORDER BY p.id ASC";

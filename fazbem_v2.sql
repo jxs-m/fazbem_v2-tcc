@@ -32,7 +32,7 @@ CREATE TABLE `assinaturas` (
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `assinaturas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,7 +46,8 @@ INSERT INTO `assinaturas` VALUES
 (1,2,'Semanal','Ativa','2026-03-30 15:49:18'),
 (6,13,'Semanal','Ativa','2026-04-01 02:29:00'),
 (7,14,'Quinzenal','Ativa','2026-04-01 02:29:00'),
-(8,15,'Semanal','Pausada','2026-04-01 02:30:07');
+(8,15,'Semanal','Pausada','2026-04-01 02:30:07'),
+(9,16,'Semanal','Ativa','2026-04-25 12:29:20');
 /*!40000 ALTER TABLE `assinaturas` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -69,7 +70,7 @@ CREATE TABLE `enderecos` (
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `enderecos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -79,6 +80,8 @@ CREATE TABLE `enderecos` (
 LOCK TABLES `enderecos` WRITE;
 /*!40000 ALTER TABLE `enderecos` DISABLE KEYS */;
 set autocommit=0;
+INSERT INTO `enderecos` VALUES
+(1,16,'Rua Monteiro Lobato, 4442, Uruguiana','iffar',1,-29.78189440,-57.10677266);
 /*!40000 ALTER TABLE `enderecos` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -101,7 +104,7 @@ CREATE TABLE `itens_pedido` (
   KEY `produto_id` (`produto_id`),
   CONSTRAINT `itens_pedido_ibfk_1` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE CASCADE,
   CONSTRAINT `itens_pedido_ibfk_2` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -116,7 +119,9 @@ INSERT INTO `itens_pedido` VALUES
 (2,2,1,4,5.00),
 (3,3,1,1,5.00),
 (4,4,1,6,5.00),
-(7,9,23,1,7.00);
+(7,9,23,1,7.00),
+(8,10,22,1,5.50),
+(9,10,23,1,7.00);
 /*!40000 ALTER TABLE `itens_pedido` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -175,7 +180,7 @@ CREATE TABLE `pedidos` (
   KEY `fk_rota` (`rota_id`),
   CONSTRAINT `fk_rota` FOREIGN KEY (`rota_id`) REFERENCES `rotas` (`id`) ON DELETE SET NULL,
   CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,14 +191,15 @@ LOCK TABLES `pedidos` WRITE;
 /*!40000 ALTER TABLE `pedidos` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `pedidos` VALUES
-(1,2,5.00,'Pendente','Em separação',NULL,NULL,'2026-03-30 16:34:19','Avulso',NULL),
+(1,2,5.00,'Pendente','Entregue',NULL,NULL,'2026-03-30 16:34:19','Avulso',NULL),
 (2,2,20.00,'Pendente','Em separação',NULL,NULL,'2026-03-30 16:34:32','Avulso',NULL),
 (3,2,5.00,'Pendente','Em separação',NULL,NULL,'2026-03-30 16:34:41','Avulso',NULL),
 (4,2,30.00,'Pendente','Em separação',NULL,NULL,'2026-03-30 16:34:50','Avulso',NULL),
 (5,13,45.50,'Pago','Entregue',NULL,NULL,'2026-03-27 02:29:00','Avulso',NULL),
 (6,13,52.00,'Pendente','Saiu para entrega',NULL,NULL,'2026-04-01 02:29:00','Avulso',NULL),
 (7,14,110.00,'Pago','Saiu para entrega',NULL,NULL,'2026-03-30 02:29:00','Avulso',NULL),
-(9,13,7.00,'Pendente','Saiu para entrega',NULL,NULL,'2026-04-01 12:59:01','Avulso',NULL);
+(9,13,7.00,'Pendente','Saiu para entrega',NULL,NULL,'2026-04-01 12:59:01','Avulso',NULL),
+(10,16,12.50,'Pendente','Saiu para entrega',NULL,NULL,'2026-04-25 12:29:58','Avulso',NULL);
 /*!40000 ALTER TABLE `pedidos` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -262,8 +268,8 @@ INSERT INTO `produtos` VALUES
 (19,'Banana Prata','Frutas',6.00,'kg',40,NULL,'2026-04-01 02:29:00'),
 (20,'Alface Crespa','Verduras',3.50,'un',30,NULL,'2026-04-01 02:29:00'),
 (21,'Rúcula Fresca','Verduras',4.00,'maço',25,NULL,'2026-04-01 02:29:00'),
-(22,'Cenoura','Legumes',5.50,'kg',60,NULL,'2026-04-01 02:29:00'),
-(23,'Batata Inglesa','Legumes',7.00,'kg',99,NULL,'2026-04-01 02:29:00'),
+(22,'Cenoura','Legumes',5.50,'kg',59,NULL,'2026-04-01 02:29:00'),
+(23,'Batata Inglesa','Legumes',7.00,'kg',98,NULL,'2026-04-01 02:29:00'),
 (24,'Cebola Picada','Processados',12.00,'500g',15,NULL,'2026-04-01 02:29:00'),
 (25,'Ovos Caipira','Outros',18.00,'dúzia',20,NULL,'2026-04-01 02:29:00');
 /*!40000 ALTER TABLE `produtos` ENABLE KEYS */;
@@ -381,7 +387,7 @@ CREATE TABLE `usuarios` (
   `saldo_compensacao` decimal(10,2) DEFAULT 0.00,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -397,7 +403,9 @@ INSERT INTO `usuarios` VALUES
 (12,'Admin Faz Bem','admin2@fazbem.com','$2y$12$GvrcwPTctRCjuQ/Bw5G7JuxnnN6riWJ.ERRiU/fXJFRM4Odzw3KSW','(55) 99999-0000','Sede Faz Bem','','admin','2026-04-01 02:29:00',0.00),
 (13,'Carlos Silva','carlos@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 98888-1111','Rua das Flores, 123','Casa verde','cliente','2026-04-01 02:29:00',0.00),
 (14,'Ana Pereira','ana@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 97777-2222','Av. Principal, 45','Apto 302','cliente','2026-04-01 02:29:00',0.00),
-(15,'Marcos Souza','marcos@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 96666-3333','Bairro Novo, 90','Perto da padaria','cliente','2026-04-01 02:29:00',0.00);
+(15,'Marcos Souza','marcos@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 96666-3333','Bairro Novo, 90','Perto da padaria','cliente','2026-04-01 02:29:00',0.00),
+(16,'rogerin','rogerin@email.com','$2y$12$/c.5rcb9KC1RG0kgytrBJuHTAK2NdXMrYw4Nc/iQxj5Js79Uv8XGG','55991791570','Rua Monteiro Lobato, 4442, Uruguiana','iffar','cliente','2026-04-25 12:29:20',0.00),
+(17,'lilo','lilo@email.com','$2y$12$i.gf3k0dFijQH.PPaIH8s.uBXchxr6gnznF07CMcNQ4TTs4hhFp0y','55991791570','Sistema',NULL,'entregador','2026-04-26 10:36:02',0.00);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -411,4 +419,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-04-25  8:23:18
+-- Dump completed on 2026-04-26  7:39:10

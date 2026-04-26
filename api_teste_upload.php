@@ -21,7 +21,7 @@ try {
     $unidade = $_POST['unidade'] ?? '';
     $estoque = $_POST['estoque'] ?? 0;
 
-    // 2. Validação simples
+    // Validação simples
     if (empty($nome) || empty($categoria) || !isset($_FILES['imagem'])) {
         throw new Exception("Dados incompletos ou imagem não enviada.");
     }

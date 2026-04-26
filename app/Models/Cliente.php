@@ -13,10 +13,12 @@ class Cliente {
     public function listarTodos() {
         $sql = "SELECT u.id, u.nome, u.email, u.telefone, u.endereco, 
                        a.frequencia, a.status,
+                       e.latitude, e.longitude,
                        COALESCE((SELECT SUM(valor_total) FROM pedidos WHERE usuario_id = u.id AND status_pagamento != 'Cancelado'), 0) as total_gasto,
                        (SELECT GROUP_CONCAT(descricao SEPARATOR '; ') FROM preferencias WHERE usuario_id = u.id) as preferencias
                 FROM usuarios u
                 LEFT JOIN assinaturas a ON u.id = a.usuario_id
+                LEFT JOIN enderecos e ON u.id = e.usuario_id
                 WHERE u.tipo_usuario = 'cliente'
                 ORDER BY u.nome ASC";
         
@@ -24,7 +26,7 @@ class Cliente {
         return $stmt->fetchAll();
     }
 
-    public function atualizar($id, $nome, $telefone, $endereco, $frequencia, $status) {
+    public function atualizar($id, $nome, $telefone, $endereco, $frequencia, $status, $latitude = null, $longitude = null) {
         try {
             $this->pdo->beginTransaction();
 
@@ -40,6 +42,18 @@ class Cliente {
             } else {
                 $sqlAss = "INSERT INTO assinaturas (usuario_id, frequencia, status) VALUES (?, ?, ?)";
                 $this->pdo->prepare($sqlAss)->execute([$id, $frequencia, $status]);
+            }
+
+            if ($latitude !== null && $longitude !== null) {
+                $checkEnd = $this->pdo->prepare("SELECT id FROM enderecos WHERE usuario_id = ?");
+                $checkEnd->execute([$id]);
+                if ($checkEnd->rowCount() > 0) {
+                    $sqlEnd = "UPDATE enderecos SET logradouro = ?, latitude = ?, longitude = ? WHERE usuario_id = ?";
+                    $this->pdo->prepare($sqlEnd)->execute([$endereco, $latitude, $longitude, $id]);
+                } else {
+                    $sqlEnd = "INSERT INTO enderecos (usuario_id, logradouro, is_principal, latitude, longitude) VALUES (?, ?, 1, ?, ?)";
+                    $this->pdo->prepare($sqlEnd)->execute([$id, $endereco, $latitude, $longitude]);
+                }
             }
 
             $this->pdo->commit();

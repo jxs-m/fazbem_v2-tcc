@@ -28,6 +28,8 @@ try {
 
     
     $referencia = $data['referencia'] ?? null;
+    $lat = isset($data['latitude']) ? (float)$data['latitude'] : null;
+    $lng = isset($data['longitude']) ? (float)$data['longitude'] : null;
     
     $usuarioModel->cadastrarCliente(
         $data['nome'], 
@@ -36,7 +38,9 @@ try {
         $data['telefone'], 
         $data['endereco'], 
         $referencia, 
-        $data['frequencia']
+        $data['frequencia'],
+        $lat,
+        $lng
     );
 
     echo json_encode(['success' => true, 'message' => 'Cadastro realizado com sucesso!']);

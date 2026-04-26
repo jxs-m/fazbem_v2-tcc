@@ -20,7 +20,7 @@ class Usuario {
     }
 
     
-    public function cadastrarCliente($nome, $email, $senhaCriptografada, $telefone, $endereco, $referencia, $frequencia) {
+    public function cadastrarCliente($nome, $email, $senhaCriptografada, $telefone, $endereco, $referencia, $frequencia, $latitude = null, $longitude = null) {
         try {
             
             $this->pdo->beginTransaction();
@@ -33,6 +33,13 @@ class Usuario {
             
             
             $usuarioId = $this->pdo->lastInsertId();
+
+            if ($latitude !== null && $longitude !== null) {
+                $sqlEndereco = "INSERT INTO enderecos (usuario_id, logradouro, ponto_referencia, is_principal, latitude, longitude) 
+                                VALUES (?, ?, ?, 1, ?, ?)";
+                $stmtEndereco = $this->pdo->prepare($sqlEndereco);
+                $stmtEndereco->execute([$usuarioId, $endereco, $referencia, $latitude, $longitude]);
+            }
 
             
             if (!empty($frequencia)) {
@@ -92,5 +99,13 @@ class Usuario {
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([$nome, $telefone, $endereco, $referencia, $id]);
         }
-    }}
+    }
+
+    public function cadastrarMembroEquipe($nome, $email, $senhaCriptografada, $telefone, $tipo_usuario) {
+        $sql = "INSERT INTO usuarios (nome, email, senha, telefone, endereco, tipo_usuario) 
+                VALUES (?, ?, ?, ?, 'Sistema', ?)";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$nome, $email, $senhaCriptografada, $telefone, $tipo_usuario]);
+    }
+}
 ?>
