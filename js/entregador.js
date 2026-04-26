@@ -1,5 +1,5 @@
-const MAPA_DEFAULT_LAT = -23.55052; // Default (ex: São Paulo)
-const MAPA_DEFAULT_LNG = -46.63330;
+const MAPA_DEFAULT_LAT = -29.7614; // Default ( São Paulo)
+const MAPA_DEFAULT_LNG = -57.0853;
 
 let map;
 let markers = [];
@@ -40,12 +40,12 @@ async function carregarEntregas() {
                 const msgWpp = encodeURIComponent(`Olá ${e.nome}, seu pedido da FazBem saiu para entrega e está a caminho! 🚚🌿`);
                 const wppLink = `https://wa.me/55${foneNum}?text=${msgWpp}`;
 
-                // Usa lat/lng reais se houver, senão espalha um pouco ao redor do centro p/ demonstração
+                // Usa lat/lng reais se houver, senão usa o padrão
                 let lat = parseFloat(e.latitude);
                 let lng = parseFloat(e.longitude);
                 if (isNaN(lat) || isNaN(lng)) {
-                    lat = MAPA_DEFAULT_LAT + (Math.random() - 0.5) * 0.05;
-                    lng = MAPA_DEFAULT_LNG + (Math.random() - 0.5) * 0.05;
+                    lat = MAPA_DEFAULT_LAT;
+                    lng = MAPA_DEFAULT_LNG;
                 }
 
                 bounds.push([lat, lng]);
