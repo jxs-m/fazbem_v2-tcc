@@ -9,7 +9,7 @@ try {
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
        
-        $sql = "SELECT p.id as pedido_id, p.valor_total, p.status_pagamento, p.status_entrega,
+        $sql = "SELECT p.id as pedido_id, p.valor_total, p.status_pagamento, p.status_entrega, p.ordem_entrega,
                        u.nome, u.telefone, 
                        COALESCE(e.logradouro, u.endereco) as logradouro, 
                        COALESCE(e.ponto_referencia, u.ponto_referencia) as ponto_referencia, 
@@ -19,7 +19,7 @@ try {
                 LEFT JOIN enderecos e ON e.usuario_id = u.id
                 WHERE p.status_entrega IN ('Em separação', 'Saiu para entrega')
                 GROUP BY p.id
-                ORDER BY p.id ASC";
+                ORDER BY p.ordem_entrega ASC, p.id ASC";
                 
         $stmt = $pdo->query($sql);
         $entregas = $stmt->fetchAll();

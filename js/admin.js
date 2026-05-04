@@ -9,6 +9,7 @@ function showSection(id) {
     if (id === 'producao') carregarProducao();
     if (id === 'clientes') carregarClientes();
     if (id === 'entregadores') carregarEntregadores();
+    if (id === 'rotas') carregarRotas();
     if (id === 'dashboard') carregarDashboardCounts();
 }
 
@@ -95,8 +96,25 @@ async function verDetalhes(id) {
 
             const divObs = document.getElementById('det-obs');
             if (info.obs_pontual) { divObs.style.display = 'block'; divObs.innerHTML = '⚠ OBS: ' + escapeHTML(info.obs_pontual); } else { divObs.style.display = 'none'; }
+
+            const divExc = document.getElementById('det-excecoes');
+            const txtExc = document.getElementById('det-excecoes-texto');
+            if (json.preferencias && json.preferencias.length > 0) {
+                let excText = '';
+                json.preferencias.forEach(p => {
+                    if (p.tipo === 'Troca Pontual') {
+                        excText += `<span style="background: #ef4444; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; margin-right: 5px; font-weight: bold;">DA SEMANA</span> ${escapeHTML(p.descricao)}<br>`;
+                    } else {
+                        excText += `- ${escapeHTML(p.descricao)}<br>`;
+                    }
+                });
+                txtExc.innerHTML = excText;
+                divExc.style.display = 'block';
+            } else {
+                divExc.style.display = 'none';
+            }
         }
-    } catch (e) { alert('Erro'); }
+    } catch (e) { alert('Erro ao carregar detalhes'); }
 }
 
 async function atualizarStatus(id, tipo, valor) {
@@ -130,6 +148,7 @@ async function salvarProduto() {
     formData.append('preco', document.getElementById('prodPreco').value);
     formData.append('unidade', document.getElementById('prodUnidade').value);
     formData.append('estoque', document.getElementById('prodEstoque').value);
+    formData.append('peso_estimado_g', document.getElementById('prodPesoG').value || 0);
 
     const inputFoto = document.getElementById('prodFotoInput');
     if (inputFoto.files && inputFoto.files.length > 0) {
@@ -178,6 +197,14 @@ async function carregarProducao() {
         if (json.success) {
             tbody.innerHTML = '';
 
+            try {
+                const resConfig = await fetch('api_config.php');
+                const jsonConfig = await resConfig.json();
+                if (jsonConfig.success && jsonConfig.data.kit_semana) {
+                    document.getElementById('config-kit-semana').value = jsonConfig.data.kit_semana;
+                }
+            } catch(e) { console.error(e); }
+
             const kitsCount = parseInt(json.kitsNaSemana);
             const limite = parseInt(json.limiteMaximo);
 
@@ -212,6 +239,25 @@ async function carregarProducao() {
     }
 }
 
+async function salvarKitSemana() {
+    const kitText = document.getElementById('config-kit-semana').value;
+    try {
+        const res = await fetch('api_config.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kit_semana: kitText })
+        });
+        const json = await res.json();
+        if (json.success) {
+            alert('Kit da Semana salvo com sucesso!');
+        } else {
+            alert('Erro: ' + json.message);
+        }
+    } catch(e) {
+        alert('Erro ao salvar o Kit da Semana.');
+    }
+}
+
 let todosClientes = [];
 
 async function carregarClientes() {
@@ -238,9 +284,15 @@ let mapAdmin;
 let markerAdmin;
 
 function initMapAdmin() {
-    const DEFAULT_LAT = -23.55052;
-    const DEFAULT_LNG = -46.63330;
-    mapAdmin = L.map('map-admin-cliente').setView([DEFAULT_LAT, DEFAULT_LNG], 4);
+    const DEFAULT_LAT = -29.7603;
+    const DEFAULT_LNG = -57.0811;
+    mapAdmin = L.map('map-admin-cliente', {
+        maxBounds: [
+            [-30.05, -57.45],
+            [-29.45, -56.85]
+        ],
+        maxBoundsViscosity: 1.0
+    }).setView([DEFAULT_LAT, DEFAULT_LNG], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapAdmin);
     markerAdmin = L.marker([DEFAULT_LAT, DEFAULT_LNG], { draggable: true }).addTo(mapAdmin);
     markerAdmin.on('dragend', function (e) {
@@ -255,7 +307,8 @@ async function buscarEnderecoAdmin() {
     if (!endereco) return alert("Por favor, digite o endereço.");
 
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`);
+        const query = endereco.toLowerCase().includes('uruguaiana') ? endereco : endereco + ', Uruguaiana, RS, Brasil';
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
         const data = await res.json();
         if (data && data.length > 0) {
             const lat = parseFloat(data[0].lat);
@@ -301,7 +354,7 @@ async function salvarCliente() {
 }
 
 function carregarDashboardCounts() { carregarDashboardV2(); carregarPedidos(); carregarProdutos(); carregarClientes(); }
-function abrirModalProd() { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('prodId').value = ''; document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; document.getElementById('prodUnidade').value = ''; document.getElementById('prodEstoque').value = ''; document.getElementById('prodFotoInput').value = ''; document.getElementById('prodFotoBase64').value = ''; document.getElementById('previewImg').style.display = 'none'; document.getElementById('modalTitle').innerText = 'Novo Produto'; }
+function abrirModalProd() { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('prodId').value = ''; document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; document.getElementById('prodUnidade').value = ''; document.getElementById('prodEstoque').value = ''; document.getElementById('prodPesoG').value = '0'; document.getElementById('prodFotoInput').value = ''; document.getElementById('prodFotoBase64').value = ''; document.getElementById('previewImg').style.display = 'none'; document.getElementById('modalTitle').innerText = 'Novo Produto'; }
 
 function abrirModalEstoque(p) {
     document.getElementById('modalEstoque').style.display = 'flex';
@@ -343,7 +396,7 @@ async function salvarMovimentacao() {
     }
 }
 
-function editarProd(p) { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('modalTitle').innerText = 'Editar Produto'; document.getElementById('prodId').value = p.id; document.getElementById('prodNome').value = p.nome; document.getElementById('prodCategoria').value = p.categoria; document.getElementById('prodPreco').value = p.preco; document.getElementById('prodUnidade').value = p.unidade; document.getElementById('prodEstoque').value = p.estoque_atual; const preview = document.getElementById('previewImg'); const hidden = document.getElementById('prodFotoBase64'); if (p.imagem_url) { preview.src = p.imagem_url; preview.style.display = 'block'; hidden.value = p.imagem_url; } else { preview.style.display = 'none'; hidden.value = ''; } }
+function editarProd(p) { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('modalTitle').innerText = 'Editar Produto'; document.getElementById('prodId').value = p.id; document.getElementById('prodNome').value = p.nome; document.getElementById('prodCategoria').value = p.categoria; document.getElementById('prodPreco').value = p.preco; document.getElementById('prodUnidade').value = p.unidade; document.getElementById('prodEstoque').value = p.estoque_atual; document.getElementById('prodPesoG').value = p.peso_estimado_g || 0; const preview = document.getElementById('previewImg'); const hidden = document.getElementById('prodFotoBase64'); if (p.imagem_url) { preview.src = p.imagem_url; preview.style.display = 'block'; hidden.value = p.imagem_url; } else { preview.style.display = 'none'; hidden.value = ''; } }
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 window.onclick = function (e) { if (e.target.className === 'modal') e.target.style.display = 'none'; }
 
@@ -447,5 +500,65 @@ async function excluirEntregador(id) {
         }
     } catch (error) {
         alert('Erro de conexão ao excluir entregador.');
+    }
+}
+
+async function carregarRotas() {
+    const tbody = document.getElementById('lista-rotas');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Carregando...</td></tr>';
+    try {
+        const res = await fetch('api_logistica_v2.php');
+        const json = await res.json();
+        if (json.success) {
+            tbody.innerHTML = '';
+            if (json.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma entrega ativa no momento.</td></tr>';
+                return;
+            }
+            json.data.forEach(p => {
+                const numOrdem = p.ordem_entrega || 9999;
+                tbody.innerHTML += `<tr>
+                    <td><input type="number" class="input-ordem" data-id="${p.pedido_id}" value="${numOrdem}" style="width: 60px; padding: 4px; text-align:center;"></td>
+                    <td>#${p.pedido_id}</td>
+                    <td><strong>${escapeHTML(p.nome)}</strong></td>
+                    <td><small>${escapeHTML(p.logradouro)}</small></td>
+                    <td><span style="background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:10px; font-size:11px;">${p.status_entrega}</span></td>
+                </tr>`;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5">Erro ao carregar rotas.</td></tr>';
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5">Erro de conexão.</td></tr>';
+    }
+}
+
+async function salvarOrdemRotas() {
+    const inputs = document.querySelectorAll('.input-ordem');
+    const dados = [];
+    inputs.forEach(inp => {
+        dados.push({
+            id: inp.getAttribute('data-id'),
+            ordem: inp.value
+        });
+    });
+
+    if (dados.length === 0) return;
+
+    try {
+        const res = await fetch('api_admin_ordem_rotas.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        const json = await res.json();
+        if (json.success) {
+            alert('Ordem atualizada com sucesso!');
+            carregarRotas();
+        } else {
+            alert('Erro: ' + json.message);
+        }
+    } catch (e) {
+        alert('Erro ao salvar ordem.');
     }
 }

@@ -10,10 +10,16 @@ document.addEventListener("DOMContentLoaded", () => {
 function initMap() {
   // Coordenada padrão
 
-  const DEFAULT_LAT = -23.55052;
-  const DEFAULT_LNG = -46.63330;
+  const DEFAULT_LAT = -29.7603; // Uruguaiana
+  const DEFAULT_LNG = -57.0811;
 
-  map = L.map('map-cadastro').setView([DEFAULT_LAT, DEFAULT_LNG], 4);
+  map = L.map('map-cadastro', {
+    maxBounds: [
+      [-30.05, -57.45],
+      [-29.45, -56.85]
+    ],
+    maxBoundsViscosity: 1.0
+  }).setView([DEFAULT_LAT, DEFAULT_LNG], 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
@@ -38,7 +44,8 @@ async function buscarEnderecoNoMapa() {
   btn.disabled = true;
 
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`);
+    const query = endereco.toLowerCase().includes('uruguaiana') ? endereco : endereco + ', Uruguaiana, RS, Brasil';
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
     const data = await res.json();
 
     if (data && data.length > 0) {

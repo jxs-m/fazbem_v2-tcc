@@ -20,6 +20,7 @@
             <a onclick="showSection('producao')" id="nav-producao">🏭 Produção (Kits)</a>
             <a onclick="showSection('clientes')" id="nav-clientes">👥 Clientes</a>
             <a onclick="showSection('entregadores')" id="nav-entregadores">🛵 Entregadores</a>
+            <a onclick="showSection('rotas')" id="nav-rotas">📍 Rotas / Ordenação</a>
             <a href="logout.php" class="logout">🚪 Sair</a>
         </nav>
     </aside>
@@ -81,6 +82,15 @@
                     <h3>Kits Previstos na Semana</h3>
                     <div class="val" id="dash-kits-semana">--</div>
                     <small style="color:#666;">Limite logístico: 200</small>
+                </div>
+                
+                <div class="card" style="grid-column: span 3;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Definição do Kit da Semana</h3>
+                        <button class="btn btn-primary" onclick="salvarKitSemana()">💾 Salvar Kit</button>
+                    </div>
+                    <textarea id="config-kit-semana" rows="3" style="width:100%; margin-top:10px; padding:8px; border:1px solid #ccc; border-radius:4px; font-family:inherit;" placeholder="Escreva aqui os itens do Kit da Semana (Ex: 2 alfaces, 1 rúcula...)"></textarea>
+                    <small style="color:#666; display:block; margin-top:5px;">Este texto aparecerá no painel do cliente, e ele poderá usar isso de base para solicitar uma Troca Pontual.</small>
                 </div>
             </div>
 
@@ -171,6 +181,31 @@
                 </table>
             </div>
         </div>
+
+        <div id="sec-rotas" style="display:none;">
+            <div class="header-actions">
+                <h2 style="margin:0; border:none;">Ordenação de Rotas de Entrega</h2>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn" onclick="carregarRotas()" style="background:#e5e7eb; color:#374151;">🔄 Atualizar</button>
+                    <button class="btn btn-primary" onclick="salvarOrdemRotas()">💾 Salvar Ordem</button>
+                </div>
+            </div>
+            <p style="color:#666; margin-bottom:16px;">Defina a ordem numérica das entregas. Os menores números serão entregues primeiro no aplicativo do entregador.</p>
+            <div class="table-container">
+                <table id="tabela-rotas">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Ordem</th>
+                            <th>#ID Pedido</th>
+                            <th>Cliente</th>
+                            <th>Endereço</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-rotas"></tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <div id="modalDetalhes" class="modal">
@@ -186,6 +221,11 @@
                 <h3 style="margin:0 0 10px 0; font-size:16px; text-transform:uppercase; color:#666;">Dados de Entrega
                 </h3>
                 <div id="det-cliente">Carregando...</div>
+                
+                <div id="det-excecoes" style="display:none; margin-top:10px; padding:10px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; border-radius:8px;">
+                    <strong>⚠️ Exceções / Trocas Fixas do Cliente:</strong>
+                    <p id="det-excecoes-texto" style="margin: 5px 0 0 0;"></p>
+                </div>
             </div>
 
             <h3 style="font-size:16px;">Itens para Separação</h3>
@@ -241,9 +281,15 @@
                     <input type="text" id="prodUnidade">
                 </div>
             </div>
-            <div class="form-group">
-                <label>Estoque</label>
-                <input type="number" id="prodEstoque">
+            <div style="display:flex; gap:12px;">
+                <div class="form-group" style="flex:1">
+                    <label>Estoque</label>
+                    <input type="number" id="prodEstoque">
+                </div>
+                <div class="form-group" style="flex:1">
+                    <label>Peso Estimado (g)</label>
+                    <input type="number" id="prodPesoG" placeholder="Ex: 500" value="0">
+                </div>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
                 <button class="btn" style="background:#e5e7eb" onclick="fecharModal('modalProduto')">Cancelar</button>

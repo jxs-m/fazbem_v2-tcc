@@ -52,6 +52,18 @@
       </table>
     </div>
 
+    <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+      <h2 style="color:#166534; margin-bottom:10px;">📦 Kit da Semana Atual</h2>
+      <div id="kit-semana-atual" style="font-size:15px; color:#166534; margin-bottom:15px; font-weight:500;">Carregando...</div>
+      
+      <h3 style="font-size:14px; color:#166534; margin-top:15px; margin-bottom:5px;">Deseja fazer uma substituição nesta semana?</h3>
+      <div class="input-group">
+        <input type="text" id="nova-troca-pontual" placeholder="Ex: Tirar tempero verde e colocar couve..." style="border-color:#bbf7d0;">
+        <button class="btn-add" onclick="salvarTrocaPontual()" style="background:#16a34a;">Salvar Troca</button>
+      </div>
+      <small style="color:#166534; display:block; margin-top:5px; font-size:12px;">Isso afetará apenas a entrega desta semana.</small>
+    </div>
+
     <div class="card">
       <h2>Preferências Fixas</h2>
       <ul id="lista-prefs"></ul>

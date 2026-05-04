@@ -62,6 +62,17 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             lista.innerHTML = '<li><span style="color:#999;">Nenhuma preferência fixa definida.</span></li>';
         }
+
+        try {
+            const resConfig = await fetch('api_config.php');
+            const jsonConfig = await resConfig.json();
+            if (jsonConfig.success && jsonConfig.data.kit_semana) {
+                document.getElementById('kit-semana-atual').innerText = jsonConfig.data.kit_semana;
+            } else {
+                document.getElementById('kit-semana-atual').innerText = "Aguardando atualização...";
+            }
+        } catch(e) { console.error(e); }
+
       } catch (e) {
         console.error("Erro ao carregar perfil:", e);
       }
@@ -125,4 +136,20 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'remover_preferencia', pref_id: id }) });
         carregarPerfil();
       } catch (e) { alert('Erro'); }
+    }
+
+    async function salvarTrocaPontual() {
+      const desc = document.getElementById('nova-troca-pontual').value;
+      if (!desc) return;
+      try {
+        const res = await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'nova_preferencia', tipo: 'Troca Pontual', descricao: desc }) });
+        const json = await res.json();
+        if (json.success) {
+            alert('Sua solicitação de troca pontual foi salva! A nossa equipe será notificada durante a montagem do seu kit.');
+            document.getElementById('nova-troca-pontual').value = '';
+            carregarPerfil();
+        } else {
+            alert('Erro: ' + json.message);
+        }
+      } catch (e) { alert('Erro ao solicitar troca.'); }
     }

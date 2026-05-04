@@ -33,6 +33,7 @@ try {
         $preco = str_replace(',', '.', $_POST['preco'] ?? '0');
         $unidade = $_POST['unidade'] ?? '';
         $estoque = $_POST['estoque'] ?? 0;
+        $peso_estimado_g = $_POST['peso_estimado_g'] ?? 0;
 
         
         if (empty($nome) || empty($categoria)) {
@@ -64,10 +65,10 @@ try {
         }
 
          if (!empty($id)) {
-            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $caminhoBanco);
+            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco);
             $mensagem = 'Produto atualizado com sucesso!';
         } else {
-            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $caminhoBanco);
+            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco);
             $mensagem = 'Produto cadastrado com sucesso!';
         }
 

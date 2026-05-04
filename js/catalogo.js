@@ -31,9 +31,21 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
           const grupos = agruparPorCategoria(json.data);
           const ordem = ['Legumes', 'Verduras', 'Frutas', 'Processados', 'Outros'];
 
+          if (json.isOpen === false) {
+             const banner = document.createElement('div');
+             banner.style.backgroundColor = '#fecaca';
+             banner.style.color = '#991b1b';
+             banner.style.padding = '15px';
+             banner.style.borderRadius = '8px';
+             banner.style.textAlign = 'center';
+             banner.style.marginBottom = '20px';
+             banner.innerHTML = '<h3>⚠️ VENDAS ENCERRADAS PARA ESTE CICLO</h3><p>O limite logístico foi atingido ou o horário de compras fechou. Retornaremos no próximo ciclo!</p>';
+             container.appendChild(banner);
+          }
+
           ordem.forEach(cat => {
             if (grupos[cat] && grupos[cat].length > 0) {
-              renderizarSecao(container, cat, grupos[cat]);
+              renderizarSecao(container, cat, grupos[cat], json.isOpen);
             }
           });
         } else {
@@ -54,7 +66,7 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
       }, {});
     }
 
-    function renderizarSecao(container, categoria, produtos) {
+    function renderizarSecao(container, categoria, produtos, isOpen) {
       const section = document.createElement('section');
       const iconeCat = icones[categoria] || '📦';
       const desc = descricoes[categoria] || '';
@@ -74,12 +86,12 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
             <div class="prod-name">${escapeHTML(p.nome)}</div>
             <div class="prod-price">R$ ${precoFormatado} <span class="prod-unit">/ ${escapeHTML(p.unidade)}</span></div>
             <div class="actions">
-              <button class="btn-add" onclick="adicionarCarrinho('${escapeHTML(p.nome.replace(/'/g, "\\'"))}', ${p.id}, '${p.preco}')">
+              ${isOpen === false ? '<p style="color: #991b1b; font-weight: bold; width: 100%; text-align: center; margin: 0;">Esgotado / Fechado</p>' : `<button class="btn-add" onclick="adicionarCarrinho('${escapeHTML(p.nome.replace(/'/g, "\\'"))}', ${p.id}, '${p.preco}', ${p.peso_estimado_g || 0})">
                 + Adicionar
               </button>
               <button class="btn-swap" onclick="abrirTroca('${escapeHTML(p.nome.replace(/'/g, "\\'"))}')">
                 ⇄ Trocar Item
-              </button>
+              </button>`}
             </div>
           </div>
         `;
@@ -96,7 +108,7 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
       container.appendChild(section);
     }
 
-    function adicionarCarrinho(nome, id, preco) {
+    function adicionarCarrinho(nome, id, preco, peso) {
       let itemExistente = carrinhoDados.find(i => i.id === id);
       if (itemExistente) {
         itemExistente.quantidade++;
@@ -105,6 +117,7 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
           id: id,
           nome: nome,
           preco: parseFloat(preco),
+          peso_estimado_g: peso || 0,
           quantidade: 1
         });
       }

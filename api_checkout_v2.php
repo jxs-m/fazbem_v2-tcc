@@ -7,6 +7,14 @@ require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Pedido.php';
+require_once __DIR__ . '/app/Models/Producao.php';
+
+$producaoModel = new Producao();
+if (!$producaoModel->catalogoAberto()) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'As vendas estão encerradas para este ciclo logístico. O limite de kits foi atingido ou o horário expirou.']);
+    exit;
+}
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'cliente') {
     http_response_code(403);

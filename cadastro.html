@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criar Conta — Faz Bem</title>
   <link rel="stylesheet" href="css/cadastro.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 </head>
 
 <body>
@@ -49,7 +50,7 @@
       <div class="form-group">
         <label for="endereco">Endereço de Entrega</label>
         <div style="display: flex; gap: 10px;">
-          <input type="text" id="endereco" placeholder="Rua, Número, Cidade" required style="flex: 1;">
+          <input type="text" id="endereco" placeholder="Rua e Número" required style="flex: 1;">
           <button type="button" id="btnBuscarMapa" class="btn" style="width: auto; padding: 0 15px;">🔍 Buscar</button>
         </div>
         <small style="color:#666; font-size:12px; margin-top:4px; display:block;">
@@ -58,7 +59,8 @@
       </div>
 
       <div class="form-group">
-        <div id="map-cadastro" style="height: 250px; width: 100%; border-radius: 8px; border: 1px solid #ccc; z-index: 1;"></div>
+        <div id="map-cadastro"
+          style="height: 250px; width: 100%; border-radius: 8px; border: 1px solid #ccc; z-index: 1;"></div>
         <input type="hidden" id="latitude" required>
         <input type="hidden" id="longitude" required>
       </div>
@@ -74,7 +76,6 @@
           <option value="" disabled selected>Escolha seu plano...</option>
           <option value="Semanal">📅 Semanal (Toda semana)</option>
           <option value="Quinzenal">🗓 Quinzenal (A cada 15 dias)</option>
-          <option value="Mensal">📆 Mensal (Uma vez por mês)</option>
         </select>
         <small style="color:#666; font-size:12px; margin-top:4px; display:block;">
           Você poderá pausar ou mudar o plano depois.
@@ -88,7 +89,8 @@
       Já tem uma conta? <a href="login.html">Fazer Login</a>
     </div>
   </div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="js/cadastro.js"></script>
 </body>
 

@@ -7,6 +7,7 @@ require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Pedido.php';
+require_once __DIR__ . '/app/Models/Preferencia.php';
 
 // 1. Verificação de Segurança (Bloqueia quem não é admin)
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
@@ -35,10 +36,14 @@ try {
 
             $itens = $pedidoModel->buscarItens($id);
 
+            $preferenciasModel = new Preferencia();
+            $preferencias = $preferenciasModel->buscarPorUsuario($info['usuario_id']);
+
             echo json_encode([
                 'success' => true,
                 'info' => $info,
-                'itens' => $itens
+                'itens' => $itens,
+                'preferencias' => $preferencias
             ]);
             exit;
         } 
