@@ -48,7 +48,11 @@ class Pedido {
         // Define qual coluna do banco será atualizada dependendo do que a tela enviou
         $coluna = ($tipo === 'pagamento') ? 'status_pagamento' : 'status_entrega';
         
-        $sql = "UPDATE pedidos SET $coluna = ? WHERE id = ?";
+        if ($tipo === 'entrega' && $valor === 'Entregue') {
+            $sql = "UPDATE pedidos SET status_entrega = ?, entregue_em = NOW() WHERE id = ?";
+        } else {
+            $sql = "UPDATE pedidos SET $coluna = ? WHERE id = ?";
+        }
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$valor, $id]);
     }
@@ -59,6 +63,14 @@ class Pedido {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$usuario_id]);
         return $stmt->fetchAll();
+    }
+
+    public function verificarPedidoExistenteSemana($usuario_id) {
+        $sql = "SELECT COUNT(id) as total FROM pedidos 
+                WHERE usuario_id = ? AND YEARWEEK(data_pedido, 0) = YEARWEEK(NOW(), 0)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$usuario_id]);
+        return $stmt->fetch()['total'] > 0;
     }
 
     public function criarPedido($usuario_id, $valor_total, $forma_pagamento, $carrinho) {

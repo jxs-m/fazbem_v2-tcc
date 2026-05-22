@@ -50,7 +50,7 @@ class Usuario {
 
             
             $this->pdo->commit();
-            return true;
+            return $usuarioId;
 
         } catch (Exception $e) {
         

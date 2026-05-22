@@ -1,1 +1,4 @@
 app/rate_limit.json
+.env
+popular_banco.php
+setup_admin_v2.php

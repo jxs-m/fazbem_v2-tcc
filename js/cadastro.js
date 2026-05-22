@@ -3,13 +3,37 @@ let marker;
 
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
-
+  carregarProdutosParaExclusao();
   document.getElementById('btnBuscarMapa').addEventListener('click', buscarEnderecoNoMapa);
 });
 
-function initMap() {
-  // Coordenada padrão
+async function carregarProdutosParaExclusao() {
+  const container = document.getElementById('lista-exclusoes');
+  try {
+    const res = await fetch('api_catalogo_v2.php');
+    const json = await res.json();
+    if (json.success) {
+      container.innerHTML = '';
+      json.data.forEach(prod => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <label style="display:flex; align-items:center; gap:5px; font-size:0.9em; cursor:pointer;">
+            <input type="checkbox" class="chk-exclusao" value="${prod.nome}">
+            <span>${prod.nome}</span>
+          </label>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = '<span style="color:red">Erro ao carregar produtos.</span>';
+    }
+  } catch (e) {
+    container.innerHTML = '<span style="color:red">Erro de conexão.</span>';
+  }
+}
 
+function initMap() {
+  
   const DEFAULT_LAT = -29.7603; // Uruguaiana
   const DEFAULT_LNG = -57.0811;
 
@@ -27,7 +51,6 @@ function initMap() {
 
   marker = L.marker([DEFAULT_LAT, DEFAULT_LNG], { draggable: true }).addTo(map);
 
-  // Atualiza os inputs ocultos sempre que o pino for arrastado
   marker.on('dragend', function (e) {
     const posicao = marker.getLatLng();
     document.getElementById('latitude').value = posicao.lat;
@@ -92,6 +115,9 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
     return;
   }
 
+  // Coletar exclusões selecionadas
+  const exclusoesMarcadas = Array.from(document.querySelectorAll('.chk-exclusao:checked')).map(cb => cb.value);
+
   const dados = {
     nome: document.getElementById('nome').value,
     email: document.getElementById('email').value,
@@ -102,7 +128,9 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
     referencia: document.getElementById('referencia').value,
     frequencia: document.getElementById('frequencia').value,
     latitude: lat,
-    longitude: lng
+    longitude: lng,
+    exclusoes: exclusoesMarcadas,
+    observacao: document.getElementById('observacao').value
   };
 
   try {

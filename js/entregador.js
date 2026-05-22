@@ -67,7 +67,7 @@ async function carregarEntregas() {
                     btnAction = `<button class="btn btn-action" onclick="atualizarStatus(${e.pedido_id}, 'Entregue')">✅ Finalizar</button>`;
                 }
 
-                // Adicionar na Lista
+                
                 container.innerHTML += `
                     <div class="entrega-card">
                         <div class="entrega-header">

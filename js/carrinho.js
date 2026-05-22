@@ -121,8 +121,7 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
         const nfContent = document.getElementById('nota-fiscal-content');
 
         try {
-            // Buscamos dados do perfil (para ver preferências) e config (para o kit padrão)
-            const [resPerfil, resConfig, resAssinatura] = await Promise.all([
+             const [resPerfil, resConfig, resAssinatura] = await Promise.all([
                 fetch('api_perfil_v2.php'),
                 fetch('api_config.php'),
                 fetch('api_minha_assinatura_v2.php')
@@ -132,7 +131,6 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
             const jsonConfig = await resConfig.json();
             const jsonAssinatura = await resAssinatura.json();
 
-            // Se não estiver logado ou não tiver assinatura ativa, só mostra os adicionais
             const temAssinatura = jsonAssinatura.success && jsonAssinatura.data && jsonAssinatura.data.status === 'Ativa';
 
             let htmlNota = '';

@@ -39,7 +39,11 @@ try {
             exit;
         }
 
-        $sql = "UPDATE pedidos SET status_entrega = ? WHERE id = ?";
+        if ($input['status'] === 'Entregue') {
+            $sql = "UPDATE pedidos SET status_entrega = ?, entregue_em = NOW() WHERE id = ?";
+        } else {
+            $sql = "UPDATE pedidos SET status_entrega = ? WHERE id = ?";
+        }
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$input['status'], $input['pedido_id']]);
 

@@ -12,19 +12,15 @@ class Producao {
 
     
     public function obterContagemKitsSemana() {
-      
-        $sqlAssinaturas = "SELECT COUNT(*) as total FROM assinaturas WHERE status = 'Ativa'";
-        $stmtAssinaturas = $this->pdo->query($sqlAssinaturas);
-        $totalAssinaturas = $stmtAssinaturas->fetch()['total'];
-
-        // Quantidade de pedidos avulsos feitos desde domingo passado
-        $sqlAvulsos = "SELECT COUNT(*) as total FROM pedidos 
-                       WHERE tipo_pedido = 'Avulso' 
-                       AND YEARWEEK(data_pedido, 0) = YEARWEEK(NOW(), 0)";
-        $stmtAvulsos = $this->pdo->query($sqlAvulsos);
-        $totalAvulsos = $stmtAvulsos->fetch()['total'];
-
-        return $totalAssinaturas + $totalAvulsos;
+        // Conta usuários únicos que possuem assinatura Ativa OU que fizeram algum pedido na semana atual
+        $sql = "SELECT COUNT(DISTINCT u.id) as total 
+                FROM usuarios u
+                LEFT JOIN assinaturas a ON u.id = a.usuario_id AND a.status = 'Ativa'
+                LEFT JOIN pedidos p ON u.id = p.usuario_id AND YEARWEEK(p.data_pedido, 0) = YEARWEEK(NOW(), 0)
+                WHERE a.id IS NOT NULL OR p.id IS NOT NULL";
+        
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetch()['total'];
     }
 
     public function gerarRelatorioHortalicas() {

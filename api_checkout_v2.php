@@ -43,6 +43,11 @@ try {
     $forma_pagamento = $data['pagamento'];
     $carrinho = $data['itens']; 
     $pedidoModel = new Pedido();
+
+    if ($pedidoModel->verificarPedidoExistenteSemana($usuario_id)) {
+        throw new Exception("Você já realizou um pedido esta semana. O limite é de apenas um pedido por pessoa.");
+    }
+
     $numero_pedido = $pedidoModel->criarPedido($usuario_id, $valor_total, $forma_pagamento, $carrinho);
 
     echo json_encode([
@@ -56,7 +61,7 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno ao processar pedido.']);
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Ocorreu um erro inesperado. Tente novamente.']);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 ?>

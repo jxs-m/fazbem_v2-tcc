@@ -51,7 +51,7 @@ class Security {
         if (!isset($data[$key])) {
             $data[$key] = ['attempts' => 1, 'first_attempt' => $now];
         } else {
-            // Verifica se o tempo de bloqueio já expirou, se sim, reseta
+            
             if ($now - $data[$key]['first_attempt'] > $decaySeconds) {
                 $data[$key] = ['attempts' => 1, 'first_attempt' => $now];
             } else {

@@ -52,11 +52,54 @@ async function carregarDashboardV2() {
         if (json.success) {
 
             let faturamento = parseFloat(json.data.faturamento).toFixed(2).replace('.', ',');
+            let creditos = parseFloat(json.data.total_creditos || 0).toFixed(2).replace('.', ',');
 
             document.getElementById('dash-pedidos').innerText = json.data.total_pedidos;
             document.getElementById('dash-faturamento').innerText = 'R$ ' + faturamento;
             document.getElementById('dash-estoque').innerText = json.data.estoque_critico;
             document.getElementById('dash-clientes').innerText = json.data.total_clientes;
+            document.getElementById('dash-creditos').innerText = 'R$ ' + creditos;
+
+            const tbodyPausados = document.getElementById('lista-pausados');
+            const tbodyCancelados = document.getElementById('lista-cancelados');
+            
+            tbodyPausados.innerHTML = '';
+            tbodyCancelados.innerHTML = '';
+            
+            let countPausados = 0;
+            let countCancelados = 0;
+            
+            if (json.data.assinantes_inativos && json.data.assinantes_inativos.length > 0) {
+                json.data.assinantes_inativos.forEach(c => {
+                    const phoneWpp = c.telefone.replace(/\D/g, '');
+                    const linkWpp = `https://wa.me/55${phoneWpp}?text=${encodeURIComponent('Olá ' + c.nome + ', sentimos sua falta na Faz Bem! Gostaria de reativar sua assinatura de orgânicos?')}`;
+                    
+                    const tr = `
+                        <tr>
+                            <td><strong>${escapeHTML(c.nome)}</strong></td>
+                            <td>${escapeHTML(c.telefone)}</td>
+                            <td style="text-align:right">
+                                <a href="${linkWpp}" target="_blank" class="btn" style="background:#25D366; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:12px;">💬 Chamar no WhatsApp</a>
+                            </td>
+                        </tr>
+                    `;
+
+                    if (c.status === 'Pausada') {
+                        tbodyPausados.innerHTML += tr;
+                        countPausados++;
+                    } else if (c.status === 'Cancelada') {
+                        tbodyCancelados.innerHTML += tr;
+                        countCancelados++;
+                    }
+                });
+            }
+            
+            if (countPausados === 0) {
+                tbodyPausados.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">Nenhuma assinatura pausada.</td></tr>';
+            }
+            if (countCancelados === 0) {
+                tbodyCancelados.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">Nenhuma assinatura cancelada.</td></tr>';
+            }
         } else {
             console.error("Erro no dashboard:", json.message);
         }
@@ -78,6 +121,9 @@ async function verDetalhes(id) {
             const phoneWpp = info.telefone.replace(/\D/g, '');
             const linkWpp = `https://wa.me/55${phoneWpp}?text=${encodeURIComponent('Olá ' + info.nome + ', somos da Faz Bem! Referente ao seu pedido #' + info.id + '...')}`;
             document.getElementById('det-cliente').innerHTML = `<div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${escapeHTML(info.nome)}</div><div>📞 ${escapeHTML(info.telefone)} <a href="${linkWpp}" target="_blank" style="background:#25D366; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:12px; margin-left:8px; display:inline-block">💬 WhatsApp</a></div><div style="margin-top:8px;">📍 ${escapeHTML(info.endereco)}</div><small>Ref: ${escapeHTML(info.ponto_referencia || 'Sem referência')}</small>`;
+            if (info.status_entrega === 'Entregue' && info.entregue_em) {
+                document.getElementById('det-cliente').innerHTML += `<div style="margin-top:8px; color: #166534; font-weight: bold; background: #dcfce7; padding: 4px 8px; border-radius: 4px; display: inline-block;">✅ Entregue em: ${new Date(info.entregue_em).toLocaleString('pt-BR')}</div>`;
+            }
 
             const divItens = document.getElementById('det-itens');
             divItens.innerHTML = '';
@@ -503,6 +549,8 @@ async function excluirEntregador(id) {
     }
 }
 
+let rotasAtuais = [];
+
 async function carregarRotas() {
     const tbody = document.getElementById('lista-rotas');
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Carregando...</td></tr>';
@@ -510,20 +558,34 @@ async function carregarRotas() {
         const res = await fetch('api_logistica_v2.php');
         const json = await res.json();
         if (json.success) {
+            rotasAtuais = json.data;
             tbody.innerHTML = '';
             if (json.data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma entrega ativa no momento.</td></tr>';
                 return;
             }
-            json.data.forEach(p => {
-                const numOrdem = p.ordem_entrega || 9999;
-                tbody.innerHTML += `<tr>
-                    <td><input type="number" class="input-ordem" data-id="${p.pedido_id}" value="${numOrdem}" style="width: 60px; padding: 4px; text-align:center;"></td>
+            json.data.sort((a, b) => (a.ordem_entrega || 9999) - (b.ordem_entrega || 9999));
+            json.data.forEach((p, index) => {
+                tbody.innerHTML += `<tr data-id="${p.pedido_id}">
+                    <td style="text-align:center; cursor: grab;" title="Arraste para reordenar">
+                        <span style="color:#9ca3af; font-size: 18px; margin-right: 5px;">☰</span>
+                        <strong class="ordem-numero" style="font-size: 16px; color: #4b5563;">${index + 1}</strong>
+                    </td>
                     <td>#${p.pedido_id}</td>
                     <td><strong>${escapeHTML(p.nome)}</strong></td>
                     <td><small>${escapeHTML(p.logradouro)}</small></td>
                     <td><span style="background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:10px; font-size:11px;">${p.status_entrega}</span></td>
                 </tr>`;
+            });
+
+            if (window.rotasSortable) window.rotasSortable.destroy();
+            window.rotasSortable = Sortable.create(tbody, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: 'td:first-child',
+                onUpdate: function () {
+                    atualizarNumerosOrdem();
+                }
             });
         } else {
             tbody.innerHTML = '<tr><td colspan="5">Erro ao carregar rotas.</td></tr>';
@@ -533,14 +595,74 @@ async function carregarRotas() {
     }
 }
 
+function calcularDistanciaLocal(lat1, lon1, lat2, lon2) {
+    const dx = lat1 - lat2;
+    const dy = lon1 - lon2;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function autoOrdenarRotas() {
+    if (rotasAtuais.length === 0) return alert('Nenhuma rota ativa para ordenar.');
+
+    let currentLat = -29.7603;
+    let currentLng = -57.0811;
+
+    let unvisited = [...rotasAtuais];
+    let order = 1;
+
+    while (unvisited.length > 0) {
+        let nearestIdx = 0;
+        let minDist = Infinity;
+
+        for (let i = 0; i < unvisited.length; i++) {
+            let pLat = parseFloat(unvisited[i].latitude || currentLat);
+            let pLng = parseFloat(unvisited[i].longitude || currentLng);
+            let dist = calcularDistanciaLocal(currentLat, currentLng, pLat, pLng);
+            
+            if (dist < minDist) {
+                minDist = dist;
+                nearestIdx = i;
+            }
+        }
+
+        let nearest = unvisited[nearestIdx];
+        
+        const row = document.querySelector(`#lista-rotas tr[data-id="${nearest.pedido_id}"]`);
+        if (row) {
+            document.getElementById('lista-rotas').appendChild(row);
+        }
+
+        order++;
+        currentLat = parseFloat(nearest.latitude || currentLat);
+        currentLng = parseFloat(nearest.longitude || currentLng);
+        
+        unvisited.splice(nearestIdx, 1);
+    }
+    
+    atualizarNumerosOrdem();
+    alert('📍 Ordem calculada por proximidade! Revise e clique em "Salvar Ordem" para confirmar.');
+}
+
+function atualizarNumerosOrdem() {
+    const rows = document.querySelectorAll('#lista-rotas tr');
+    rows.forEach((row, index) => {
+        const numSpan = row.querySelector('.ordem-numero');
+        if (numSpan) {
+            numSpan.innerText = index + 1;
+        }
+    });
+}
+
 async function salvarOrdemRotas() {
-    const inputs = document.querySelectorAll('.input-ordem');
+    const rows = document.querySelectorAll('#lista-rotas tr');
     const dados = [];
-    inputs.forEach(inp => {
-        dados.push({
-            id: inp.getAttribute('data-id'),
-            ordem: inp.value
-        });
+    rows.forEach((row, index) => {
+        if (row.getAttribute('data-id')) {
+            dados.push({
+                id: row.getAttribute('data-id'),
+                ordem: index + 1
+            });
+        }
     });
 
     if (dados.length === 0) return;
@@ -560,5 +682,68 @@ async function salvarOrdemRotas() {
         }
     } catch (e) {
         alert('Erro ao salvar ordem.');
+    }
+}
+
+async function abrirModalGerarPedidos() {
+    document.getElementById('modalGerarPedidos').style.display = 'flex';
+    const container = document.getElementById('lista-produtos-gerar');
+    container.innerHTML = '<span style="color:#888;">Carregando produtos...</span>';
+    try {
+        const res = await fetch('api_admin_produtos_v2.php');
+        const json = await res.json();
+        if (json.success) {
+            container.innerHTML = '';
+            json.data.forEach(p => {
+                if(p.estoque_atual > 0) {
+                    container.innerHTML += `
+                        <label style="display:flex; align-items:center; gap:5px; font-size:0.9em; cursor:pointer;">
+                            <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}">
+                            <span>${escapeHTML(p.nome)} (Estoque: ${p.estoque_atual})</span>
+                        </label>
+                    `;
+                }
+            });
+        }
+    } catch(e) {
+        container.innerHTML = '<span style="color:red">Erro ao carregar produtos.</span>';
+    }
+}
+
+async function confirmarGerarPedidos() {
+    const selecionados = Array.from(document.querySelectorAll('.chk-prod-gerar:checked')).map(cb => {
+        return { id: cb.value, nome: cb.getAttribute('data-nome') };
+    });
+
+    if (selecionados.length === 0) {
+        return alert('Selecione pelo menos um produto para compor o Kit da Semana.');
+    }
+
+    if (!confirm('Deseja realmente gerar os pedidos em lote para todos os assinantes ativos com esses itens?')) return;
+
+    const btn = document.getElementById('btnConfirmarGerarPedidos');
+    btn.innerText = 'Gerando...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('api_admin_gerar_pedidos_v2.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ produtos_kit: selecionados })
+        });
+        const json = await res.json();
+        if (json.success) {
+            alert('Pedidos gerados com sucesso! Foram criados ' + json.gerados + ' pedidos.');
+            fecharModal('modalGerarPedidos');
+            carregarPedidos();
+            carregarDashboardCounts();
+        } else {
+            alert('Erro: ' + json.message);
+        }
+    } catch(e) {
+        alert('Erro de conexão ao gerar pedidos.');
+    } finally {
+        btn.innerText = 'Criar Pedidos em Lote';
+        btn.disabled = false;
     }
 }

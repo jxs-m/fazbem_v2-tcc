@@ -31,7 +31,7 @@ try {
     $lat = isset($data['latitude']) ? (float)$data['latitude'] : null;
     $lng = isset($data['longitude']) ? (float)$data['longitude'] : null;
     
-    $usuarioModel->cadastrarCliente(
+    $usuarioId = $usuarioModel->cadastrarCliente(
         $data['nome'], 
         $data['email'], 
         $senhaHash, 
@@ -42,6 +42,19 @@ try {
         $lat,
         $lng
     );
+
+    require_once __DIR__ . '/app/Models/Preferencia.php';
+    $prefModel = new Preferencia();
+
+    if (!empty($data['exclusoes']) && is_array($data['exclusoes'])) {
+        foreach ($data['exclusoes'] as $produtoNome) {
+            $prefModel->adicionar($usuarioId, 'Troca Fixa', "Não consumo: " . $produtoNome);
+        }
+    }
+
+    if (!empty($data['observacao'])) {
+        $prefModel->adicionar($usuarioId, 'Observação', $data['observacao']);
+    }
 
     echo json_encode(['success' => true, 'message' => 'Cadastro realizado com sucesso!']);
 
