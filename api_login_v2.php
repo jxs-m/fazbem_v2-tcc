@@ -1,6 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_login_v2.php
 session_start();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Usuario.php';
 require_once __DIR__ . '/app/Security.php';
@@ -32,6 +33,8 @@ try {
             $redirect = 'admin.html';
         } elseif ($user['tipo_usuario'] === 'entregador') {
             $redirect = 'entregador.html';
+        } elseif ($user['tipo_usuario'] === 'separador') {
+            $redirect = 'separador.html';
         } else {
             $redirect = 'perfil.html';
         }

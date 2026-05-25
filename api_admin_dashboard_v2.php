@@ -1,6 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_admin_dashboard_v2.php
 session_start();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Models/Dashboard.php';

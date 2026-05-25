@@ -1,10 +1,19 @@
 let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
 
+    function getBaseGrams(unidadeStr) {
+      let u = (unidadeStr || '').toLowerCase();
+      if (u.includes('kg')) return 1000;
+      if (u.includes('g') && !u.includes('kg')) {
+         let num = parseInt(u);
+         if (!isNaN(num) && num > 0) return num;
+      }
+      return null;
+    }
+
     function renderizarCarrinho() {
       const container = document.getElementById('lista-itens');
       const totalDisplay = document.getElementById('total-display');
       const btn = document.getElementById('btn-finalizar');
-      const pagBox = document.getElementById('pagamento-box');
 
       const pesoDisplay = document.getElementById('peso-display');
 
@@ -13,29 +22,37 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
         totalDisplay.innerText = 'R$ 0,00';
         pesoDisplay.innerText = '';
         btn.disabled = true;
-        pagBox.style.display = 'none';
         return;
       }
 
-      pagBox.style.display = 'block';
       let html = '';
       let total = 0;
       let totalPesoG = 0;
 
       carrinho.forEach((item, index) => {
-        let subtotal = item.preco * item.quantidade;
+        // Compatibilidade com o formato antigo do carrinho
+        let isNovoModelo = (item.preco_estimado_calculado !== undefined && item.preco_estimado_calculado !== null);
+        let subtotal = isNovoModelo ? item.preco_estimado_calculado : (parseFloat(item.preco_base || item.preco || 0) * (item.quantidade_calculada || item.quantidade || 0));
+        if (isNaN(subtotal) || subtotal === null) subtotal = 0;
+        let safeQtd = item.input_qtd || item.quantidade || 0;
+        let qtyLabel = isNovoModelo ? (item.tipo_compra === 'Unidade' ? `${safeQtd}x` : `${safeQtd}g`) : `${item.quantidade}x`;
+        
         total += subtotal;
-        totalPesoG += (item.peso_estimado_g || 0) * item.quantidade;
+        if(isNovoModelo) {
+            totalPesoG += item.gramas_calculadas || 0;
+        } else {
+            totalPesoG += (item.peso_estimado_g || 0) * item.quantidade;
+        }
 
         html += `
           <div class="cart-item">
             <div class="item-info">
               <h4>${escapeHTML(item.nome)}</h4>
-              <span>R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</span>
+              <span>R$ ${parseFloat(subtotal).toFixed(2).replace('.', ',')}</span>
             </div>
             <div class="qtd-ctrl">
               <button class="btn-circle" onclick="alterarQtd(${index}, -1)">-</button>
-              <span style="font-weight:600; min-width:20px; text-align:center">${item.quantidade}</span>
+              <span style="font-weight:600; min-width:30px; text-align:center">${qtyLabel}</span>
               <button class="btn-circle" onclick="alterarQtd(${index}, 1)">+</button>
             </div>
           </div>
@@ -55,14 +72,49 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
     }
 
     function alterarQtd(index, delta) {
-      carrinho[index].quantidade += delta;
+      let item = carrinho[index];
+      let isNovoModelo = (item.preco_estimado_calculado !== undefined);
 
-      if (carrinho[index].quantidade <= 0) {
-        if (confirm('Remover ' + carrinho[index].nome + ' da cesta?')) {
-          carrinho.splice(index, 1);
-        } else {
-          carrinho[index].quantidade = 1;
-        }
+      if (isNovoModelo) {
+          let d = (item.tipo_compra === 'Unidade') ? delta : (delta * 10); // +1 ou +10g
+          item.input_qtd += d;
+          
+          if (item.input_qtd <= 0) {
+              if (confirm('Remover ' + item.nome + ' da cesta?')) {
+                  carrinho.splice(index, 1);
+              } else {
+                  item.input_qtd = (item.tipo_compra === 'Unidade') ? 1 : 100;
+              }
+          }
+
+          if (item.input_qtd > 0) {
+              // Recalcula
+              let baseGrams = getBaseGrams(item.unidade);
+              let multiplier = 0;
+              let requestedGrams = 0;
+
+              if (item.tipo_compra === 'Unidade') {
+                  requestedGrams = item.input_qtd * item.peso_estimado_g;
+                  multiplier = (baseGrams !== null) ? (requestedGrams / baseGrams) : item.input_qtd;
+              } else {
+                  requestedGrams = item.input_qtd;
+                  multiplier = (baseGrams !== null) ? (requestedGrams / baseGrams) : item.input_qtd;
+              }
+
+              item.quantidade_calculada = multiplier;
+              item.gramas_calculadas = requestedGrams;
+              item.preco_estimado_calculado = multiplier * item.preco_base;
+          }
+      } else {
+          // Antigo
+          item.quantidade += delta;
+          if (item.quantidade <= 0) {
+              if (confirm('Remover ' + item.nome + ' da cesta?')) {
+                  carrinho.splice(index, 1);
+              } else {
+                  item.quantidade = 1;
+              }
+          }
       }
 
       localStorage.setItem('fazbem_carrinho', JSON.stringify(carrinho));
@@ -71,15 +123,13 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
 
     async function finalizarPedido() {
 
-      const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
-
-      if (!confirm(`Confirmar pedido no valor total?\nPagamento via: ${pagamento}`)) return;
+      if (!confirm(`Confirmar pedido no valor total?`)) return;
 
       const btn = document.getElementById('btn-finalizar');
       btn.innerText = "Processando...";
       btn.disabled = true;
 
-      const totalCalculado = carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+      const totalCalculado = carrinho.reduce((acc, item) => acc + (item.preco_estimado_calculado !== undefined ? item.preco_estimado_calculado : (item.preco * item.quantidade)), 0);
 
       try {
         const res = await fetch('api_checkout_v2.php', {
@@ -88,7 +138,7 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
           body: JSON.stringify({
             itens: carrinho,
             total: totalCalculado,
-            pagamento: pagamento
+            pagamento: 'Fatura Mensal'
           })
         });
 
@@ -159,7 +209,9 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
                 htmlNota += `<div>
                     <strong style="color:#1d4ed8;">🛒 Adicionais (Cobrados à parte):</strong><ul style="margin:4px 0 0 0; padding-left:20px; color:#4b5563;">`;
                 carrinho.forEach(item => {
-                    htmlNota += `<li>${item.quantidade}x ${escapeHTML(item.nome)}</li>`;
+                    let safeQtd = item.input_qtd || item.quantidade || 0;
+                    let qtyLabel = (item.preco_estimado_calculado !== undefined) ? (item.tipo_compra === 'Unidade' ? `${safeQtd}x` : `${safeQtd}g de`) : `${item.quantidade}x`;
+                    htmlNota += `<li>${qtyLabel} ${escapeHTML(item.nome)}</li>`;
                 });
                 htmlNota += `</ul></div>`;
             } else {

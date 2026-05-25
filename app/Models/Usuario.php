@@ -20,16 +20,16 @@ class Usuario {
     }
 
     
-    public function cadastrarCliente($nome, $email, $senhaCriptografada, $telefone, $endereco, $referencia, $frequencia, $latitude = null, $longitude = null) {
+    public function cadastrarCliente($nome, $email, $senhaCriptografada, $telefone, $endereco, $referencia, $frequencia, $latitude = null, $longitude = null, $cpf = null) {
         try {
             
             $this->pdo->beginTransaction();
 
             
-            $sqlUser = "INSERT INTO usuarios (nome, email, senha, telefone, endereco, ponto_referencia, tipo_usuario) 
-                        VALUES (?, ?, ?, ?, ?, ?, 'cliente')";
+            $sqlUser = "INSERT INTO usuarios (nome, email, senha, telefone, cpf, endereco, ponto_referencia, tipo_usuario) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'cliente')";
             $stmtUser = $this->pdo->prepare($sqlUser);
-            $stmtUser->execute([$nome, $email, $senhaCriptografada, $telefone, $endereco, $referencia]);
+            $stmtUser->execute([$nome, $email, $senhaCriptografada, $telefone, $cpf, $endereco, $referencia]);
             
             
             $usuarioId = $this->pdo->lastInsertId();
@@ -80,24 +80,24 @@ class Usuario {
     }
 
     public function buscarPorId($id) {
-        $sql = "SELECT id, nome, email, telefone, endereco, ponto_referencia 
+        $sql = "SELECT id, nome, email, telefone, cpf, endereco, ponto_referencia 
                 FROM usuarios WHERE id = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
 
-    public function atualizarPerfil($id, $nome, $telefone, $endereco, $referencia, $senhaHash = null) {
+    public function atualizarPerfil($id, $nome, $telefone, $cpf, $endereco, $referencia, $senhaHash = null) {
         if ($senhaHash) {
             // Se o cliente digitou uma senha nova, atualiza tudo
-            $sql = "UPDATE usuarios SET nome = ?, telefone = ?, endereco = ?, ponto_referencia = ?, senha = ? WHERE id = ?";
+            $sql = "UPDATE usuarios SET nome = ?, telefone = ?, cpf = ?, endereco = ?, ponto_referencia = ?, senha = ? WHERE id = ?";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([$nome, $telefone, $endereco, $referencia, $senhaHash, $id]);
+            return $stmt->execute([$nome, $telefone, $cpf, $endereco, $referencia, $senhaHash, $id]);
         } else {
             // Se a senha veio em branco, atualiza só os dados de contato
-            $sql = "UPDATE usuarios SET nome = ?, telefone = ?, endereco = ?, ponto_referencia = ? WHERE id = ?";
+            $sql = "UPDATE usuarios SET nome = ?, telefone = ?, cpf = ?, endereco = ?, ponto_referencia = ? WHERE id = ?";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([$nome, $telefone, $endereco, $referencia, $id]);
+            return $stmt->execute([$nome, $telefone, $cpf, $endereco, $referencia, $id]);
         }
     }
 

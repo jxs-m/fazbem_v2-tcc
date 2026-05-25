@@ -1,6 +1,17 @@
 <?php
 // Caminho: faz_bem_v2/api_logistica_v2.php
+session_start();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
+
+require_once __DIR__ . '/app/Security.php';
+Security::checkCSRF();
+
+if (!isset($_SESSION['tipo_usuario']) || !in_array($_SESSION['tipo_usuario'], ['admin', 'entregador'])) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Acesso negado.']);
+    exit;
+}
 
 require_once __DIR__ . '/app/Database.php';
 
@@ -17,7 +28,7 @@ try {
                 FROM pedidos p
                 JOIN usuarios u ON p.usuario_id = u.id
                 LEFT JOIN enderecos e ON e.usuario_id = u.id
-                WHERE p.status_entrega IN ('Em separação', 'Saiu para entrega')
+                WHERE p.status_entrega IN ('Aguardando Entrega', 'Saiu para entrega')
                 GROUP BY p.id
                 ORDER BY p.ordem_entrega ASC, p.id ASC";
                 

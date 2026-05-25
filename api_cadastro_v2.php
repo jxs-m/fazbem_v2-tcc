@@ -1,5 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_cadastro_v2.php
+session_start();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Usuario.php';
 require_once __DIR__ . '/app/Security.php';
@@ -17,7 +19,14 @@ if (!$data || empty($data['nome']) || empty($data['email']) || empty($data['senh
 try {
     $usuarioModel = new Usuario();
 
-   
+    require_once __DIR__ . '/app/Validator.php';
+
+    if (!empty($data['cpf']) && !Validator::validarCPF($data['cpf'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'O CPF informado é inválido.']);
+        exit;
+    }
+
     if ($usuarioModel->buscarPorEmail($data['email'])) {
         echo json_encode(['success' => false, 'message' => 'Este e-mail já está cadastrado.']);
         exit;
@@ -30,6 +39,7 @@ try {
     $referencia = $data['referencia'] ?? null;
     $lat = isset($data['latitude']) ? (float)$data['latitude'] : null;
     $lng = isset($data['longitude']) ? (float)$data['longitude'] : null;
+    $cpf = $data['cpf'] ?? null;
     
     $usuarioId = $usuarioModel->cadastrarCliente(
         $data['nome'], 
@@ -40,7 +50,8 @@ try {
         $referencia, 
         $data['frequencia'],
         $lat,
-        $lng
+        $lng,
+        $cpf
     );
 
     require_once __DIR__ . '/app/Models/Preferencia.php';

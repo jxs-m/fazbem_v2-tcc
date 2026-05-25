@@ -1,7 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_gerenciar_assinatura_v2.php
 session_start();
-ob_clean();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
@@ -36,22 +36,26 @@ try {
         case 'pausar':
             $status = 'Pausada';
             
+            $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
+            $entregas_por_mes = ($frequencia === 'Quinzenal') ? 2 : 4;
+            $valor_credito = round($valor_mensal / $entregas_por_mes, 2);
             
             $pdo = Database::getConexao();
             $pdo->beginTransaction();
             
-            $sqlWallet = "UPDATE usuarios SET saldo_compensacao = saldo_compensacao + 50.00 WHERE id = ?";
+            $sqlWallet = "UPDATE usuarios SET saldo_compensacao = saldo_compensacao + ? WHERE id = ?";
             $stmtWallet = $pdo->prepare($sqlWallet);
-            $stmtWallet->execute([$usuario_id]);
+            $stmtWallet->execute([$valor_credito, $usuario_id]);
             
-            
-            $sqlTrans = "INSERT INTO transacoes_financeiras (usuario_id, tipo, valor, motivo) VALUES (?, 'Credito', 50.00, 'Pausa na Assinatura (Compensação Semanal)')";
+            $motivo = "Pausa na Assinatura (Compensação {$frequencia})";
+            $sqlTrans = "INSERT INTO transacoes_financeiras (usuario_id, tipo, valor, motivo) VALUES (?, 'Credito', ?, ?)";
             $stmtTrans = $pdo->prepare($sqlTrans);
-            $stmtTrans->execute([$usuario_id]);
+            $stmtTrans->execute([$usuario_id, $valor_credito, $motivo]);
             
             $pdo->commit();
 
-            $mensagem = 'Entregas pausadas com sucesso. R$ 50,00 foram adicionados à sua carteira (Compensação).';
+            $valor_formatado = number_format($valor_credito, 2, ',', '.');
+            $mensagem = "Entregas pausadas com sucesso. R$ {$valor_formatado} foram adicionados à sua carteira (Compensação).";
             break;
         case 'reativar':
             $status = 'Ativa';

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Separador — Faz Bem</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/separador.css">
+</head>
+
+<body>
+    <header class="no-print">
+        <div class="brand">
+            <span>🌿</span> Faz Bem | Logística e Separação
+        </div>
+        <div class="header-actions">
+            <span id="nome-separador">Separador</span>
+            <a href="logout.php" class="btn-logout">Sair</a>
+        </div>
+    </header>
+
+    <main class="no-print">
+        <div class="header-actions" style="margin-bottom: 20px;">
+            <h2>Pedidos na Fila de Separação</h2>
+            <button class="btn btn-primary" onclick="carregarPedidosSeparacao()">🔄 Atualizar Fila</button>
+        </div>
+
+        <div id="lista-pedidos" class="pedidos-grid">
+            <!-- Pedidos serão injetados aqui -->
+            <div style="grid-column: 1/-1; text-align: center; color: #666;">Carregando pedidos...</div>
+        </div>
+    </main>
+
+    <!-- Modal de Separação / Pesagem -->
+    <div id="modalSeparacao" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;" class="no-print">
+                <h2 style="margin:0; border:none; color: var(--green-primary);">Montagem do Pedido #<span id="sep-pedido-id"></span></h2>
+                <button onclick="fecharModal('modalSeparacao')" style="background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
+            </div>
+
+            <div class="cliente-info" style="background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <div id="sep-cliente-nome" style="font-weight: bold; font-size: 16px;">Cliente</div>
+                
+                <div id="sep-excecoes" style="display:none; margin-top:10px; padding:10px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; border-radius:8px;">
+                    <strong>⚠️ Atenção - Exceções / Trocas Fixas:</strong>
+                    <p id="sep-excecoes-texto" style="margin: 5px 0 0 0;"></p>
+                </div>
+            </div>
+
+            <h3 style="font-size:16px;">Itens para Pesar/Separar</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Informe a quantidade exata enviada (peso aferido ou unidades). Se estiver em falta, marque a opção vermelha ou zere a quantidade.</p>
+            
+            <div id="sep-itens" style="margin-bottom:20px;">
+                <!-- Formulário de itens -->
+            </div>
+
+            <div id="sep-obs" class="obs-box" style="display:none; margin-top:10px;"></div>
+
+            <div class="no-print" style="margin-top:24px; text-align:right; border-top:1px solid #eee; padding-top:16px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn" onclick="fecharModal('modalSeparacao')" style="background:#e5e7eb; color: #333;">Cancelar</button>
+                <button class="btn btn-primary" id="btnFinalizarSeparacao" onclick="finalizarSeparacao()" style="background: #166534; font-weight: bold;">✔ Finalizar e Liberar Entrega</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="js/separador.js"></script>
+</body>
+
+</html>

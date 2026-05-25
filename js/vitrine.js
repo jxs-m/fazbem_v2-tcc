@@ -22,10 +22,12 @@ document.addEventListener('DOMContentLoaded', carregarVitrine);
                             ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="imagem-produto">`
                             : `<div class="sem-foto">📦</div>`;
 
+                        const tagCategoria = (parseInt(p.temporario) === 1) ? 'Temporários' : p.categoria;
+
                         container.innerHTML += `
                         <div class="card">
                             ${displayImagem}
-                            <div class="categoria">${escapeHTML(p.categoria)}</div>
+                            <div class="categoria">${escapeHTML(tagCategoria)}</div>
                             <div class="nome">${escapeHTML(p.nome)}</div>
                             <div class="preco">R$ ${precoFormatado} <span style="font-size:14px; font-weight:normal; color:#6b7280;">/ ${escapeHTML(p.unidade)}</span></div>
                             <button class="btn-comprar" onclick="alert('Produto selecionado: ' + escapeHTML(p.nome))">Adicionar</button>

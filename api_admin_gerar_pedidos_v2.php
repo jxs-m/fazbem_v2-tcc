@@ -1,8 +1,10 @@
 <?php
 // Caminho: faz_bem_v2/api_admin_gerar_pedidos_v2.php
 session_start();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
+Security::checkCSRF();
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'admin') {
     http_response_code(403);
@@ -81,15 +83,39 @@ try {
         $stmtPedido->execute([$usuarioId, $valorFixoSemanal, $observacao]);
         $pedidoId = $pdo->lastInsertId();
 
-        $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, 1, 0)";
+        $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, 0)";
         $stmtItem = $pdo->prepare($sqlItem);
 
-        $sqlEstoque = "UPDATE produtos SET estoque_atual = estoque_atual - 1 WHERE id = ?";
+        $sqlEstoque = "UPDATE produtos SET estoque_atual = estoque_atual - ? WHERE id = ?";
         $stmtEstoque = $pdo->prepare($sqlEstoque);
 
         foreach ($itensDoPedido as $item) {
-            $stmtItem->execute([$pedidoId, $item['id']]);
-            $stmtEstoque->execute([$item['id']]);
+            $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
+            
+            // Buscar informações do produto para saber se é fracionado
+            $sqlProd = "SELECT unidade, tipo_venda FROM produtos WHERE id = ?";
+            $stmtProd = $pdo->prepare($sqlProd);
+            $stmtProd->execute([$item['id']]);
+            $prodInfo = $stmtProd->fetch();
+            
+            $estoqueDecremento = $qtd;
+            if ($prodInfo && $prodInfo['tipo_venda'] === 'Fracionado') {
+                $unidade = strtolower($prodInfo['unidade']);
+                $baseGrams = null;
+                if (strpos($unidade, 'kg') !== false) {
+                    $baseGrams = 1000;
+                } elseif (strpos($unidade, 'g') !== false) {
+                    $num = intval($unidade);
+                    if ($num > 0) $baseGrams = $num;
+                }
+                
+                if ($baseGrams !== null) {
+                    $estoqueDecremento = $qtd * $baseGrams;
+                }
+            }
+
+            $stmtItem->execute([$pedidoId, $item['id'], $qtd]);
+            $stmtEstoque->execute([$estoqueDecremento, $item['id']]);
         }
 
         $pdo->commit();

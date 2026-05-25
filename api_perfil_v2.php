@@ -1,7 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_perfil_v2.php
 session_start();
-ob_clean();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
@@ -53,11 +53,18 @@ try {
         }
 
         $referencia = $data['referencia'] ?? '';
+        $cpf = $data['cpf'] ?? null;
+
+        require_once __DIR__ . '/app/Validator.php';
+        if (!empty($cpf) && !Validator::validarCPF($cpf)) {
+            throw new Exception("O CPF informado é inválido.");
+        }
 
         $atualizou = $usuarioModel->atualizarPerfil(
             $usuario_id, 
             $data['nome'], 
             $data['telefone'], 
+            $cpf,
             $data['endereco'], 
             $referencia, 
             $novaSenhaHash

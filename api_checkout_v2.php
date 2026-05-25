@@ -1,7 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_checkout_v2.php
 session_start();
-ob_clean();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();

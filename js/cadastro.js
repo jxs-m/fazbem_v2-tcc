@@ -5,6 +5,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initMap();
   carregarProdutosParaExclusao();
   document.getElementById('btnBuscarMapa').addEventListener('click', buscarEnderecoNoMapa);
+  
+  const cpfInput = document.getElementById('cpf');
+  if (cpfInput) {
+    cpfInput.addEventListener('input', function() {
+      mascaraCPF(this);
+    });
+  }
 });
 
 async function carregarProdutosParaExclusao() {
@@ -110,6 +117,14 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
 
   if (!lat || !lng) {
     alert('Por favor, clique em "🔍 Buscar no Mapa" ou arraste o pino para marcarmos a sua casa no sistema de rotas.');
+    btn.innerText = originalText;
+    btn.disabled = false;
+    return;
+  }
+
+  const cpfValue = document.getElementById('cpf').value;
+  if (!validarCPF(cpfValue)) {
+    alert('Por favor, insira um CPF válido.');
     btn.innerText = originalText;
     btn.disabled = false;
     return;

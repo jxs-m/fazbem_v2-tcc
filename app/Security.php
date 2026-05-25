@@ -38,37 +38,42 @@ class Security {
     public static function checkRateLimit($maxAttempts = 5, $decaySeconds = 60) {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown_ip';
         $endpoint = $_SERVER['SCRIPT_NAME'];
-        $cacheFile = __DIR__ . '/rate_limit.json';
-
         
-        $data = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : [];
-        if (!is_array($data)) $data = [];
+        require_once __DIR__ . '/Database.php';
+        $pdo = Database::getConexao();
 
-        $key = $ip . '_' . $endpoint;
         $now = time();
 
-        
-        if (!isset($data[$key])) {
-            $data[$key] = ['attempts' => 1, 'first_attempt' => $now];
+        // Busca o registro atual
+        $sqlBusca = "SELECT attempts, first_attempt FROM rate_limits WHERE ip = ? AND endpoint = ?";
+        $stmtBusca = $pdo->prepare($sqlBusca);
+        $stmtBusca->execute([$ip, $endpoint]);
+        $row = $stmtBusca->fetch();
+
+        if (!$row) {
+            // Insere o primeiro acesso
+            $sqlInsert = "INSERT INTO rate_limits (ip, endpoint, attempts, first_attempt) VALUES (?, ?, 1, ?)";
+            $stmtInsert = $pdo->prepare($sqlInsert);
+            $stmtInsert->execute([$ip, $endpoint, $now]);
         } else {
-            
-            if ($now - $data[$key]['first_attempt'] > $decaySeconds) {
-                $data[$key] = ['attempts' => 1, 'first_attempt' => $now];
+            // Se o tempo expirou, reseta. Se não, incrementa.
+            if ($now - $row['first_attempt'] > $decaySeconds) {
+                $sqlUpdate = "UPDATE rate_limits SET attempts = 1, first_attempt = ? WHERE ip = ? AND endpoint = ?";
+                $stmtUpdate = $pdo->prepare($sqlUpdate);
+                $stmtUpdate->execute([$now, $ip, $endpoint]);
             } else {
-                $data[$key]['attempts']++;
+                $attempts = $row['attempts'] + 1;
+                $sqlUpdate = "UPDATE rate_limits SET attempts = ? WHERE ip = ? AND endpoint = ?";
+                $stmtUpdate = $pdo->prepare($sqlUpdate);
+                $stmtUpdate->execute([$attempts, $ip, $endpoint]);
+
+                if ($attempts > $maxAttempts) {
+                    http_response_code(429);
+                    echo json_encode(['success' => false, 'message' => 'Muitas requisições. Aguarde antes de tentar novamente.']);
+                    exit;
+                }
             }
         }
-
-       
-        if ($data[$key]['attempts'] > $maxAttempts) {
-            file_put_contents($cacheFile, json_encode($data));
-            http_response_code(429);
-            echo json_encode(['success' => false, 'message' => 'Muitas requisições. Aguarde antes de tentar novamente.']);
-            exit;
-        }
-
-        
-        file_put_contents($cacheFile, json_encode($data));
     }
 }
 ?>

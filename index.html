@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Faz Bem - O melhor clube de assinatura de alimentos orgânicos frescos direto do produtor local para a sua mesa, com entrega inteligente e personalizada.">
+    <title>Faz Bem — Alimentos Vivos e Orgânicos Entregues em Casa</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar" id="main-header">
+        <div class="navbar-container">
+            <a href="index.html" class="brand" id="navbar-brand">
+                <span class="brand-logo">🌿</span>
+                <span class="brand-name">Faz Bem</span>
+            </a>
+            
+            <nav class="nav-menu" id="navbar-menu">
+                <a href="#how-it-works-section" class="nav-link" id="nav-link-how">Como Funciona</a>
+                <a href="#featured-section" class="nav-link" id="nav-link-products">Destaques</a>
+                <a href="#plans-section" class="nav-link" id="nav-link-plans">Planos</a>
+                <a href="catalogo.html" class="nav-link" id="nav-link-catalog-page">Catálogo</a>
+            </nav>
+
+            <div class="nav-actions" id="navbar-actions">
+                <!-- Dynamic contents loaded by index.js based on session state -->
+                <a href="login.html" class="btn-login" id="nav-login-btn">Entrar</a>
+                <a href="cadastro.html" class="btn-subscribe-nav" id="nav-subscribe-btn">Assinar Clube</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="hero-section">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="kits-badge-wrapper" id="kits-badge-wrapper" style="display: none;">
+                        <span class="kits-badge" id="kits-counter-badge">
+                            🔥 Apenas <strong id="kits-count-number">...</strong> kits de assinatura restantes esta semana!
+                        </span>
+                    </div>
+                    
+                    <h1 class="hero-title" id="hero-title">
+                        Alimentos vivos, saúde e frescor <span class="highlight">entregues em casa</span>
+                    </h1>
+                    
+                    <p class="hero-subtitle" id="hero-subtitle">
+                        Participe do Clube Faz Bem e receba cestas de orgânicos selecionados direto do produtor rural, 100% personalizáveis e com roteirização inteligente.
+                    </p>
+                    
+                    <div class="hero-buttons">
+                        <a href="cadastro.html" class="btn btn-primary-hero" id="hero-cta-subscribe">
+                            Fazer Inscrição
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="catalogo.html" class="btn btn-secondary-hero" id="hero-cta-catalog">Ver Catálogo</a>
+                    </div>
+                    
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">100%</span>
+                            <span class="stat-label">Orgânico Certificado</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">2h</span>
+                            <span class="stat-label">Do Campo à Entrega</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">1k+</span>
+                            <span class="stat-label">Famílias Nutridas</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hero-media">
+                    <div class="media-card glass">
+                        <div class="media-illustration">
+                            <!-- Premium inline SVG representation of a basket of fresh organic food -->
+                            <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="100" cy="100" r="80" fill="url(#hero-circle-grad)" opacity="0.15"/>
+                                <path d="M60 110C60 90.1046 76.1046 74 96 74H104C123.895 74 140 90.1046 140 110V140H60V110Z" fill="url(#basket-grad)" filter="drop-shadow(0 10px 15px rgba(22,101,52,0.15))"/>
+                                <rect x="50" y="100" width="100" height="15" rx="7.5" fill="#166534"/>
+                                <path d="M75 100V50C75 38.9543 83.9543 30 95 30H105C116.046 30 125 38.9543 125 50V100" stroke="#166534" stroke-width="10"/>
+                                <circle cx="85" cy="90" r="14" fill="#ef4444"/>
+                                <path d="M100 92C108 80 120 85 125 90C130 95 122 105 110 105C98 105 92 104 100 92Z" fill="#eab308"/>
+                                <path d="M120 75C125 60 135 60 140 68C145 76 135 85 128 85C121 85 115 90 120 75Z" fill="#22c55e"/>
+                                <defs>
+                                    <linearGradient id="hero-circle-grad" x1="20" y1="20" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#22c55e"/>
+                                        <stop offset="1" stop-color="#15803d"/>
+                                    </linearGradient>
+                                    <linearGradient id="basket-grad" x1="60" y1="74" x2="140" y2="140" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#854d0e"/>
+                                        <stop offset="1" stop-color="#a16207"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="media-overlay-card">
+                            <div class="overlay-info">
+                                <span class="emoji">🍎</span>
+                                <div>
+                                    <h4>Lote de Hoje</h4>
+                                    <p>Colhido há menos de 3h</p>
+                                </div>
+                            </div>
+                            <span class="badge-fresh">Super Fresco</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="how-it-works" id="how-it-works-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-tagline">Simples & Saudável</span>
+                    <h2 class="section-title">Como funciona o Clube Faz Bem?</h2>
+                    <p class="section-subtitle">Tornamos a sua alimentação saudável prática e sem estresse em apenas 3 passos simples.</p>
+                </div>
+                
+                <div class="steps-grid">
+                    <!-- Step 1 -->
+                    <div class="step-card" id="step-1">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">01</span>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2"/></svg>
+                        </div>
+                        <h3>Escolha a Frequência</h3>
+                        <p>Assine nosso plano Semanal ou Quinzenal. O valor da mensalidade cobre a sua cesta base, planejada com o melhor da colheita.</p>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="step-card" id="step-2">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">02</span>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M3 20v-8a2 2 0 012-2h4a2 2 0 012 2v8M3 10V6a2 2 0 012-2h4a2 2 0 012 2v4M13 14v6M17 10v10"/></svg>
+                        </div>
+                        <h3>Personalize seu Perfil</h3>
+                        <p>Diga o que você ama e o que prefere evitar. Nosso painel inteligente troca automaticamente o que você não quer por itens de sua preferência.</p>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="step-card" id="step-3">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">03</span>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <h3>Entrega Inteligente</h3>
+                        <p>Utilizamos roteirização e mapas dinâmicos para otimizar a entrega dos nossos entregadores parceiros. Rápido, sustentável e pontual.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Spotlight Section -->
+        <section class="featured-products" id="featured-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-tagline">Colheita da Semana</span>
+                    <div class="catalog-status-title-row">
+                        <h2 class="section-title">Nossos Alimentos em Destaque</h2>
+                        <span class="status-badge" id="catalog-status-badge">Carregando catálogo...</span>
+                    </div>
+                    <p class="section-subtitle">Estes são alguns dos produtos frescos colhidos nesta semana que você pode adicionar como extra em sua cesta.</p>
+                </div>
+
+                <div class="category-filters" id="category-filters">
+                    <button class="filter-btn active" data-category="Todos" id="filter-all">Todos</button>
+                    <button class="filter-btn" data-category="Temporários" id="filter-temporarios">Temporários</button>
+                    <button class="filter-btn" data-category="Frutas" id="filter-frutas">Frutas</button>
+                    <button class="filter-btn" data-category="Verduras" id="filter-verduras">Verduras</button>
+                    <button class="filter-btn" data-category="Legumes" id="filter-legumes">Legumes</button>
+                    <button class="filter-btn" data-category="Processados" id="filter-processados">Processados</button>
+                </div>
+
+                <div class="products-grid" id="featured-products-grid">
+                    <!-- Products will be loaded dynamically by JS -->
+                    <div class="loading-placeholder">
+                        <div class="spinner"></div>
+                        <p>Carregando nossa horta orgânica...</p>
+                    </div>
+                </div>
+
+                <div class="catalog-redirect-container">
+                    <a href="catalogo.html" class="btn btn-outline-catalog">Ver Catálogo Completo ➔</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Subscription Plans Section -->
+        <section class="plans" id="plans-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-tagline">Seja um Membro</span>
+                    <h2 class="section-title">Escolha o seu plano de saúde</h2>
+                    <p class="section-subtitle">Sem taxa de adesão ou cancelamento. Pause quando quiser e ganhe créditos na fatura.</p>
+                </div>
+
+                <div class="plans-grid">
+                    <!-- Weekly Plan -->
+                    <div class="plan-card" id="plan-card-weekly">
+                        <div class="plan-badge">Mais Popular</div>
+                        <h3 class="plan-name">Clube Semanal</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="price-value">100</span>
+                            <span class="period">/mês</span>
+                        </div>
+                        <p class="plan-desc">Cesta padrão cheia de frescor entregue toda semana na sua porta.</p>
+                        <ul class="plan-features">
+                            <li><span>✓</span> 4 Cestas completas por mês</li>
+                            <li><span>✓</span> Substituições ilimitadas baseadas em preferências</li>
+                            <li><span>✓</span> Descontos exclusivos em produtos extras</li>
+                            <li><span>✓</span> Entrega grátis via roteamento inteligente</li>
+                            <li><span>✓</span> Sistema de créditos por semanas pausadas</li>
+                        </ul>
+                        <a href="cadastro.html?plano=semanal" class="btn btn-plan-action" id="btn-plan-weekly">Quero o Semanal</a>
+                    </div>
+
+                    <!-- Biweekly Plan -->
+                    <div class="plan-card outline-plan" id="plan-card-biweekly">
+                        <h3 class="plan-name">Clube Quinzenal</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="price-value">60</span>
+                            <span class="period">/mês</span>
+                        </div>
+                        <p class="plan-desc">Ideal para quem consome menos e busca economia sem perder qualidade.</p>
+                        <ul class="plan-features">
+                            <li><span>✓</span> 2 Cestas completas por mês (quinzenal)</li>
+                            <li><span>✓</span> Substituições de itens preferenciais</li>
+                            <li><span>✓</span> Descontos em produtos adicionais</li>
+                            <li><span>✓</span> Entrega geocodificada garantida</li>
+                            <li><span>✓</span> Suporte premium no WhatsApp</li>
+                        </ul>
+                        <a href="cadastro.html?plano=quinzenal" class="btn btn-plan-action outline" id="btn-plan-biweekly">Quero o Quinzenal</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Value Propositions Section -->
+        <section class="benefits" id="benefits-section">
+            <div class="section-container">
+                <div class="benefits-layout">
+                    <div class="benefits-image">
+                        <div class="benefits-visual-box">
+                            <span class="badge-eco">🌱 Ecológico</span>
+                            <h3>Por que a Faz Bem é diferente?</h3>
+                            <p>Conectamos famílias urbanas diretamente ao pequeno produtor agrícola de forma justa e sustentável.</p>
+                        </div>
+                    </div>
+                    <div class="benefits-list">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">🛒</div>
+                            <div>
+                                <h4>Sistema de Crédito Justo</h4>
+                                <p>Vai viajar ou sobrou comida? Pause a semana e o valor é abatido como crédito automático na sua fatura mensal.</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">📍</div>
+                            <div>
+                                <h4>Geolocalização Integrada</h4>
+                                <p>Você marca o local exato no mapa durante o checkout, evitando erros de entrega e garantindo rapidez.</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">✨</div>
+                            <div>
+                                <h4>Prevenção de Desperdício</h4>
+                                <p>Sua cesta se molda ao seu gosto: o que você não consome vira crédito ou é substituído antes do envio.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer-section">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="brand">
+                    <span class="brand-logo">🌿</span>
+                    <span class="brand-name" style="color: white;">Faz Bem</span>
+                </div>
+                <p>Alimentos orgânicos vivos colhidos com amor e entregues com tecnologia e compromisso social.</p>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Navegação</h4>
+                <a href="#hero-section">Início</a>
+                <a href="#how-it-works-section">Como Funciona</a>
+                <a href="#featured-section">Destaques</a>
+                <a href="#plans-section">Planos</a>
+            </div>
+
+            <div class="footer-links">
+                <h4>Serviços</h4>
+                <a href="login.html">Painel do Assinante</a>
+                <a href="cadastro.html">Criar Conta</a>
+                <a href="catalogo.html">Catálogo Online</a>
+                <a href="admin.html">Painel de Administração</a>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Contato</h4>
+                <p>📞 (55) 99999-8888</p>
+                <p>✉️ contato@fazbemorgânicos.com.br</p>
+                <p>📍 Região Fronteira Oeste — RS</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Faz Bem V2. Todos os direitos reservados. Feito com amor local.</p>
+        </div>
+    </footer>
+
+    <!-- Behavioral JavaScript -->
+    <script src="utils.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>

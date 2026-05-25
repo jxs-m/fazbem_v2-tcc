@@ -1,7 +1,7 @@
 <?php
 // Caminho: faz_bem_v2/api_admin_produtos_v2.php
 session_start();
-ob_clean();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
@@ -34,6 +34,9 @@ try {
         $unidade = $_POST['unidade'] ?? '';
         $estoque = $_POST['estoque'] ?? 0;
         $peso_estimado_g = $_POST['peso_estimado_g'] ?? 0;
+        $tipo_venda = $_POST['tipo_venda'] ?? 'Inteiro';
+        $temporario = isset($_POST['temporario']) ? (int)$_POST['temporario'] : 0;
+        $duracao_dias = (isset($_POST['duracao_dias']) && $_POST['duracao_dias'] !== '') ? (int)$_POST['duracao_dias'] : null;
 
         
         if (empty($nome) || empty($categoria)) {
@@ -65,10 +68,10 @@ try {
         }
 
          if (!empty($id)) {
-            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco);
+            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco, $tipo_venda, $temporario, $duracao_dias);
             $mensagem = 'Produto atualizado com sucesso!';
         } else {
-            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco);
+            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco, $tipo_venda, $temporario, $duracao_dias);
             $mensagem = 'Produto cadastrado com sucesso!';
         }
 

@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
       carregarPerfil();
       carregarPedidos();
+      carregarFaturas();
     });
 
     async function carregarPerfil() {
@@ -152,4 +153,50 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Erro: ' + json.message);
         }
       } catch (e) { alert('Erro ao solicitar troca.'); }
+    }
+
+    async function carregarFaturas() {
+      const tbody = document.getElementById('lista-faturas');
+      try {
+        const res = await fetch('api_faturamento_v2.php?acao=minhas_faturas');
+        const json = await res.json();
+        if (json.success) {
+          tbody.innerHTML = '';
+          if (json.faturas.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#999">Nenhuma fatura encontrada.</td></tr>'; 
+            return; 
+          }
+          json.faturas.forEach(f => {
+            let totalF = parseFloat(f.valor_total).toFixed(2).replace('.', ',');
+            let btnAction = f.status === 'Pago' 
+                ? `<span style="color:#16a34a; font-weight:bold;">Pago</span>` 
+                : `<button class="btn btn-edit" style="background:#166534; color:white; padding:4px 8px;" onclick="pagarFatura(${f.id})">Pagar Agora</button>`;
+            
+            tbody.innerHTML += `<tr>
+                <td><strong>${escapeHTML(f.mes_referencia)}</strong><br><small>Vcto: Mensal</small></td>
+                <td style="text-align:right; font-weight:bold; color:#2b8a3e">R$ ${totalF}</td>
+                <td style="text-align:right">${btnAction}</td>
+            </tr>`;
+          });
+        }
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Erro ao carregar faturas.</td></tr>'; }
+    }
+
+    async function pagarFatura(id) {
+        if(!confirm('Deseja prosseguir para o pagamento desta fatura?')) return;
+        // Mock pagamento
+        try {
+            const res = await fetch('api_faturamento_v2.php?acao=pagar_fatura', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fatura_id: id })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('Obrigado! Fatura paga com sucesso.');
+                carregarFaturas();
+            } else {
+                alert('Erro: ' + json.message);
+            }
+        } catch(e) { alert('Erro de conexão ao pagar a fatura.'); }
     }

@@ -1,14 +1,13 @@
 <?php
-// Caminho: faz_bem_v2/api_admin_entregadores_v2.php
+// Caminho: faz_bem_v2/api_admin_funcionarios_v2.php
 session_start();
-ob_clean();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Usuario.php';
 
-// 1. Verificação de Segurança (Apenas administradores podem acessar)
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado. Área restrita.']);
@@ -22,11 +21,11 @@ try {
 
     if ($method === 'GET') {
         $pdo = Database::getConexao();
-        $sql = "SELECT id, nome, email, telefone FROM usuarios WHERE tipo_usuario = 'entregador'";
+        $sql = "SELECT id, nome, email, telefone, tipo_usuario FROM usuarios WHERE tipo_usuario IN ('admin', 'separador', 'entregador') ORDER BY tipo_usuario, nome";
         $stmt = $pdo->query($sql);
-        $entregadores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $funcionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        echo json_encode(['success' => true, 'data' => $entregadores]);
+        echo json_encode(['success' => true, 'data' => $funcionarios]);
         exit;
     }
 
@@ -46,10 +45,12 @@ try {
         $senhaHash = password_hash($data['senha'], PASSWORD_DEFAULT);
         $telefone = $data['telefone'] ?? '00000000000';
 
-        $criou = $usuarioModel->cadastrarMembroEquipe($data['nome'], $data['email'], $senhaHash, $telefone, 'entregador');
+        $tipo = in_array($data['tipo_usuario'], ['admin', 'separador', 'entregador']) ? $data['tipo_usuario'] : 'entregador';
+
+        $criou = $usuarioModel->cadastrarMembroEquipe($data['nome'], $data['email'], $senhaHash, $telefone, $tipo);
 
         if ($criou) {
-            echo json_encode(['success' => true, 'message' => 'Entregador cadastrado com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Funcionário cadastrado com sucesso!']);
         } else {
             throw new Exception("Erro ao salvar entregador no banco.");
         }
@@ -62,15 +63,20 @@ try {
             throw new Exception("ID não fornecido.");
         }
         
+        // Prevenir autoexclusão
+        if ($data['id'] == $_SESSION['usuario_id']) {
+             throw new Exception("Você não pode excluir sua própria conta.");
+        }
+
         $pdo = Database::getConexao();
-        $sql = "DELETE FROM usuarios WHERE id = ? AND tipo_usuario = 'entregador'";
+        $sql = "DELETE FROM usuarios WHERE id = ? AND tipo_usuario IN ('admin', 'separador', 'entregador')";
         $stmt = $pdo->prepare($sql);
         $deletou = $stmt->execute([$data['id']]);
         
         if ($deletou) {
-            echo json_encode(['success' => true, 'message' => 'Entregador excluído com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Funcionário excluído com sucesso!']);
         } else {
-             throw new Exception("Erro ao excluir entregador.");
+             throw new Exception("Erro ao excluir funcionário.");
         }
         exit;
     }

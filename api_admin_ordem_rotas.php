@@ -1,9 +1,13 @@
 <?php
 // Caminho: faz_bem_v2/api_admin_ordem_rotas.php
 session_start();
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Database.php';
+require_once __DIR__ . '/app/Security.php';
+
+Security::checkCSRF();
 
 // Verificação de Segurança (Bloqueia quem não é admin)
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {

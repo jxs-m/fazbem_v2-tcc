@@ -97,11 +97,18 @@ class Pedido {
 
             
             foreach ($carrinho as $item) {
+                $qtd = $item['quantidade_calculada'] ?? $item['quantidade'];
+                $preco = $item['preco_base'] ?? $item['preco'];
                 
-                $stmtItem->execute([$pedido_id, $item['id'], $item['quantidade'], $item['preco']]);
+                $stmtItem->execute([$pedido_id, $item['id'], $qtd, $preco]);
                 
+                if (isset($item['tipo_venda']) && $item['tipo_venda'] === 'Fracionado') {
+                    $estoqueDecremento = $item['gramas_calculadas'] ?? $qtd;
+                } else {
+                    $estoqueDecremento = $qtd;
+                }
                 
-                $stmtEstoque->execute([$item['quantidade'], $item['id']]);
+                $stmtEstoque->execute([$estoqueDecremento, $item['id']]);
             }
 
             

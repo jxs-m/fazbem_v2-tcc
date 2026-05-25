@@ -19,8 +19,9 @@
             <a onclick="showSection('produtos')" id="nav-produtos">🥬 Catálogo</a>
             <a onclick="showSection('producao')" id="nav-producao">🏭 Produção (Kits)</a>
             <a onclick="showSection('clientes')" id="nav-clientes">👥 Clientes</a>
-            <a onclick="showSection('entregadores')" id="nav-entregadores">🛵 Entregadores</a>
+            <a onclick="showSection('funcionarios')" id="nav-funcionarios">👥 Equipe</a>
             <a onclick="showSection('rotas')" id="nav-rotas">📍 Rotas / Ordenação</a>
+            <a onclick="showSection('faturamento')" id="nav-faturamento">🧾 Faturamento</a>
             <a href="logout.php" class="logout">🚪 Sair</a>
         </nav>
     </aside>
@@ -135,7 +136,10 @@
                 <div class="card" style="grid-column: span 3;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h3>Geração Automática de Pedidos</h3>
-                        <button class="btn" style="background:#10b981; color:white;" onclick="abrirModalGerarPedidos()">⚡ Gerar Pedidos da Semana</button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn" style="background:#3b82f6; color:white;" onclick="notificarAssinantes()">📢 Notificar Assinantes</button>
+                            <button class="btn" style="background:#10b981; color:white;" onclick="abrirModalGerarPedidos()">⚡ Gerar Pedidos da Semana</button>
+                        </div>
                     </div>
                     <p style="color:#555; font-size:0.9em; margin-top:10px;">Clique no botão acima para selecionar os itens que farão parte do <strong>Kit Padrão</strong> desta semana. O sistema criará um pedido automaticamente para todos os clientes com assinatura <strong>Ativa</strong> (aplicando as exclusões fixas de cada um e definindo o valor contábil padrão de R$ 25,00).</p>
                 </div>
@@ -209,22 +213,23 @@
             </div>
         </div>
 
-        <div id="sec-entregadores" style="display:none;">
+        <div id="sec-funcionarios" style="display:none;">
             <div class="header-actions">
-                <h2 style="margin:0; border:none;">Equipe de Entregadores</h2>
-                <button class="btn btn-primary" onclick="abrirModalEntregador()">+ Novo Entregador</button>
+                <h2 style="margin:0; border:none;">Gestão de Equipe (Funcionários)</h2>
+                <button class="btn btn-primary" onclick="abrirModalFuncionario()">+ Novo Funcionário</button>
             </div>
             <div class="table-container">
-                <table id="tabela-entregadores">
+                <table id="tabela-funcionarios">
                     <thead>
                         <tr>
                             <th>Nome</th>
                             <th>E-mail</th>
                             <th>Telefone</th>
+                            <th>Função</th>
                             <th style="text-align:right">Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-entregadores"></tbody>
+                    <tbody id="lista-funcionarios"></tbody>
                 </table>
             </div>
         </div>
@@ -251,6 +256,36 @@
                         </tr>
                     </thead>
                     <tbody id="lista-rotas"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="sec-faturamento" style="display:none;">
+            <div class="header-actions">
+                <h2 style="margin:0; border:none;">Gestão de Faturamento</h2>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn" onclick="carregarFaturasAdmin()" style="background:#e5e7eb; color:#374151;">🔄 Atualizar</button>
+                    <button class="btn btn-primary" onclick="gerarFaturasDoMes()">⚙️ Gerar Faturas do Mês</button>
+                </div>
+            </div>
+            <p style="color:#666; margin-bottom:16px;">Gere as faturas mensais agrupando a mensalidade antecipada, cobranças extras e abatimentos de ausências para o mês atual.</p>
+            <div class="table-container">
+                <table id="tabela-faturamento">
+                    <thead>
+                        <tr>
+                            <th>ID Fatura</th>
+                            <th>Mês Ref.</th>
+                            <th>Cliente</th>
+                            <th>Mensalidade</th>
+                            <th>Extras</th>
+                            <th>Abatimento</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-faturas-admin">
+                        <tr><td colspan="8" style="text-align:center">Carregando faturas...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -309,15 +344,24 @@
                 <label>Nome do Produto</label>
                 <input type="text" id="prodNome">
             </div>
-            <div class="form-group">
-                <label>Categoria</label>
-                <select id="prodCategoria">
-                    <option value="Legumes">Legumes</option>
-                    <option value="Verduras">Verduras</option>
-                    <option value="Frutas">Frutas</option>
-                    <option value="Processados">Processados</option>
-                    <option value="Outros">Outros</option>
-                </select>
+            <div style="display:flex; gap:12px;">
+                <div class="form-group" style="flex:1">
+                    <label>Categoria</label>
+                    <select id="prodCategoria">
+                        <option value="Legumes">Legumes</option>
+                        <option value="Verduras">Verduras</option>
+                        <option value="Frutas">Frutas</option>
+                        <option value="Processados">Processados</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1">
+                    <label>Tipo de Venda</label>
+                    <select id="prodTipoVenda">
+                        <option value="Inteiro">Unidade Inteira (ex: 1 banana)</option>
+                        <option value="Fracionado">Fração Livre (ex: 230g)</option>
+                    </select>
+                </div>
             </div>
             <div style="display:flex; gap:12px;">
                 <div class="form-group" style="flex:1">
@@ -337,6 +381,16 @@
                 <div class="form-group" style="flex:1">
                     <label>Peso Estimado (g)</label>
                     <input type="number" id="prodPesoG" placeholder="Ex: 500" value="0">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; margin-top:10px; margin-bottom:10px;">
+                <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
+                    <input type="checkbox" id="prodTemporario" style="width:auto; height:auto; margin:0; cursor:pointer;" onchange="document.getElementById('groupDuracao').style.display = this.checked ? 'block' : 'none'">
+                    <label for="prodTemporario" style="margin:0; cursor:pointer; font-weight:bold; color:#374151;">Produto Temporário (Sazonal)</label>
+                </div>
+                <div class="form-group" id="groupDuracao" style="flex:1; margin:0; display:none;">
+                    <label style="font-size:12px; margin-bottom:2px;">Duração (dias)</label>
+                    <input type="number" id="prodDuracaoDias" placeholder="Ex: 30" style="padding:6px; font-size:13px;">
                 </div>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
@@ -414,28 +468,36 @@
         </div>
     </div>
 
-    <div id="modalEntregador" class="modal">
+    <div id="modalFuncionario" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:var(--green-primary)">Novo Entregador</h3>
+            <h3 style="margin-top:0; color:var(--green-primary)">Novo Funcionário</h3>
             <div class="form-group">
                 <label>Nome</label>
-                <input type="text" id="entNome">
+                <input type="text" id="funcNome">
             </div>
             <div class="form-group">
-                <label>E-mail</label>
-                <input type="email" id="entEmail">
+                <label>E-mail (Login)</label>
+                <input type="email" id="funcEmail">
             </div>
             <div class="form-group">
                 <label>Senha</label>
-                <input type="password" id="entSenha">
+                <input type="password" id="funcSenha">
             </div>
             <div class="form-group">
                 <label>Telefone</label>
-                <input type="text" id="entTelefone" placeholder="Ex: 11999999999">
+                <input type="text" id="funcTelefone" placeholder="Ex: 11999999999">
+            </div>
+            <div class="form-group">
+                <label>Função no Sistema</label>
+                <select id="funcTipo">
+                    <option value="entregador">Entregador</option>
+                    <option value="separador">Equipe de Separação / Armazém</option>
+                    <option value="admin">Administrador (Acesso Total)</option>
+                </select>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
-                <button class="btn" style="background:#e5e7eb" onclick="fecharModal('modalEntregador')">Cancelar</button>
-                <button class="btn btn-primary" id="btnSalvarEntregador" onclick="salvarEntregador()">Cadastrar</button>
+                <button class="btn" style="background:#e5e7eb" onclick="fecharModal('modalFuncionario')">Cancelar</button>
+                <button class="btn btn-primary" id="btnSalvarFuncionario" onclick="salvarFuncionario()">Cadastrar</button>
             </div>
         </div>
     </div>
