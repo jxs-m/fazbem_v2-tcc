@@ -16,7 +16,7 @@ function showSection(id) {
 
 async function carregarPedidos() {
     const tbody = document.getElementById('lista-pedidos');
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Carregando...</td></tr>';
     try {
         const res = await fetch('api_admin_pedidos_v2.php');
         const json = await res.json();
@@ -32,16 +32,15 @@ async function carregarPedidos() {
                 const dataF = new Date(p.data_pedido).toLocaleDateString('pt-BR');
                 const totalF = parseFloat(p.valor_total).toFixed(2).replace('.', ',');
 
-                const selPag = `<select onchange="atualizarStatus(${p.id}, 'pagamento', this.value)" class="select-status ${p.status_pagamento === 'Pago' ? 'st-pago' : 'st-pendente'}"><option value="Pendente" ${p.status_pagamento === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Pago" ${p.status_pagamento === 'Pago' ? 'selected' : ''}>Pago</option><option value="Cancelado" ${p.status_pagamento === 'Cancelado' ? 'selected' : ''}>Cancelado</option></select>`;
                 const selEnt = `<select onchange="atualizarStatus(${p.id}, 'entrega', this.value)" class="select-status"><option value="Em separação" ${p.status_entrega === 'Em separação' ? 'selected' : ''}>Em separação</option><option value="Aguardando Entrega" ${p.status_entrega === 'Aguardando Entrega' ? 'selected' : ''}>Aguardando Entrega</option><option value="Saiu para entrega" ${p.status_entrega === 'Saiu para entrega' ? 'selected' : ''}>Saiu para entrega</option><option value="Entregue" ${p.status_entrega === 'Entregue' ? 'selected' : ''}>Entregue</option></select>`;
 
-                tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selPag}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button></td></tr>`;
+                tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button></td></tr>`;
             });
 
             // Atualiza o Card de Faturamento
             document.getElementById('dash-faturamento').innerText = 'R$ ' + totalFaturamento.toFixed(2).replace('.', ',');
         }
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="7">Erro</td></tr>'; }
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="6">Erro</td></tr>'; }
 }
 
 
@@ -108,6 +107,16 @@ async function carregarDashboardV2() {
         console.error("Falha ao comunicar com a API do Dashboard.");
     }
 }
+function getBaseGrams(unidadeStr) {
+    let u = (unidadeStr || '').toLowerCase();
+    if (u.includes('kg')) return 1000;
+    if (u.includes('g') && !u.includes('kg')) {
+       let num = parseInt(u);
+       if (!isNaN(num) && num > 0) return num;
+    }
+    return null;
+}
+
 async function verDetalhes(id) {
     document.getElementById('modalDetalhes').style.display = 'flex';
     document.getElementById('det-itens').innerHTML = 'Carregando...';
@@ -130,16 +139,95 @@ async function verDetalhes(id) {
             divItens.innerHTML = '';
 
             let somaTotal = 0;
+            let temPesagem = false;
 
             json.itens.forEach(i => {
-                let subtotal = i.quantidade * i.preco_unitario;
-                somaTotal += subtotal;
+                let baseGrams = getBaseGrams(i.unidade);
+                let qtyDisplay = '';
+                let subtotal = 0;
 
-                divItens.innerHTML += `<div class="item-row"><span class="check-box"></span><div><strong>${i.quantidade}x</strong> ${escapeHTML(i.nome)} <small>(${escapeHTML(i.unidade)})</small></div></div>`;
+                let isWeighed = i.quantidade_real !== null;
+                if (isWeighed) {
+                    temPesagem = true;
+                }
+
+                if (i.tipo_venda === 'Fracionado') {
+                    let qtyRequestedG = baseGrams !== null ? Math.round(parseFloat(i.quantidade) * baseGrams) : i.quantidade;
+                    qtyDisplay = `Solicitado: ${qtyRequestedG}g`;
+                    
+                    if (isWeighed) {
+                        if (parseFloat(i.quantidade_real) === 0) {
+                            qtyDisplay += ` ➔ <strong style="color:#dc2626;">[EM FALTA]</strong>`;
+                        } else {
+                            let qtyRealG = baseGrams !== null ? Math.round(parseFloat(i.quantidade_real) * baseGrams) : i.quantidade_real;
+                            qtyDisplay += ` ➔ <strong>Pesado: ${qtyRealG}g</strong>`;
+                        }
+                        subtotal = parseFloat(i.preco_real || (i.quantidade_real * i.preco_unitario));
+                    } else {
+                        subtotal = parseFloat(i.quantidade * i.preco_unitario);
+                    }
+                } else {
+                    let qtyRequestedUn = baseGrams !== null && parseFloat(i.peso_estimado_g) > 0 
+                        ? Math.round((parseFloat(i.quantidade) * baseGrams) / parseFloat(i.peso_estimado_g))
+                        : parseFloat(i.quantidade);
+                    qtyDisplay = `${qtyRequestedUn} un`;
+
+                    if (baseGrams !== null) {
+                        let expectedG = Math.round(parseFloat(i.quantidade) * baseGrams);
+                        qtyDisplay += ` (~${expectedG}g)`;
+
+                        if (isWeighed) {
+                            if (parseFloat(i.quantidade_real) === 0) {
+                                qtyDisplay += ` ➔ <strong style="color:#dc2626;">[EM FALTA]</strong>`;
+                            } else {
+                                let qtyRealG = Math.round(parseFloat(i.quantidade_real) * baseGrams);
+                                qtyDisplay += ` ➔ <strong>Pesado: ${qtyRealG}g</strong>`;
+                            }
+                            subtotal = parseFloat(i.preco_real || (i.quantidade_real * i.preco_unitario));
+                        } else {
+                            subtotal = parseFloat(i.quantidade * i.preco_unitario);
+                        }
+                    } else {
+                        if (isWeighed) {
+                            if (parseFloat(i.quantidade_real) === 0) {
+                                qtyDisplay += ` ➔ <strong style="color:#dc2626;">[EM FALTA]</strong>`;
+                            } else {
+                                qtyDisplay += ` ➔ <strong>Confirmado: ${i.quantidade_real} un</strong>`;
+                            }
+                            subtotal = parseFloat(i.preco_real || (i.quantidade_real * i.preco_unitario));
+                        } else {
+                            subtotal = parseFloat(i.quantidade * i.preco_unitario);
+                        }
+                    }
+                }
+
+                somaTotal += subtotal;
+                let precoUnit = parseFloat(i.preco_unitario).toFixed(2).replace('.', ',');
+                let subtotalF = subtotal.toFixed(2).replace('.', ',');
+
+                divItens.innerHTML += `
+                    <div class="item-row" style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="check-box"></span>
+                            <div>
+                                <strong>${escapeHTML(i.nome)}</strong><br>
+                                <span style="font-size:12px; color:#666;">${qtyDisplay} (R$ ${precoUnit} / ${i.unidade})</span>
+                            </div>
+                        </div>
+                        <div style="font-weight:bold; color:#374151;">R$ ${subtotalF}</div>
+                    </div>
+                `;
             });
 
-
-            document.getElementById('det-total').innerText = 'Total: R$ ' + somaTotal.toFixed(2).replace('.', ',');
+            let totalF = parseFloat(info.valor_total).toFixed(2).replace('.', ',');
+            document.getElementById('det-total').innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:flex-end; width:100%;">
+                    <div style="font-size:18px; font-weight:bold; color:var(--green-primary);">Total: R$ ${totalF}</div>
+                    <small style="color:#666; font-weight:normal; margin-top:4px;">
+                        ${temPesagem ? '* Valores finais atualizados após a pesagem no galpão' : '* Valores provisórios aguardando pesagem'}
+                    </small>
+                </div>
+            `;
 
             const divObs = document.getElementById('det-obs');
             if (info.obs_pontual) { divObs.style.display = 'block'; divObs.innerHTML = '⚠ OBS: ' + escapeHTML(info.obs_pontual); } else { divObs.style.display = 'none'; }

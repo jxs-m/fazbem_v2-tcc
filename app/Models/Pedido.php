@@ -34,13 +34,23 @@ class Pedido {
 
    
     public function buscarItens($pedido_id) {
-        $sql = "SELECT i.quantidade, i.preco_unitario, pr.nome, pr.unidade 
+        $sql = "SELECT i.quantidade, i.quantidade_real, i.preco_unitario, i.preco_real, pr.nome, pr.unidade, pr.tipo_venda, pr.peso_estimado_g 
                 FROM itens_pedido i
                 JOIN produtos pr ON i.produto_id = pr.id
                 WHERE i.pedido_id = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$pedido_id]);
         return $stmt->fetchAll();
+    }
+
+    public function buscarPedidoSemana($usuario_id) {
+        $sql = "SELECT id, valor_total, status_pagamento, status_entrega, obs_pontual, data_pedido, tipo_pedido 
+                FROM pedidos 
+                WHERE usuario_id = ? AND YEARWEEK(data_pedido, 0) = YEARWEEK(NOW(), 0)
+                ORDER BY id DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$usuario_id]);
+        return $stmt->fetch();
     }
 
    

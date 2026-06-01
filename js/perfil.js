@@ -2,7 +2,139 @@ document.addEventListener('DOMContentLoaded', () => {
       carregarPerfil();
       carregarPedidos();
       carregarFaturas();
+      carregarPedidoSemana();
     });
+
+    function getBaseGrams(unidadeStr) {
+        let u = (unidadeStr || '').toLowerCase();
+        if (u.includes('kg')) return 1000;
+        if (u.includes('g') && !u.includes('kg')) {
+           let num = parseInt(u);
+           if (!isNaN(num) && num > 0) return num;
+        }
+        return null;
+    }
+
+    async function carregarPedidoSemana() {
+        const card = document.getElementById('card-pedido-semana');
+        const statusSpan = document.getElementById('pedido-semana-status');
+        const detalhesDiv = document.getElementById('pedido-semana-detalhes');
+        const itensDiv = document.getElementById('pedido-semana-itens');
+        const valoresDiv = document.getElementById('pedido-semana-valores');
+
+        if (!card) return;
+
+        try {
+            const res = await fetch('api_meus_pedidos_v2.php?acao=pedido_semana');
+            const json = await res.json();
+
+            if (json.success && json.pedido) {
+                const p = json.pedido;
+                card.style.display = 'block';
+
+                let statusBg = '#dbeafe';
+                let statusColor = '#1e40af';
+                if (p.status_entrega === 'Entregue') {
+                    statusBg = '#dcfce7';
+                    statusColor = '#166534';
+                } else if (p.status_entrega === 'Saiu para entrega') {
+                    statusBg = '#fef9c3';
+                    statusColor = '#854d0e';
+                } else if (p.status_entrega === 'Aguardando Entrega') {
+                    statusBg = '#ffedd5';
+                    statusColor = '#c2410c';
+                }
+
+                statusSpan.innerText = p.status_entrega;
+                statusSpan.style.background = statusBg;
+                statusSpan.style.color = statusColor;
+
+                const dataF = new Date(p.data_pedido).toLocaleDateString('pt-BR');
+                detalhesDiv.innerHTML = `Pedido #${p.id} gerado em ${dataF}.<br>Tipo: <strong>${p.tipo_pedido}</strong>`;
+
+                itensDiv.innerHTML = '';
+                let totalSoma = 0;
+                let temPesagem = false;
+
+                json.itens.forEach(item => {
+                    let baseGrams = getBaseGrams(item.unidade);
+                    let qtyDisplay = '';
+                    let subtotal = 0;
+
+                    let isWeighed = item.quantidade_real !== null;
+                    if (isWeighed) {
+                        temPesagem = true;
+                    }
+
+                    if (item.tipo_venda === 'Fracionado') {
+                        let qtyRequestedG = baseGrams !== null ? Math.round(parseFloat(item.quantidade) * baseGrams) : item.quantidade;
+                        qtyDisplay = `Solicitado: ${qtyRequestedG}g`;
+                        
+                        if (isWeighed) {
+                            let qtyRealG = baseGrams !== null ? Math.round(parseFloat(item.quantidade_real) * baseGrams) : item.quantidade_real;
+                            qtyDisplay += ` ➔ <strong>Pesado: ${qtyRealG}g</strong>`;
+                            subtotal = parseFloat(item.preco_real || (item.quantidade_real * item.preco_unitario));
+                        } else {
+                            subtotal = parseFloat(item.quantidade * item.preco_unitario);
+                        }
+                    } else {
+                        let qtyRequestedUn = baseGrams !== null && parseFloat(item.peso_estimado_g) > 0 
+                            ? Math.round((parseFloat(item.quantidade) * baseGrams) / parseFloat(item.peso_estimado_g))
+                            : parseFloat(item.quantidade);
+                        qtyDisplay = `${qtyRequestedUn} un`;
+
+                        if (baseGrams !== null) {
+                            let expectedG = Math.round(parseFloat(item.quantidade) * baseGrams);
+                            qtyDisplay += ` (~${expectedG}g)`;
+
+                            if (isWeighed) {
+                                let qtyRealG = Math.round(parseFloat(item.quantidade_real) * baseGrams);
+                                qtyDisplay += ` ➔ <strong>Pesado: ${qtyRealG}g</strong>`;
+                                subtotal = parseFloat(item.preco_real || (item.quantidade_real * item.preco_unitario));
+                            } else {
+                                subtotal = parseFloat(item.quantidade * item.preco_unitario);
+                            }
+                        } else {
+                            subtotal = parseFloat(item.quantidade * item.preco_unitario);
+                        }
+                    }
+
+                    totalSoma += subtotal;
+                    let precoUnit = parseFloat(item.preco_unitario).toFixed(2).replace('.', ',');
+                    let subtotalF = subtotal.toFixed(2).replace('.', ',');
+
+                    itensDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f4f6; font-size:13px; color:#374151;">
+                            <div>
+                                <strong>${escapeHTML(item.nome)}</strong><br>
+                                <span style="font-size:11px; color:#6b7280;">Qtd: ${qtyDisplay} (R$ ${precoUnit} / ${item.unidade})</span>
+                            </div>
+                            <div style="font-weight:600; color:#374151;">R$ ${subtotalF}</div>
+                        </div>
+                    `;
+                });
+
+                if (itensDiv.innerHTML === '') {
+                    itensDiv.innerHTML = '<div style="text-align:center; color:#9ca3af; padding:10px;">Nenhum item neste pedido.</div>';
+                }
+
+                let totalF = parseFloat(p.valor_total).toFixed(2).replace('.', ',');
+                
+                let legend = temPesagem 
+                    ? `<span style="font-size:11px; color:#2563eb; font-weight:normal;">* Valores finais atualizados após pesagem</span>`
+                    : `<span style="font-size:11px; color:#6b7280; font-weight:normal;">* Aguardando pesagem real</span>`;
+
+                valoresDiv.innerHTML = `
+                    ${legend}
+                    <span>Total: R$ ${totalF}</span>
+                `;
+            } else {
+                card.style.display = 'none';
+            }
+        } catch (e) {
+            console.error("Erro ao carregar pedido da semana:", e);
+        }
+    }
 
     async function carregarPerfil() {
       try {

@@ -11,6 +11,19 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'cliente') 
 
 try {
     $pedidoModel = new Pedido();
+    $acao = $_GET['acao'] ?? '';
+
+    if ($acao === 'pedido_semana') {
+        $pedido = $pedidoModel->buscarPedidoSemana($_SESSION['usuario_id']);
+        if ($pedido) {
+            $itens = $pedidoModel->buscarItens($pedido['id']);
+            echo json_encode(['success' => true, 'pedido' => $pedido, 'itens' => $itens]);
+        } else {
+            echo json_encode(['success' => true, 'pedido' => null, 'itens' => []]);
+        }
+        exit;
+    }
+
     $pedidos = $pedidoModel->buscarPorUsuario($_SESSION['usuario_id']);
 
     echo json_encode(['success' => true, 'data' => $pedidos]);
