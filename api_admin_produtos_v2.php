@@ -92,7 +92,7 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno de bd.']);
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Ocorreu um erro inesperado. Tente novamente.']);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 ?>

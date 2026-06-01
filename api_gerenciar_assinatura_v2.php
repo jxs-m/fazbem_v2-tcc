@@ -34,6 +34,9 @@ try {
 
          switch ($data['acao']) {
         case 'pausar':
+            if (!$assinaturaAtual || $assinaturaAtual['status'] !== 'Ativa') {
+                throw new Exception("Apenas assinaturas ativas podem ser pausadas.");
+            }
             $status = 'Pausada';
             
             $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
@@ -58,8 +61,39 @@ try {
             $mensagem = "Entregas pausadas com sucesso. R$ {$valor_formatado} foram adicionados à sua carteira (Compensação).";
             break;
         case 'reativar':
+            if (!$assinaturaAtual || $assinaturaAtual['status'] !== 'Pausada') {
+                throw new Exception("Apenas assinaturas pausadas podem ser reativadas.");
+            }
             $status = 'Ativa';
-            $mensagem = 'Assinatura reativada! As entregas voltarão ao normal.';
+            
+            $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
+            $entregas_por_mes = ($frequencia === 'Quinzenal') ? 2 : 4;
+            $valor_debito = round($valor_mensal / $entregas_por_mes, 2);
+
+            $pdo = Database::getConexao();
+            
+            $stmtUser = $pdo->prepare("SELECT saldo_compensacao FROM usuarios WHERE id = ?");
+            $stmtUser->execute([$usuario_id]);
+            $userSaldo = floatval($stmtUser->fetchColumn());
+
+            if ($userSaldo < $valor_debito) {
+                throw new Exception("Você utilizou o crédito da pausa e não possui saldo suficiente para reativar a assinatura agora.");
+            }
+
+            $pdo->beginTransaction();
+            
+            $sqlWallet = "UPDATE usuarios SET saldo_compensacao = saldo_compensacao - ? WHERE id = ?";
+            $stmtWallet = $pdo->prepare($sqlWallet);
+            $stmtWallet->execute([$valor_debito, $usuario_id]);
+            
+            $motivo = "Reativação de Assinatura (Estorno de Compensação {$frequencia})";
+            $sqlTrans = "INSERT INTO transacoes_financeiras (usuario_id, tipo, valor, motivo) VALUES (?, 'Debito', ?, ?)";
+            $stmtTrans = $pdo->prepare($sqlTrans);
+            $stmtTrans->execute([$usuario_id, $valor_debito, $motivo]);
+            
+            $pdo->commit();
+
+            $mensagem = 'Assinatura reativada! As entregas voltarão ao normal e o crédito da pausa foi estornado.';
             break;
         case 'cancelar':
             $status = 'Cancelada';
@@ -100,7 +134,7 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno de banco de dados.']);
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Ocorreu um erro inesperado. Tente novamente.']);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 ?>

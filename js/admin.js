@@ -254,7 +254,15 @@ async function verDetalhes(id) {
 
 async function atualizarStatus(id, tipo, valor) {
     if (!confirm(`Alterar status?`)) { carregarPedidos(); return; }
-    await fetch('api_admin_pedidos_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, tipo, valor }) });
+    try {
+        const res = await fetch('api_admin_pedidos_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, tipo, valor }) });
+        const json = await res.json();
+        if (!json.success) {
+            alert('Erro: ' + json.message);
+        }
+    } catch (e) {
+        alert('Erro ao atualizar status.');
+    }
     carregarPedidos();
 }
 
@@ -324,7 +332,15 @@ async function salvarProduto() {
 
 async function deletarProd(id) {
     if (!confirm('Excluir?')) return;
-    await fetch('api_admin_produtos_v2.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    try {
+        const res = await fetch('api_admin_produtos_v2.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+        const json = await res.json();
+        if (!json.success) {
+            alert('Erro: ' + json.message);
+        }
+    } catch (e) {
+        alert('Erro ao excluir produto.');
+    }
     carregarProdutos();
 }
 
@@ -919,7 +935,7 @@ async function carregarFaturasAdmin() {
 async function gerarFaturasDoMes() {
     if (!confirm('Deseja realmente gerar as faturas do mês atual para todos os assinantes ativos/pausados? Esta ação é irreversível.')) return;
     try {
-        const res = await fetch('api_faturamento_v2.php?acao=gerar_faturas');
+        const res = await fetch('api_faturamento_v2.php?acao=gerar_faturas', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
             alert(json.message);

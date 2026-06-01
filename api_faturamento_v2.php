@@ -5,6 +5,7 @@ if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Database.php';
+require_once __DIR__ . '/app/Security.php';
 
 // Verificação simples de login
 if (!isset($_SESSION['usuario_id'])) {
@@ -19,6 +20,11 @@ $pdo = Database::getConexao();
 try {
     switch ($acao) {
         case 'gerar_faturas':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                throw new Exception("Método não permitido. Utilize POST.");
+            }
+            Security::checkCSRF();
             if ($_SESSION['tipo_usuario'] !== 'admin') {
                 throw new Exception("Apenas admins podem gerar faturas.");
             }
@@ -104,6 +110,11 @@ try {
             break;
 
         case 'pagar_fatura':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                throw new Exception("Método não permitido. Utilize POST.");
+            }
+            Security::checkCSRF();
             if ($_SESSION['tipo_usuario'] !== 'cliente') throw new Exception("Apenas clientes.");
             $data = json_decode(file_get_contents('php://input'), true);
             $f_id = $data['fatura_id'] ?? null;

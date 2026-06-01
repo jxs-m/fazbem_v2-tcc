@@ -68,9 +68,9 @@ try {
             $q_real = floatval($item['quantidade_real']); // Pode ser 0 se estiver em falta
             
             // Buscar infos do item para calcular preço real
-            $sqlInfo = "SELECT i.preco_unitario FROM itens_pedido i WHERE i.id = ?";
+            $sqlInfo = "SELECT i.preco_unitario FROM itens_pedido i WHERE i.id = ? AND i.pedido_id = ?";
             $stmtInfo = $pdo->prepare($sqlInfo);
-            $stmtInfo->execute([$item_id]);
+            $stmtInfo->execute([$item_id, $pedido_id]);
             $info = $stmtInfo->fetch();
 
             if ($info) {
@@ -78,8 +78,8 @@ try {
                 $novoTotalPedido += $preco_real;
 
                 // Atualizar item
-                $sqlUpdate = "UPDATE itens_pedido SET quantidade_real = ?, preco_real = ? WHERE id = ?";
-                $pdo->prepare($sqlUpdate)->execute([$q_real, $preco_real, $item_id]);
+                $sqlUpdate = "UPDATE itens_pedido SET quantidade_real = ?, preco_real = ? WHERE id = ? AND pedido_id = ?";
+                $pdo->prepare($sqlUpdate)->execute([$q_real, $preco_real, $item_id, $pedido_id]);
             }
         }
 

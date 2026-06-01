@@ -83,21 +83,87 @@ class Pedido {
         return $stmt->fetch()['total'] > 0;
     }
 
-    public function criarPedido($usuario_id, $valor_total, $forma_pagamento, $carrinho) {
+    public function criarPedido($usuario_id, $valor_total_cliente, $forma_pagamento, $carrinho) {
         try {
-            // Inicia a transação: ou salva tudo (pedido + itens + baixa de estoque), ou não salva nada.
             $this->pdo->beginTransaction();
 
-          
-    $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega) 
-                  VALUES (?, ?, 'Pendente', 'Em separação')";
+            $total_calculado = 0;
+            $itens_processados = [];
+
+            // Validar e recalcular itens e total com dados seguros do banco de dados
+            $stmtProd = $this->pdo->prepare("SELECT nome, preco, unidade, peso_estimado_g, tipo_venda FROM produtos WHERE id = ?");
             
+            foreach ($carrinho as $item) {
+                $produto_id = intval($item['id'] ?? 0);
+                $stmtProd->execute([$produto_id]);
+                $prodInfo = $stmtProd->fetch();
+                
+                if (!$prodInfo) {
+                    throw new Exception("Produto não encontrado.");
+                }
+                
+                $db_preco_base = floatval($prodInfo['preco']);
+                $peso_estimado_g = floatval($prodInfo['peso_estimado_g'] ?? 0);
+                $tipo_venda = $prodInfo['tipo_venda'];
+                $unidade = strtolower($prodInfo['unidade']);
+                
+                // Determina baseGrams
+                $baseGrams = null;
+                if (strpos($unidade, 'kg') !== false) {
+                    $baseGrams = 1000;
+                } elseif (strpos($unidade, 'g') !== false) {
+                    $num = intval($unidade);
+                    if ($num > 0) $baseGrams = $num;
+                }
+
+                $isNovoModelo = isset($item['preco_estimado_calculado']) || isset($item['tipo_compra']);
+                if ($isNovoModelo) {
+                    $input_qtd = floatval($item['input_qtd'] ?? 0);
+                    if ($input_qtd <= 0) {
+                        throw new Exception("Quantidade inválida para o produto " . $prodInfo['nome']);
+                    }
+                    $tipo_compra = $item['tipo_compra'] ?? 'Unidade';
+                    
+                    if ($tipo_compra === 'Unidade') {
+                        $requestedGrams = $input_qtd * $peso_estimado_g;
+                        $quantidade_calculada = ($baseGrams !== null) ? ($requestedGrams / $baseGrams) : $input_qtd;
+                    } else {
+                        $requestedGrams = $input_qtd;
+                        $quantidade_calculada = ($baseGrams !== null) ? ($requestedGrams / $baseGrams) : $input_qtd;
+                    }
+                } else {
+                    $quantidade_calculada = floatval($item['quantidade'] ?? 0);
+                    if ($quantidade_calculada <= 0) {
+                        throw new Exception("Quantidade inválida para o produto " . $prodInfo['nome']);
+                    }
+                    $requestedGrams = $quantidade_calculada * $peso_estimado_g;
+                }
+
+                $subtotal = $quantidade_calculada * $db_preco_base;
+                $total_calculado += $subtotal;
+
+                $estoqueDecremento = $quantidade_calculada;
+                if ($tipo_venda === 'Fracionado') {
+                    $estoqueDecremento = $requestedGrams;
+                }
+
+                $itens_processados[] = [
+                    'produto_id' => $produto_id,
+                    'quantidade' => $quantidade_calculada,
+                    'preco_unitario' => $db_preco_base,
+                    'estoque_decremento' => $estoqueDecremento
+                ];
+            }
+
+            // Inserir o pedido com o valor total recalculado e seguro
+            $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega) 
+                          VALUES (?, ?, 'Pendente', 'Em separação')";
             $stmtPedido = $this->pdo->prepare($sqlPedido);
-            $stmtPedido->execute([$usuario_id, $valor_total]);
+            $stmtPedido->execute([$usuario_id, $total_calculado]);
             
-           
             $pedido_id = $this->pdo->lastInsertId();
 
+            // Inserir itens do pedido e atualizar estoque
             $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) 
                         VALUES (?, ?, ?, ?)";
             $stmtItem = $this->pdo->prepare($sqlItem);
@@ -105,30 +171,18 @@ class Pedido {
             $sqlEstoque = "UPDATE produtos SET estoque_atual = estoque_atual - ? WHERE id = ?";
             $stmtEstoque = $this->pdo->prepare($sqlEstoque);
 
-            
-            foreach ($carrinho as $item) {
-                $qtd = $item['quantidade_calculada'] ?? $item['quantidade'];
-                $preco = $item['preco_base'] ?? $item['preco'];
-                
-                $stmtItem->execute([$pedido_id, $item['id'], $qtd, $preco]);
-                
-                if (isset($item['tipo_venda']) && $item['tipo_venda'] === 'Fracionado') {
-                    $estoqueDecremento = $item['gramas_calculadas'] ?? $qtd;
-                } else {
-                    $estoqueDecremento = $qtd;
-                }
-                
-                $stmtEstoque->execute([$estoqueDecremento, $item['id']]);
+            foreach ($itens_processados as $ip) {
+                $stmtItem->execute([$pedido_id, $ip['produto_id'], $ip['quantidade'], $ip['preco_unitario']]);
+                $stmtEstoque->execute([$ip['estoque_decremento'], $ip['produto_id']]);
             }
 
-            
             $this->pdo->commit();
-            
-            return $pedido_id; 
+            return $pedido_id;
 
         } catch (Exception $e) {
-            
-            $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             throw $e;
         }
     }

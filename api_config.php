@@ -4,6 +4,7 @@ session_start();
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Database.php';
+require_once __DIR__ . '/app/Security.php';
 
 try {
     $pdo = Database::getConexao();
@@ -18,6 +19,7 @@ try {
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        Security::checkCSRF();
         // Apenas admin pode alterar
         if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
             http_response_code(403);
@@ -46,7 +48,7 @@ try {
     echo json_encode(['success' => false, 'message' => 'Método não permitido']);
 
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro interno de sistema.']);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 ?>

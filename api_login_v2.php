@@ -6,6 +6,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Usuario.php';
 require_once __DIR__ . '/app/Security.php';
 
+Security::checkCSRF();
 Security::checkRateLimit(10, 60);
 
 $data = json_decode(file_get_contents('php://input'), true);

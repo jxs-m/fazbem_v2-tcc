@@ -248,27 +248,43 @@ document.addEventListener('DOMContentLoaded', () => {
     async function alterarStatus(acao) {
       if (!confirm('Confirmar ação?')) return;
       try {
-        await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: acao }) });
-        carregarPerfil();
-      } catch (e) { alert('Erro'); }
+        const res = await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: acao }) });
+        const json = await res.json();
+        if (json.success) {
+            if (json.message) alert(json.message);
+            carregarPerfil();
+        } else {
+            alert('Erro: ' + json.message);
+        }
+      } catch (e) { alert('Erro ao alterar status da assinatura.'); }
     }
 
     async function salvarPreferencia() {
       const desc = document.getElementById('nova-pref').value;
       if (!desc) return;
       try {
-        await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'nova_preferencia', tipo: 'Troca Fixa', descricao: desc }) });
-        document.getElementById('nova-pref').value = '';
-        carregarPerfil();
-      } catch (e) { alert('Erro'); }
+        const res = await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'nova_preferencia', tipo: 'Troca Fixa', descricao: desc }) });
+        const json = await res.json();
+        if (json.success) {
+            document.getElementById('nova-pref').value = '';
+            carregarPerfil();
+        } else {
+            alert('Erro: ' + json.message);
+        }
+      } catch (e) { alert('Erro ao salvar preferência.'); }
     }
 
     async function removerPreferencia(id) {
       if (!confirm('Deseja remover essa preferência?')) return;
       try {
-        await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'remover_preferencia', pref_id: id }) });
-        carregarPerfil();
-      } catch (e) { alert('Erro'); }
+        const res = await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'remover_preferencia', pref_id: id }) });
+        const json = await res.json();
+        if (json.success) {
+            carregarPerfil();
+        } else {
+            alert('Erro: ' + json.message);
+        }
+      } catch (e) { alert('Erro ao remover preferência.'); }
     }
 
     async function salvarTrocaPontual() {
