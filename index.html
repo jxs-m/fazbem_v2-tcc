@@ -179,112 +179,75 @@
                         A revisão bibliográfica abrange as discussões teóricas e práticas sobre a arquitetura de sistemas web, segurança da informação aplicada ao e-commerce e as tendências de digitalização no agronegócio familiar.
                     </p>
 
-                    <h3>2.1. Arquitetura e Tecnologias Web</h3>
+                    <h3>2.1. Análise do Mercado e Sistemas Semelhantes</h3>
                     <p>
-                        O padrão arquitetural <em>Model-View-Controller</em> (MVC) constitui a base estrutural para o isolamento de responsabilidades no software moderno, conforme destacado por Sommerville (2011). A separação rígida entre a lógica de negócios (<em>Model</em>), a camada de apresentação (<em>View</em>) e o controle de fluxo de requisições (<em>Controller</em>) desempenha um papel crucial no desenvolvimento de aplicações para circuitos curtos de comercialização agrícola. Durante a janela semanal em que o catálogo de produtos está aberto (do domingo à terça-feira), o sistema enfrenta picos concentrados de acessos simultâneos efetuados por produtores e consumidores. A arquitetura MVC resolve o risco de sobrecarga de requisições no servidor ao garantir que o processamento de regras de negócios pesadas (como o controle decimal de estoques e o cálculo de rotas logísticas) seja tratado exclusivamente no backend pelas classes correspondentes. Isso previne que a renderização do frontend degrade a performance de execução do servidor, permitindo que a interface do usuário permaneça responsiva e leve nos dispositivos móveis dos entregadores e clientes sob conexões móveis instáveis.
+                        No cenário contemporâneo de comércio eletrônico, as plataformas tradicionais como WooCommerce, Shopify e Magento representam as ferramentas dominantes para a implantação de canais de venda direta. No entanto, uma análise de engenharia detalhada revela que estas plataformas foram projetadas primordialmente para atender ao modelo de varejo convencional de mercadorias manufaturadas e industrializadas de estoque fixo. Sob essa premissa mercantilista, esses sistemas impõem uma rigidez na precificação baseada estritamente em unidades inteiras (por exemplo, comercialização por SKU unitário), inviabilizando as particularidades do agronegócio familiar e urbano, que lida com itens fracionados por peso e de colheitas naturalmente variáveis a cada ciclo semanal de entrega.
+                    </p>
+                    <p>
+                        Ademais, no contexto dos curtos circuitos de comercialização, as soluções genéricas falham em fornecer algoritmos de roteirização logística integrados e de baixo custo operacional. Para contornar essas limitações, os gestores dessas cooperativas agrícolas frequentemente recorrem à instalação de uma vasta quantidade de plugins de terceiros para adicionar funcionalidades de recorrência, geocodificação de endereços e fretes baseados em distâncias complexas. Essa dependência sistêmica excessiva resulta em códigos inflacionados e redundantes (comumente denominados como <em>bloatware</em>), o que amplia a superfície de ataque para vulnerabilidades de segurança e gera alta latência de processamento em servidores compartilhados. Portanto, essa nítida falha tecnológica de mercado justifica a concepção e o desenvolvimento da plataforma FazBem V2 como uma solução proprietária, leve e verticalizada para o mercado agroecológico de pequena escala.
+                    </p>
+
+                    <h3>2.2. Fundamentação Teórica de Engenharia</h3>
+                    <p>
+                        Para mitigar a ineficiência e a rigidez das arquiteturas comerciais obsoletas descritas na seção anterior, o FazBem V2 foi estruturado com base no padrão arquitetural <em>Model-View-Controller</em> (MVC), amplamente conceituado por engenheiros de software como Sommerville (2011) e Pressman e Maxim (2021). O desacoplamento do software em três camadas distintas (Modelo, Visão e Controle) garante que a interface de página única do usuário (SPA desenvolvida em Vanilla JavaScript) funcione de maneira puramente assíncrona. Esse isolamento impede que o processamento pesado de cálculos transacionais de pedidos, recalculos decimais de faturas proporcionais e baixas em inventário centralizado no backend (desenvolvido em PHP 8) provoquem o bloqueio do canal de comunicação do frontend, mantendo o sistema responsivo nos dispositivos móveis dos separadores e entregadores em campo.
+                    </p>
+                    <p>
+                        A persistência transacional de dados do FazBem V2 foi alicerçada no banco de dados relacional MySQL. Para assegurar a integridade e consistência absoluta de registros financeiros e de estoque diante de múltiplos acessos simultâneos — especialmente nos períodos semanais de fechamento das janelas de pedidos —, a camada de modelo foi fundamentada sob as propriedades ACID (Atomicidade, Consistência, Isolamento e Durabilidade). A implementação dessas propriedades garante que transações complexas, como o débito de estoque hidropônico e a consolidação de faturas mensais, ocorram integralmente ou sejam revertidas por completo em caso de falhas físicas de rede, eliminando o risco de dados fantasma ou inconsistências financeiras de estoque.
+                    </p>
+
+                    <h3>2.3. Diretrizes de Segurança Web</h3>
+                    <p>
+                        A governança de dados pessoais, cadastros cadastrais e transações sob recorrência exige a mitigação proativa de brechas de segurança cibernética a nível de código. Para tanto, a arquitetura do sistema adota e implementa rigorosamente as diretrizes da <em>OWASP Foundation</em> (2021). Dentre os riscos listados no ranking de segurança global, o FazBem V2 foca especificamente na contenção das categorias <strong>A01:2021 – Broken Access Control</strong> (Controle de Acesso Quebrado) e <strong>A03:2021 – Injection</strong> (Injeção de Código), que caracterizam as maiores ameaças cibernéticas a plataformas financeiras de comércio eletrônico.
+                    </p>
+                    <p>
+                        O mecanismo técnico implementado no backend para neutralizar vulnerabilidades da classe A03:2021 baseia-se no uso sistemático de consultas parametrizadas (Prepared Statements) por meio da biblioteca PDO do PHP 8, inviabilizando qualquer ataque por injeção SQL no banco de dados nas rotinas de login e pesquisa. Complementarmente, no frontend, mitigam-se os riscos de <em>Stored XSS</em> (Cross-Site Scripting) na renderização de dados dinâmicos do cliente (como endereços de entrega inseridos por usuários) através da sanitização forçada e substituição da propriedade nativa <code>innerHTML</code> pela propriedade <code>textContent</code> e a criação manual de nós de DOM no JavaScript, impedindo a injeção e execução de scripts maliciosos nos navegadores dos administradores e operadores do galpão de separação.
+                    </p>
+
+                    <h3>2.4. Metodologia de Busca Bibliográfica</h3>
+                    <p>
+                        Para a consolidação da base científica e mapeamento tecnológico do estado da arte de sistemas verticalizados para curtos circuitos alimentares, foi delineado um protocolo sistemático de busca bibliográfica e revisão exploratória de literatura, realizado no período de março a maio de 2026. A pesquisa foi conduzida por meio de consultas acadêmicas indexadas nas bases de dados Google Acadêmico (Google Scholar), Biblioteca Digital Brasileira de Teses e Dissertações (BDTD) e no Portal de Periódicos CAPES. As strings de busca e palavras-chave exatas combinadas no motor de pesquisa foram: "clube de assinatura hortaliças", "roteirização Leaflet" e "circuitos curtos software". Os critérios de inclusão pré-estabelecidos restringiram o escopo a artigos científicos, dissertações e patentes tecnológicas publicados em idioma português ou inglês a partir do ano de 2021, que tivessem como foco direto a apresentação de soluções integradas de ponta a ponta para a agricultura familiar ou urbana.
                     </p>
 
                     <div class="quadro-wrapper">
-                        <table class="quadro">
+                        <table class="quadro" style="border: 1px solid var(--border); border-collapse: collapse; width: 100%;">
                             <thead>
-                                <tr>
-                                    <th>Tecnologia</th>
-                                    <th>Aplicação no FazBem V2</th>
-                                    <th>Justificativa Técnica / Impacto</th>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <th style="border: 1px solid var(--border); padding: 12px; text-align: left;">Critério de Comparação</th>
+                                    <th style="border: 1px solid var(--border); padding: 12px; text-align: left;">Plataformas Tradicionais (WooCommerce/Shopify)</th>
+                                    <th style="border: 1px solid var(--border); padding: 12px; text-align: left;">Sistemas de Roteirização Dedicados</th>
+                                    <th style="border: 1px solid var(--border); padding: 12px; text-align: left;">Plataforma FazBem V2 (Proposta)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td><strong>PHP 8 (Backend OOP)</strong></td>
-                                    <td>Processamento das requisições assíncronas, models e controllers isolados.</td>
-                                    <td>Fornece um ambiente rápido e seguro sem o overhead de dependências externas.</td>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold;">Precificação de Itens</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Rígida e restrita a unidades inteiras; falha em atualizar pesos e valores proporcionalmente após pesagem real.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Inexistente; não gerencia catálogo de vendas ou transações financeiras.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold; color: var(--primary);">Flexível e decimal; ajusta de forma automatizada o peso real e o preço proporcional na fatura.</td>
                                 </tr>
-                                <tr>
-                                    <td><strong>MySQL (Banco de Dados)</strong></td>
-                                    <td>Persistência de dados transacionais, faturamento e controle de rate limiting.</td>
-                                    <td>Garante integridade referencial e controle seguro contra condições de corrida.</td>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold;">Planejamento Logístico</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Dependente de plugins externos e APIs pagas para cálculo estático de frete.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Avançado, porém isolado do fluxo de estoque e vendas em tempo real.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold; color: var(--primary);">Nativo e interativo; traça e ordena rotas dinâmicas integrando Leaflet.js e coordenadas da base.</td>
                                 </tr>
-                                <tr>
-                                    <td><strong>Vanilla JS (Frontend SPA)</strong></td>
-                                    <td>Gerenciamento dinâmico da interface, captura de coordenadas e consumo Fetch.</td>
-                                    <td>Minimiza o payload de rede e melhora a velocidade de carregamento em redes móveis.</td>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold;">Custo Operacional</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Alto; cobranças por mensalidades, taxas de intermediação financeira e licenciamento de múltiplos plugins.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Elevado; licenças corporativas baseadas em frotas ou número de rotas criadas.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold; color: var(--primary);">Zero custo de licenciamento; arquitetura de código aberto nativa sem taxas extras.</td>
                                 </tr>
-                                <tr>
-                                    <td><strong>Leaflet.js (Mapeamento)</strong></td>
-                                    <td>Plotagem dinâmica do mapa interativo e renderização poligonal da rota.</td>
-                                    <td>Biblioteca de mapas ultraleve (39 KB) integrada a tiles do OpenStreetMap.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>OWASP Guidelines (Segurança)</strong></td>
-                                    <td>Mapeamento e contramedidas ativas contra ataques web comuns.</td>
-                                    <td>Padrão global para prevenção de brechas de injeção, CSRF e vulnerabilidades de sessão.</td>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold;">Foco de Mercado</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Varejo genérico de produtos industrializados e manufaturas.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px;">Distribuição de cargas gerais e transportadoras de grande porte.</td>
+                                    <td style="border: 1px solid var(--border); padding: 12px; font-weight: bold; color: var(--primary);">Curtos circuitos de comercialização e agricultura familiar/urbana.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
-                        Quadro 1 – Tecnologias utilizadas no projeto e suas respectivas justificativas técnicas.
-                    </div>
-                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-20px; margin-bottom: 24px;">
-                        Fonte: elaborado pelos autores (2026).
-                    </div>
-
-                    <h3>2.2. Segurança em Aplicações Web</h3>
-                    <p>
-                        A segurança de plataformas que gerenciam transações financeiras e dados sensíveis de usuários exige a mitigação rigorosa de falhas mapeadas por consórcios globais. Conforme as diretrizes da Open Web Application Security Project (OWASP) Foundation (2021), as falhas de injeção ocorrem quando comandos hostis são interpretados pelo banco de dados como instruções legítimas. Tecnicamente, se um ataque de <em>SQL Injection</em> for bem-sucedido em uma plataforma de e-commerce como o FazBem V2, um invasor poderia forjar queries SQL no campo de login ou de busca para ignorar a validação de credenciais, extrair registros confidenciais da tabela <code>usuarios</code> (como CPFs e hashes de senhas) ou adulterar faturas na tabela <code>faturas_mensais</code>, comprometendo a integridade do controle de estoque e o sigilo dos dados dos assinantes. Para neutralizar essa ameaça, a camada de persistência foi blindada com a parametrização total de consultas via <em>Prepared Statements</em> na biblioteca PDO do PHP 8.
-                    </p>
-                    <p>
-                        Adicionalmente, as vulnerabilidades de <em>Cross-Site Scripting</em> (XSS), especificamente o <em>Stored XSS</em>, representam graves riscos de segurança operacional no modelo de negócios da FazBem. Esse tipo de falha ocorre quando a aplicação armazena dados de entrada do usuário sem sanitização prévia no banco de dados e os renderiza no navegador de outros usuários. Caso um invasor insira um script JavaScript malicioso no campo de endereço de entrega, este script será executado no navegador do operador administrativo ao renderizar a rota logística ou o painel de faturamento. A execução silenciosa desse script malicioso poderia roubar o token de sessão do administrador (<code>PHPSESSID</code>) ou forçar requisições administrativas não autorizadas. A mitigação efetiva contra o XSS no FazBem V2 foi obtida pela substituição sistemática da renderização de dados do usuário via <code>innerHTML</code> pela criação nativa de nós do DOM com <code>textContent</code> e <code>document.createElement</code>, inviabilizando qualquer interpretação de tags <code>&lt;script&gt;</code> injetadas.
-                    </p>
-
-                    <h3>2.3. Trabalhos Relacionados</h3>
-                    <p>
-                        Para a identificação de sistemas semelhantes e o mapeamento do estado da arte, realizou-se uma revisão sistemática exploratória da literatura entre março e maio de 2026. A busca foi conduzida em indexadores acadêmicos como o Google Acadêmico (Google Scholar), o portal de periódicos CAPES e a base BDTD, utilizando strings de busca combinadas: 'clube de assinatura hortaliças', 'automação e-commerce agrícola', 'roteirização logística Leaflet' e 'circuitos curtos de comercialização software'. Foram selecionados critérios de inclusão focados em artigos e patentes de ferramentas que integrassem a cadeia de ponta a ponta, desde a venda fracionada até o monitoramento de rotas de entrega.
-                    </p>
-                    <p>
-                        A partir da busca bibliográfica, observou-se que as soluções de e-commerce comerciais líderes, como o WooCommerce e o Shopify, apresentam limitações severas na gestão operacional de circuitos curtos agroecológicos. O WooCommerce, embora altamente customizável por se tratar de um plugin de código aberto para a plataforma WordPress, exige uma sobreposição excessiva de plugins de terceiros para suportar faturamento recorrente agrupado e cálculo dinâmico de fretes por geolocalização. Essa dependência de múltiplos plugins de terceiros eleva drasticamente a dívida técnica de software e amplia a superfície de ataque por vulnerabilidades cibernéticas. Por sua vez, o Shopify opera sob o modelo de software como serviço (SaaS), o que impõe mensalidades fixas e taxas transacionais recorrentes impraticáveis para a agricultura familiar local, além de não oferecer suporte nativo para a atualização decimal de pesos e recalculo proporcional de valores de pedidos na etapa física de expedição.
-                    </p>
-
-                    <div class="quadro-wrapper">
-                        <table class="quadro">
-                            <thead>
-                                <tr>
-                                    <th>Critério de Comparação</th>
-                                    <th>WooCommerce (WordPress)</th>
-                                    <th>Shopify (SaaS)</th>
-                                    <th>FazBem V2 (Proposto)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Ajuste Decimal de Peso (Balança)</strong></td>
-                                    <td>Inexistente (requer plugins complexos e não integrados à expedição)</td>
-                                    <td>Inexistente (valores de pedidos e estoques são inteiros e fixos)</td>
-                                    <td><strong>Nativo</strong> (reajuste proporcional na fatura mensal do cliente)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Roteirização Logística no Mapa</strong></td>
-                                    <td>Depende de integrações pagas de APIs de geocodificação externas</td>
-                                    <td>Depende de soluções externas caras de roteirização logística</td>
-                                    <td><strong>Nativo</strong> (integração móvel e visualização de rotas com Leaflet.js)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Custo Operacional e Dependências</strong></td>
-                                    <td>Gratuito, mas com alto custo de manutenção e risco de quebras de plugins</td>
-                                    <td>Mensalidades fixas e taxas sobre transações financeiras locais</td>
-                                    <td><strong>Gratuito</strong> (código aberto nativo e sem dependências de frameworks)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Mitigação Nativa OWASP</strong></td>
-                                    <td>Vulnerável à qualidade e atualizações de plugins de terceiros</td>
-                                    <td>Fechado (segurança gerenciada pela plataforma proprietária)</td>
-                                    <td><strong>Nativo</strong> (Prepared Statements, CSRF tokens e Rate Limit em DB)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
-                        Quadro 2 – Análise comparativa entre o FazBem V2 e as plataformas líderes de comércio eletrônico.
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top: 8px; margin-bottom: 24px; font-style:italic;">
+                        Quadro 1 – Análise comparativa entre as abordagens de gestão e comercialização.
                     </div>
                     <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-20px; margin-bottom: 24px;">
                         Fonte: elaborado pelos autores (2026).
