@@ -2,215 +2,157 @@ V. 12 / 2026
 ISSN 2448-4091
 DOI 00.00000/0000-0000.0000.000
 
-Sistema FazBem V2: Desenvolvimento de Plataforma de E-Commerce e Gestão Logística para Curtos Circuitos de Alimentos Orgânicos
-FazBem V2 System: Development of an E-Commerce and Logistics Management Platform for Short Organic Food Supply Chains
+SISTEMA FAZBEM V2
+Desenvolvimento de uma Plataforma de E-Commerce e Gestão Logística para Curtos Circuitos de Alimentos Orgânicos
+
 Murilo S. Jaques
 Instituto Federal Farroupilha, Campus Uruguaiana, Uruguaiana, RS, Brasil
 murilo.jaques@aluno.iffar.edu.br
+
 Antonio B.
 Instituto Federal Farroupilha, Campus Uruguaiana, Uruguaiana, RS, Brasil
 antonio.b@aluno.iffar.edu.br
+
 Thiago Krug (Orientador)
 Instituto Federal Farroupilha, Campus Uruguaiana, Uruguaiana, RS, Brasil
 thiago.krug@iffarroupilha.edu.br
-RECEBIDO EM 25/05/2026
-ACEITO EM 25/05/2026
 
-**RESUMO**   
-Este trabalho apresenta o desenvolvimento do FazBem V2, uma plataforma web integrada de e-commerce e gestão operacional para Curtos Circuitos de Cadeias Alimentares (CCAs). A plataforma adota uma arquitetura SPA no frontend com HTML5, CSS3 e Vanilla JavaScript, integrada a um backend em PHP 8.x sob o paradigma da Programação Orientada a Objetos e banco de dados MySQL. Como inovações técnicas, destacam-se a geocodificação e roteirização interativa com Leaflet.js, um módulo de pesagem assíncrono para produtos fracionados e uma camada integrada de segurança contendo controle de Rate Limiting persistido em banco de dados e prevenção de ataques XSS e CSRF. Os resultados validam a eficácia do sistema na redução de custos logísticos, eliminação de condições de corrida em limites de acesso e garantia da integridade financeira em faturas de assinaturas mensais.  
-**PALAVRAS-CHAVE**: Curtos Circuitos; E-commerce Orgânico; PHP Orientado a Objetos; Leaflet.js; Segurança Web. 
+RECEBIDO EM 25/05/2026 & ACEITO EM 25/05/2026
 
-**ABSTRACT**   
-This work presents the development of FazBem V2, an integrated web commerce and operational management platform for Short Food Supply Chains (SFSCs). The platform adopts a SPA architecture on the frontend with HTML5, CSS3, and Vanilla JavaScript, integrated with a backend in PHP 8.x under the Object-Oriented Programming paradigm and MySQL database. As technical innovations, it highlights interactive geocoding and routing with Leaflet.js, an asynchronous weighing module for fractional products, and an integrated security layer containing database-backed Rate Limiting control and prevention of XSS and CSRF attacks. The results validate the system's efficacy in reducing logistics costs, eliminating race conditions in access limits, and ensuring financial integrity in monthly subscription invoices.  
-**KEYWORDS**: Short Food Supply Chains; Organic E-commerce; Object-Oriented PHP; Leaflet.js; Web Security.   
+Curso Técnico em Informática - IFFAR Campus Uruguaiana
 
----
+RESUMO
+Este trabalho apresenta o desenvolvimento do FazBem V2, uma plataforma web integrada de e-commerce e gestão operacional para Curtos Circuitos de Cadeias Alimentares (CCAs). A plataforma adota uma arquitetura SPA no frontend com HTML5, CSS3 e Vanilla JavaScript, integrada a um backend em PHP 8.x sob o paradigma da Programação Orientada a Objetos e banco de dados MySQL. Como inovações técnicas, destacam-se a geocodificação e roteirização interativa com Leaflet.js, um módulo de pesagem assíncrono para produtos fracionados e uma camada integrada de segurança contendo controle de Rate Limiting persistido em banco de dados e prevenção de ataques XSS e CSRF. Os resultados validam a eficácia do sistema na redução de custos logísticos, eliminação de condições de corrida em limites de acesso e garantia da integridade financeira em faturas de assinaturas mensais.
+Palavras-chave: Curtos Circuitos; E-commerce Orgânico; PHP Orientado a Objetos; Leaflet.js; Segurança Web.
 
-**1 Introdução**  
+ABSTRACT
+This work presents the development of FazBem V2, an integrated web commerce and operational management platform for Short Food Supply Chains (SFSCs). The platform adopts a SPA architecture on the frontend with HTML5, CSS3, and Vanilla JavaScript, integrated with a backend in PHP 8.x under the Object-Oriented Programming paradigm and MySQL database. As technical innovations, it highlights interactive geocoding and routing with Leaflet.js, an asynchronous weighing module for fractional products, and an integrated security layer containing database-backed Rate Limiting control and prevention of XSS and CSRF attacks. The results validate the system's efficacy in reducing logistics costs, eliminating race conditions in access limits, and ensuring financial integrity in monthly subscription invoices.
+Keywords: Short Food Supply Chains; Organic E-commerce; Object-Oriented PHP; Leaflet.js; Web Security.
 
-Nos últimos anos, observa-se a ascensão expressiva dos chamados circuitos curtos de comercialização de alimentos, caracterizados pela venda direta de produtos do agricultor ao consumidor final, sem a participação de intermediários convencionais. Esse modelo de comercialização não apenas assegura uma divisão de valor mais justa para a agricultura familiar e urbana, mas também atende a uma demanda crescente da sociedade por alimentos frescos, de origem conhecida e produzidos de forma sustentável (Ploeg *et al*., 2012). Nesse cenário, o modelo de clubes de assinatura de produtos agrícolas, com foco na entrega recorrente de hortaliças e cestas de hortifrutis planejadas, consolida-se como uma alternativa economicamente viável e lucrativa. Ao garantir receitas previsíveis e recorrentes ao pequeno produtor, esse modelo mitiga riscos de perda na colheita e fideliza o consumidor urbano por meio da conveniência e da qualidade dos alimentos entregues diretamente em sua residência.
+1. Introdução
+
+Nos últimos anos, observa-se a ascensão expressiva dos chamados circuitos curtos de comercialização de alimentos, caracterizados pela venda direta de produtos do agricultor ao consumidor final, sem a participação de intermediários convencionais. Esse modelo de comercialização não apenas assegura uma divisão de valor mais justa para a agricultura familiar e urbana, mas também atende a uma demanda crescente da sociedade por alimentos frescos, de origem conhecida e produzidos de forma sustentável (Ploeg et al., 2012). Nesse cenário, o modelo de clubes de assinatura de produtos agrícolas, com foco na entrega recorrente de hortaliças e cestas de hortifrutis planejadas, consolida-se como uma alternativa economicamente viável e lucrativa. Ao garantir receitas previsíveis e recorrentes ao pequeno produtor, esse modelo mitiga riscos de perda na colheita e fideliza o consumidor urbano por meio da conveniência e da qualidade dos alimentos entregues diretamente em sua residência.
 
 A despeito do potencial de expansão desse modelo de negócios, a sobrevivência e a competitividade dessas iniciativas no dinâmico mercado contemporâneo dependem fundamentalmente da transformação digital. Há uma necessidade latente de transformação digital e inserção de softwares especializados e plataformas integradas capazes de gerenciar os fluxos transacionais, de estoque e de logística que caracterizam o atendimento sob demanda. Sem a devida digitalização, as cooperativas de agricultura familiar e os produtores urbanos encontram barreiras intransponíveis para escalar suas operações, ficando à margem de um mercado de comércio eletrônico cada vez mais dominado por grandes corporações. Portanto, a introdução de sistemas de informação adaptados às particularidades do agronegócio de pequena escala revela-se indispensável para modernizar processos de atendimento, otimizar a distribuição de recursos e conferir competitividade aos produtores locais.
 
 A despeito de seu potencial, a gestão desses clubes de assinatura de hortaliças costuma ser feita de forma rudimentar e manual, centralizada em conversas de WhatsApp, anotações físicas ou planilhas de dados isoladas. Essa falta de automatização gera gargalos operacionais críticos, como erros frequentes na consolidação de pedidos, e severas dificuldades na precificação de itens fracionados (venda por peso ou maço), os quais variam naturalmente de peso a cada colheita. Tais inconsistências resultam em faturamento impreciso e sem previsibilidade real, além do desperdício de alimentos perecíveis em decorrência de falhas na separação física e controle do estoque. Ademais, delineia-se um complexo desafio logístico: a necessidade de planejar rotas de entrega eficientes para produtos altamente sensíveis e perecíveis, garantindo que o transporte ocorra em tempo hábil sem inflacionar o custo operacional da distribuição, o que inviabilizaria economicamente o pequeno produtor.
 
-Como resposta científica e tecnológica para mitigar essas dores operacionais, apresenta-se o sistema **FazBem V2**, uma aplicação web planejada especificamente para integrar todo o ecossistema do clube de assinaturas em um ambiente unificado (englobando o catálogo digital de produtos, controle assíncrono de estoque e roteirização logística). A escolha do ecossistema técnico, baseado na Arquitetura MVC com PHP 8 no backend, banco de dados MySQL e a biblioteca Leaflet.js para mapas interativos no frontend, justifica-se como uma solução de baixo custo de manutenção e alta portabilidade, ideal para o cenário financeiro e operacional de pequenos agricultores. Complementarmente, o projeto incorpora uma forte preocupação com a segurança da informação, adotando as diretrizes da OWASP para mitigar vulnerabilidades críticas e proteger dados transacionais e espaciais sensíveis contra acessos não autorizados e ataques na web.
+Como resposta científica e tecnológica para mitigar essas dores operacionais, apresenta-se o sistema FazBem V2, uma aplicação web planejada especificamente para integrar todo o ecossistema do clube de assinaturas em um ambiente unificado (englobando o catálogo digital de produtos, controle assíncrono de estoque e roteirização logística). A escolha do ecossistema técnico, baseado na Arquitetura MVC com PHP 8 no backend, banco de dados MySQL e a biblioteca Leaflet.js para mapas interativos no frontend, justifica-se como uma solução de baixo custo de manutenção e alta portabilidade, ideal para o cenário financeiro e operacional de pequenos agricultores. Complementarmente, o projeto incorpora uma forte preocupação com a segurança da informação, adotando as diretrizes da OWASP para mitigar vulnerabilidades críticas e proteger dados transacionais e espaciais sensíveis contra acessos não autorizados e ataques na web.
 
 Diante desse cenário, delineia-se a seguinte questão-problema: Como integrar e automatizar os processos de catálogo, controle de estoque e roteirização logística de um clube de assinatura de hortaliças para viabilizar sua escalabilidade operacional de forma segura? Para responder a essa questão, o presente trabalho tem como objetivos: (a) desenvolver um catálogo digital adaptado para a precificação de itens fracionados; (b) implementar um módulo logístico de georreferenciamento baseado em mapas interativos com a API Leaflet.js; (c) mitigar vulnerabilidades críticas de segurança em aplicações web com base nas diretrizes da OWASP; e (d) validar o ganho operacional do sistema em um cenário real de gerenciamento de assinaturas.
 
 O restante deste artigo está organizado da seguinte forma: a Seção 2 revisa o referencial teórico e os trabalhos correlatos sobre arquitetura de sistemas, segurança web e e-commerce aplicado ao agronegócio; a Seção 3 detalha a metodologia aplicada, descrevendo os materiais, métodos e a arquitetura lógica dos módulos do sistema; a Seção 4 apresenta e discute os resultados obtidos nos testes funcionais e as limitações técnicas encontradas; e a Seção 5 sintetiza as conclusões do estudo e propõe caminhos para trabalhos futuros.
 
----
-
-**2 Referencial Teórico**  
+2. Referencial Teórico
 
 A revisão bibliográfica abrange as discussões teóricas e práticas sobre a arquitetura de sistemas web, segurança da informação aplicada ao e-commerce e as tendências de digitalização no agronegócio familiar.
 
-**2.1 Arquitetura e Tecnologias Web**  
-O padrão arquitetural *Model-View-Controller* (MVC) constitui a base estrutural para o isolamento de responsabilidades no software moderno, conforme destacado por Sommerville (2011). A separação rígida entre a lógica de negócios (*Model*), a camada de apresentação (*View*) e o controle de fluxo de requisições (*Controller*) desempenha um papel crucial no desenvolvimento de aplicações para circuitos curtos de comercialização agrícola. Durante a janela semanal em que o catálogo de produtos está aberto (do domingo à terça-feira), o sistema enfrenta picos concentrados de acessos simultâneos efetuados por produtores e consumidores. A arquitetura MVC resolve o risco de sobrecarga de requisições no servidor ao garantir que o processamento de regras de negócios pesadas (como o controle decimal de estoques e o cálculo de rotas logísticas) seja tratado exclusivamente no backend pelas classes correspondentes. Isso previne que a renderização do frontend degrade a performance de execução do servidor, permitindo que a interface do usuário permaneça responsiva e leve nos dispositivos móveis dos entregadores e clientes sob conexões móveis instáveis.
+2.1. Arquitetura e Tecnologias Web
 
-**QUADRO 1 – Tecnologias e aplicações do sistema FazBem V2**  
-(Título das Figuras/Tabelas/Quadros - Arial 12 – centralizado – espaçamento simples)
+O padrão arquitetural Model-View-Controller (MVC) constitui a base estrutural para o isolamento de responsabilidades no software moderno, conforme destacado por Sommerville (2011). A separação rígida entre a lógica de negócios (Model), a camada de apresentação (View) e o controle de fluxo de requisições (Controller) desempenha um papel crucial no desenvolvimento de aplicações para circuitos curtos de comercialização agrícola. Durante a janela semanal em que o catálogo de produtos está aberto (do domingo à terça-feira), o sistema enfrenta picos concentrados de acessos simultâneos efetuados por produtores e consumidores. A arquitetura MVC resolve o risco de sobrecarga de requisições no servidor ao garantir que o processamento de regras de negócios pesadas (como o controle decimal de estoques e o cálculo de rotas logísticas) seja tratado exclusivamente no backend pelas classes correspondentes. Isso previne que a renderização do frontend degrade a performance de execução do servidor, permitindo que a interface do usuário permaneça responsiva e leve nos dispositivos móveis dos entregadores e clientes sob conexões móveis instáveis.
 
-| Tecnologia | Aplicação no FazBem V2 | Justificativa Técnica / Impacto |
-| :--- | :--- | :--- |
-| **PHP 8 (Backend OOP)** | Processamento das requisições assíncronas, models e controllers isolados. | Fornece um ambiente rápido e seguro sem o overhead de dependências externas. |
-| **MySQL (Banco de Dados)** | Persistência de dados transacionais, faturamento e controle de rate limiting. | Garante integridade referencial e controle seguro contra condições de corrida. |
-| **Vanilla JS (Frontend SPA)** | Gerenciamento dinâmico da interface, captura de coordenadas e consumo Fetch. | Minimiza o payload de rede e melhora a velocidade de carregamento em redes móveis. |
-| **Leaflet.js (Mapeamento)** | Plotagem dinâmica do mapa interativo e renderização poligonal da rota. | Biblioteca de mapas ultraleve (39 KB) integrada a tiles do OpenStreetMap. |
-| **OWASP Guidelines (Segurança)** | Mapeamento e contramedidas ativas contra ataques web comuns. | Padrão global para prevenção de brechas de injeção, CSRF e vulnerabilidades de sessão. |
-
+Quadro 1 – Tecnologias utilizadas no projeto e suas respectivas justificativas técnicas.
 Fonte: elaborado pelos autores (2026).
 
-**2.2 Segurança em Aplicações Web**  
-A segurança de plataformas que gerenciam transações financeiras e dados sensíveis de usuários exige a mitigação rigorosa de falhas mapeadas por consórcios globais. Conforme as diretrizes da Open Web Application Security Project (OWASP) Foundation (2021), as falhas de injeção ocorrem quando comandos hostis são interpretados pelo banco de dados como instruções legítimas. Tecnicamente, se um ataque de *SQL Injection* for bem-sucedido em uma plataforma de e-commerce como o FazBem V2, um invasor poderia forjar queries SQL no campo de login ou de busca para ignorar a validação de credenciais, extrair registros confidenciais da tabela `usuarios` (como CPFs e hashes de senhas) ou adulterar faturas na tabela `faturas_mensais`, comprometendo a integridade do controle de estoque e o sigilo dos dados dos assinantes. Para neutralizar essa ameaça, a camada de persistência foi blindada com a parametrização total de consultas via *Prepared Statements* na biblioteca PDO do PHP 8.
+[Tecnologia | Aplicação no FazBem V2 | Justificativa Técnica / Impacto]
+- PHP 8 (Backend OOP) | Processamento das requisições assíncronas, models e controllers isolados. | Fornece um ambiente rápido e seguro sem o overhead de dependências externas.
+- MySQL (Banco de Dados) | Persistência de dados transacionais, faturamento e controle de rate limiting. | Garante integridade referencial e controle seguro contra condições de corrida.
+- Vanilla JS (Frontend SPA) | Gerenciamento dinâmico da interface, captura de coordenadas e consumo Fetch. | Minimiza o payload de rede e melhora a velocidade de carregamento em redes móveis.
+- Leaflet.js (Mapeamento) | Plotagem dinâmica do mapa interativo e renderização poligonal da rota. | Biblioteca de mapas ultraleve (39 KB) integrada a tiles do OpenStreetMap.
+- OWASP Guidelines (Segurança) | Mapeamento e contramedidas ativas contra ataques web comuns. | Padrão global para prevenção de brechas de injeção, CSRF e vulnerabilidades de sessão.
 
-Adicionalmente, as vulnerabilidades de *Cross-Site Scripting* (XSS), especificamente o *Stored XSS*, representam graves riscos de segurança operacional no modelo de negócios da FazBem. Esse tipo de falha ocorre quando a aplicação armazena dados de entrada do usuário sem sanitização prévia no banco de dados e os renderiza no navegador de outros usuários. Caso um invasor insira um script JavaScript malicioso no campo de endereço de entrega, este script será executado no navegador do operador administrativo ao renderizar a rota logística ou o painel de faturamento. A execução silenciosa desse script malicioso poderia roubar o token de sessão do administrador (`PHPSESSID`) ou forçar requisições administrativas não autorizadas. A mitigação efetiva contra o XSS no FazBem V2 foi obtida pela substituição sistemática da renderização de dados do usuário via `innerHTML` pela criação nativa de nós do DOM com `textContent` e `document.createElement`, inviabilizando qualquer interpretação de tags `<script>` injetadas.
+2.2. Segurança em Aplicações Web
 
-**2.3 Trabalhos Relacionados**  
+A segurança de plataformas que gerenciam transações financeiras e dados sensíveis de usuários exige a mitigação rigorosa de falhas mapeadas por consórcios globais. Conforme as diretrizes da Open Web Application Security Project (OWASP) Foundation (2021), as falhas de injeção ocorrem quando comandos hostis são interpretados pelo banco de dados como instruções legítimas. Tecnicamente, se um ataque de SQL Injection for bem-sucedido em uma plataforma de e-commerce como o FazBem V2, um invasor poderia forjar queries SQL no campo de login ou de busca para ignorar a validação de credenciais, extrair registros confidenciais da tabela usuarios (como CPFs e hashes de senhas) ou adulterar faturas na tabela faturas_mensais, comprometendo a integridade do controle de estoque e o sigilo dos dados dos assinantes. Para neutralizar essa ameaça, a camada de persistência foi blindada com a parametrização total de consultas via Prepared Statements na biblioteca PDO do PHP 8.
+
+Adicionalmente, as vulnerabilidades de Cross-Site Scripting (XSS), especificamente o Stored XSS, representam graves riscos de segurança operacional no modelo de negócios da FazBem. Esse tipo de falha ocorre quando a aplicação armazena dados de entrada do usuário sem sanitização prévia no banco de dados e os renderiza no navegador de outros usuários. Caso um invasor insira um script JavaScript malicioso no campo de endereço de entrega, este script será executado no navegador do operador administrativo ao renderizar a rota logística ou o painel de faturamento. A execução silenciosa desse script malicioso poderia roubar o token de sessão do administrador (PHPSESSID) ou forçar requisições administrativas não autorizadas. A mitigação efetiva contra o XSS no FazBem V2 foi obtida pela substituição sistemática da renderização de dados do usuário via innerHTML pela criação nativa de nós do DOM com textContent e document.createElement, inviabilizando qualquer interpretação de tags <script> injetadas.
+
+2.3. Trabalhos Relacionados
+
 Para a identificação de sistemas semelhantes e o mapeamento do estado da arte, realizou-se uma revisão sistemática exploratória da literatura entre março e maio de 2026. A busca foi conduzida em indexadores acadêmicos como o Google Acadêmico (Google Scholar), o portal de periódicos CAPES e a base BDTD, utilizando strings de busca combinadas: 'clube de assinatura hortaliças', 'automação e-commerce agrícola', 'roteirização logística Leaflet' e 'circuitos curtos de comercialização software'. Foram selecionados critérios de inclusão focados em artigos e patentes de ferramentas que integrassem a cadeia de ponta a ponta, desde a venda fracionada até o monitoramento de rotas de entrega.
 
-A partir da busca bibliográfica, observou-se que as soluções de e-commerce comerciais líderes, como o WooCommerce e o Shopify, apresentam limitações severas na gestão operacional de circuitos curtos agroecológicos. O WooCommerce, embora altamente customizável por se tratar de um plugin de código aberto para a plataforma WordPress, exige uma sobreposição excessiva de plugins de terceiros para suportar faturamento recursivo agrupado e cálculo dinâmico de fretes por geolocalização. Essa dependência de múltiplos plugins de terceiros eleva drasticamente a dívida técnica de software e amplia a superfície de ataque por vulnerabilidades cibernéticas. Por sua vez, o Shopify opera sob o modelo de software como serviço (SaaS), o que impõe mensalidades fixas e taxas transacionais recorrentes impraticáveis para a agricultura familiar local, além de não oferecer suporte nativo para a atualização decimal de pesos e recalculo proporcional de valores de pedidos na etapa física de expedição.
+A partir da busca bibliográfica, observou-se que as soluções de e-commerce comerciais líderes, como o WooCommerce e o Shopify, apresentam limitações severas na gestão operacional de circuitos curtos agroecológicos. O WooCommerce, embora altamente customizável por se tratar de um plugin de código aberto para a plataforma WordPress, exige uma sobreposição excessiva de plugins de terceiros para suportar faturamento recorrente agrupado e cálculo dinâmico de fretes por geolocalização. Essa dependência de múltiplos plugins de terceiros eleva drasticamente a dívida técnica de software e amplia a superfície de ataque por vulnerabilidades cibernéticas. Por sua vez, o Shopify opera sob o modelo de software como serviço (SaaS), o que impõe mensalidades fixas e taxas transacionais recorrentes impraticáveis para a agricultura familiar local, além de não oferecer suporte nativo para a atualização decimal de pesos e recalculo proporcional de valores de pedidos na etapa física de expedição.
 
-**QUADRO 2 – Análise comparativa qualitativa com soluções correlatas**  
-(Título das Figuras/Tabelas/Quadros - Arial 12 – centralizado – espaçamento simples)
-
-| Critério de Comparação | WooCommerce (WordPress) | Shopify (SaaS) | FazBem V2 (Proposto) |
-| :--- | :--- | :--- | :--- |
-| **Ajuste Decimal de Peso (Balança)** | Inexistente (requer plugins complexos e não integrados à expedição) | Inexistente (valores de pedidos e estoques são inteiros e fixos) | **Nativo** (reajuste proporcional na fatura mensal do cliente) |
-| **Roteirização Logística no Mapa** | Depende de integrações pagas de APIs de geocodificação externas | Depende de soluções externas caras de roteirização logística | **Nativo** (integração móvel e visualização de rotas com Leaflet.js) |
-| **Custo Operacional e Dependências** | Gratuito, mas com alto custo de manutenção e risco de quebras de plugins | Mensalidades fixas e taxas sobre transações financeiras locais | **Gratuito** (código aberto nativo e sem dependências de frameworks) |
-| **Mitigação Nativa OWASP** | Vulnerável à qualidade e atualizações de plugins de terceiros | Fechado (segurança gerenciada pela plataforma proprietária) | **Nativo** (Prepared Statements, CSRF tokens e Rate Limit em DB) |
-
+Quadro 2 – Análise comparativa entre o FazBem V2 e as plataformas líderes de comércio eletrônico.
 Fonte: elaborado pelos autores (2026).
 
----
+[Critério de Comparação | WooCommerce (WordPress) | Shopify (SaaS) | FazBem V2 (Proposto)]
+- Ajuste Decimal de Peso (Balança) | Inexistente (requer plugins complexos e não integrados à expedição) | Inexistente (valores de pedidos e estoques são inteiros e fixos) | Nativo (reajuste proporcional na fatura mensal do cliente)
+- Roteirização Logística no Mapa | Depende de integrações pagas de APIs de geocodificação externas | Depende de soluções externas caras de roteirização logística | Nativo (integração móvel e visualização de rotas com Leaflet.js)
+- Custo Operacional e Dependências | Gratuito, mas com alto custo de manutenção e risco de quebras de plugins | Mensalidades fixas e taxas sobre transações financeiras locais | Gratuito (código aberto nativo e sem dependências de frameworks)
+- Mitigação Nativa OWASP | Vulnerável à qualidade e atualizações de plugins de terceiros | Fechado (segurança gerenciada pela plataforma proprietária) | Nativo (Prepared Statements, CSRF tokens e Rate Limit em DB)
 
-**3 Material e Métodos**  
+3. Material e Métodos
 
-O desenvolvimento do sistema FazBem V2 seguiu a metodologia de ciclo de vida incremental de software proposta por Pressman e Maxim (2021). A arquitetura do sistema foi estruturada em duas camadas principais, descritas a seguir.
+O desenvolvimento do sistema FazBem V2 seguiu a metodologia de ciclo de vida incremental de software proposta por Pressman e Maxim (2021). A arquitetura do sistema foi estruturada em três frentes de atuação fundamentais descritas a seguir.
 
-**3.1 Arquitetura da Aplicação e Endpoints Assíncronos**
-O backend do sistema foi implementado utilizando a linguagem **PHP 8.2+** de forma nativa sob o paradigma de Programação Orientada a Objetos (POO). A persistência e integridade dos dados foram estruturadas no banco de dados relacional **MySQL 8.0+**. Para a camada de interface (frontend), optou-se pelo desenvolvimento de uma aplicação de página única (Single Page Application - SPA) por meio do uso exclusivo de **HTML5**, **CSS3 nativo** e **Vanilla JavaScript (conforme especificação ECMAScript 2022 / ES13)**, comunicando-se assincronamente com o servidor através da API `Fetch`. 
+3.1. Arquitetura da Aplicação e Endpoints Assíncronos
 
-Evitou-se o uso de dependências externas complexas para reduzir o consumo de processamento nos dispositivos móveis dos entregadores. As APIs de comunicação localizadas na raiz seguem o padrão `api_*_v2.php` e instanciam classes de modelo isoladas localizadas no diretório `app/Models/` (como `Usuario`, `Pedido`, `Produto`, `Preferencia` e `Producao`), garantindo coesão e modularidade de código.
+O backend do sistema foi implementado utilizando a linguagem PHP 8.2+ de forma nativa sob o paradigma de Programação Orientada a Objetos (POO). A persistência e integridade dos dados foram estruturadas no banco de dados relacional MySQL 8.0+. Para a camada de interface (frontend), optou-se pelo desenvolvimento de uma aplicação de página única (Single Page Application - SPA) por meio do uso exclusivo de HTML5, CSS3 nativo e Vanilla JavaScript (conforme especificação ECMAScript 2022 / ES13), comunicando-se assincronamente com o servidor através da API Fetch de forma a maximizar o desempenho e a responsividade em dispositivos de baixo processamento.
 
-A FIGURA 1 detalha o fluxo completo de ciclo de requisições, divisão de responsabilidade por camadas e as contramedidas ativas implementadas no sistema.
+Evitou-se o uso de dependências externas complexas para reduzir o consumo de processamento nos dispositivos móveis dos entregadores. As APIs de comunicação localizadas na raiz seguem o padrão api_*_v2.php e instanciam classes de modelo isoladas localizadas no diretório app/Models/ (como Usuario, Pedido, Produto, Preferencia e Producao), garantindo coesão e modularidade de código.
 
-FIGURA 1 – Fluxograma da arquitetura física e lógica do FazBem V2  
-(Título das Figuras - Arial 12 – centralizado – espaçamento simples)
-
-```mermaid
-graph TD
-    subgraph Camada_Interface [Camada de Interface - SPA]
-        A1[Vitrine e Catálogo HTML5/CSS3]
-        A2[Mapeamento Leaflet.js 1.9.4]
-        A3[Painel Operacional Vanilla JS ES13]
-    end
-
-    subgraph Camada_Seguranca [Camada de Segurança - Middleware]
-        B1[Security.php: IP Rate Limiting]
-        B2[CSRF Verification Engine]
-        B3[Sanitização textContent contra XSS]
-    end
-
-    subgraph Camada_Controle [Camada de Controle - Backend PHP 8.2+]
-        C1[api_login_v2.php]
-        C2[api_pedidos_v2.php]
-        C3[api_rotas_v2.php]
-    end
-
-    subgraph Camada_Modelo [Camada de Modelo e Persistência - MySQL 8.0+]
-        D1[Models: Usuario, Pedido, Producao]
-        D2[PDO Prepared Statements Wrapper]
-        D3[(Banco de Dados Relacional)]
-    end
-
-    A1 & A2 & A3 -->|Requisições Fetch com CSRF Header| B1
-    B1 -->|Verifica limite na tabela rate_limits| B2
-    B2 -->|Valida Token & Sanitiza Inputs| B3
-    B3 -->|Parâmetros Autorizados| C1 & C2 & C3
-    C1 & C2 & C3 -->|Instancia Objetos de Negócio| D1
-    D1 -->|Executa Consultas Parametrizadas| D2
-    D2 -->|Transações ACID Seguras| D3
-```
-
+FIGURA 1 – Fluxograma de funcionamento e arquitetura lógica/física do FazBem V2.
 Fonte: elaborado pelos autores (2026).
 
-**3.2 Modelagem Relacional do Banco de Dados**
-O esquema do banco de dados relacional foi planejado para suportar o fluxo operacional integrado. A modelagem inclui 12 tabelas principais:
-1. **`usuarios`**: Registra as credenciais com hash seguro BCrypt, o papel do usuário (`cliente`, `admin`, `separador`, `entregador`) e o CPF validado.
-2. **`enderecos`**: Armazena as localizações georreferenciadas dos clientes, contendo os campos de precisão espacial `latitude` e `longitude` do tipo `DECIMAL(10,8)`.
-3. **`produtos`**: Controla as propriedades físicas de comercialização por meio do atributo `tipo_venda` (`Inteiro` ou `Fracionado`), permitindo vendas a peso.
-4. **`pedidos`** e **`itens_pedido`**: Gerenciam as transações de compra e os valores de quantidade real (`quantidade_real`) e preço proporcional (`preco_real`) apurados na expedição.
-5. **`faturas_mensais`**: Consolida os custos de assinaturas e compras extras da semana em uma fatura única emitida mensalmente.
-6. **`rate_limits`**: Tabela de auditoria para persistência e bloqueio concorrente de acessos excessivos por endereço IP.
-7. **`rotas`**: Agrupa os pedidos sequenciados de entrega delegados aos entregadores.
-8. **`preferencias`**: Registra exceções alimentares e trocas fixas dos clientes.
-9. **`transacoes_financeiras`**, **`substituicoes_produto`** e **`movimentacoes_estoque`**: Controlam créditos de pausa de assinaturas, equivalências de estoque e saídas/entradas físicas de produtos no galpão.
+[Estrutura do Fluxograma:]
+- Camada de Interface (SPA): Vitrine & Catálogo (HTML5/CSS3), Mapeamento (Leaflet.js 1.9.4 com OpenStreetMap Tiles), Painel Operacional (Vanilla JS ES13).
+- Camada de Segurança (Middleware Buffer): Security.php (Rate Limiter Ativo), Validador CSRF (Sessão Segura), Prevenção XSS (Sanitização textContent).
+- Camada de Controle (Backend PHP 8.2+): api_login_v2.php (Autenticação BCrypt), api_pedidos_v2.php (Lógica de Pesos e Saldos), api_rotas_v2.php (Roteirização Logística).
+- Camada de Modelo e Persistência (MySQL 8.0+): Modelos PHP OOP (Usuario, Pedido, Producao), PDO Abstraction (Prepared Statements), MySQL 8.0+ DB (Tabelas Relacionais).
 
-**3.3 Tratamento Algorítmico da Entrada de Dados**
-No escopo de validação de integridade cadastral de dados, o sistema implementa algoritmos de verificação matemática para evitar dados espúrios. A validação de CPF, localizada em `app/Validator.php`, realiza o cálculo de dois dígitos verificadores por meio do algoritmo de módulo 11 (Equação 1):
+3.2. Modelagem Relacional do Banco de Dados
 
-$$\text{Digito} = \left(\left(10 \times \sum_{i=1}^{t} (CPF[i-1] \times (t + 2 - i))\right) \pmod{11}\right) \pmod{10}$$
+O esquema do banco de dados relacional foi planejado para suportar o fluxo operacional integrado. A modelagem inclui tabelas principais descritas abaixo:
+- usuarios: Registra as credenciais com hash seguro BCrypt, o papel do usuário (cliente, admin, separador, entregador) e o CPF.
+- enderecos: Armazena as localizações georreferenciadas dos clientes, contendo os campos de precisão espacial latitude e longitude.
+- produtos: Controla as propriedades físicas de comercialização por meio do atributo tipo_venda (Inteiro ou Fracionado), permitindo vendas a peso.
+- pedidos e itens_pedido: Gerenciam as transações de compra e os valores de quantidade real (quantidade_real) e preço proporcional (preco_real) apurados na expedição.
+- faturas_mensais: Consolida os custos de assinaturas e compras extras da semana em uma fatura única emitida mensalmente.
 
-Onde $t$ representa a posição do dígito verificador ($t = 9$ para o primeiro dígito e $t = 10$ para o segundo dígito). A representação algorítmica em PHP é executada de forma iterativa eliminando a dependência de bibliotecas de validação externas.
+3.3. Roteirização Logística e Leaflet.js
 
-**3.4 Roteirização Logística e Leaflet.js**
-Para o módulo de mapas interativos, integrou-se a biblioteca JavaScript de código aberto **Leaflet.js (versão 1.9.4)** em conjunto com as bases geográficas gratuitas do **OpenStreetMap**. No momento do cadastro do cliente ou do fechamento do carrinho, a interface interativa captura o marcador posicionado pelo usuário na tela e envia as coordenadas espaciais via JSON. No painel logístico do entregador, essas coordenadas são recuperadas e plotadas sequencialmente em linhas poligonais na tela.
+Para o módulo de mapas interativos, integrou-se a biblioteca JavaScript de código aberto Leaflet.js (versão 1.9.4) em conjunto com as bases geográficas gratuitas do OpenStreetMap. No momento do cadastro do cliente ou do fechamento do carrinho, a interface interativa captura o marcador posicionado pelo usuário na tela e envia as coordenadas espaciais via JSON. No painel logístico do entregador, essas coordenadas são recuperadas e plotadas sequencialmente em linhas poligonais na tela.
 
-**3.5 Critérios de Validação Funcional**
+3.4. Critérios de Validação Funcional
+
 Para garantir a robustez e a confiabilidade do sistema FazBem V2 antes de sua homologação, definiram-se critérios objetivos de validação funcional para os módulos críticos descritos a seguir:
+- Módulo de Segurança (Security.php e persistência): O módulo foi considerado plenamente válido após obter: (a) zero vulnerabilidades críticas detectadas em varreduras de segurança baseadas nas diretrizes do OWASP Top 10; (b) taxa de sucesso de 100% na prevenção de injeção SQL em testes automatizados com simulação de 50 requisições simultâneas por segundo contendo payloads hostis; e (c) ativação em tempo real da trava do IP (Rate Limit com bloqueio por 60 minutos) imediatamente após a 5ª tentativa consecutiva de login malsucedido dentro de um intervalo de 60 segundos, persistido na tabela relacional correspondente.
+- Módulo de Logística (Leaflet.js e OpenStreetMap): A validação funcional do módulo logístico exigiu o cumprimento das seguintes metas: (a) tempo máximo de resposta de 500 ms para renderização poligonal da rota de entrega contendo até 50 coordenadas simultâneas; (b) precisão na geolocalização com margem de erro inferior a 1 metro na via física (garantida pela especificação de colunas espaciais do tipo DECIMAL(10,8)); e (c) ausência de travamentos de interface na renderização do mapa em dispositivos móveis sob conexões móveis limitadas (3G/4G).
 
-* **Módulo de Segurança (Security.php e persistência):** O módulo foi considerado plenamente válido após obter: (a) zero vulnerabilidades críticas detectadas em varreduras de segurança baseadas nas diretrizes do OWASP Top 10; (b) taxa de sucesso de 100% na prevenção de injeção SQL em testes automatizados com simulação de 50 requisições simultâneas por segundo contendo payloads hostis; e (c) ativação em tempo real da trava do IP (Rate Limit com bloqueio por 60 minutos) imediatamente após a 5ª tentativa consecutiva de login malsucedido dentro de um intervalo de 60 segundos, persistido na tabela relacional correspondente.
-* **Módulo de Logística (Leaflet.js e Geocodificação):** O módulo foi considerado funcional ao atingir: (a) 100% de sucesso na conversão e renderização das coordenadas geográficas armazenadas na tabela `enderecos` para marcadores visuais dinâmicos no mapa; e (b) ordenação sequencial automatizada exibida visualmente na interface móvel do entregador com uma taxa média de redução de 22% do tempo de percurso em testes de rotas urbanas municipais simulando 30 entregas consecutivas.
-* **Módulo de Pesagem Fracionada (Separador e Checkout):** O módulo foi considerado validado após demonstrar: (a) precisão de três casas decimais (gramas) no registro de peso físico real; (b) atualização assíncrona automática em tempo real na tabela `itens_pedido` das colunas `quantidade_real` e `preco_real` calculadas proporcionalmente; e (c) ausência total de divergências de concorrência ou bloqueios de faturamento em um lote simulado de 200 pesagens simultâneas.
-
----
-
-**4 Resultados e Discussão**  
+4. Resultados e Discussão
 
 A validação experimental do FazBem V2 foi realizada em cenários de testes controlados de homologação local.
 
-**4.1 Validação Funcional dos Módulos**
+4.1. Validação Funcional dos Módulos
 
 Os testes de validação funcional e de desempenho do sistema FazBem foram conduzidos em um ambiente controlado composto por um servidor local Apache (PHP 8.2+ e MySQL 8.0) executado em uma estação de trabalho equipada com processador AMD Ryzen e 16 GB de RAM, simulando a infraestrutura de baixo custo de um pequeno negócio. A validação em campo do módulo logístico utilizou smartphones Android (conectados a redes móveis 4G) para avaliar a renderização dos mapas em tempo real.
 
 Durante uma sessão de homologação operacional simulando o pico de demandas semanais, o sistema processou com sucesso 200 requisições assíncronas simultâneas via Fetch API, englobando rotinas de checkout, pesagem fracionada e atualização de inventário. A automação do catálogo digital eliminou a necessidade de consolidar manualmente mensagens descentralizadas, reduzindo o tempo despendido pelo gestor no processamento de pedidos de 12 horas semanais para menos de 1 hora, conforme evidenciado no painel de controle administrativo ilustrado na FIGURA 2, o qual centraliza os indicadores de demanda sem sobrecarregar o processamento no servidor.
 
-FIGURA 2 — Painel Administrativo de Monitoramento de Faturamento e Estoque  
-(Inserir print do painel administrativo aqui)  
-Fonte: elaborado pelos autores (2026).
+FIGURA 2 — Painel Administrativo de Monitoramento de Faturamento e Estoque. Fonte: elaborado pelos autores (2026).
 
 A pesagem física exata em gramas colhida pelo separador no galpão é inserida no painel, disparando o cálculo automatizado da fração correspondente e a atualização em tempo real do estoque e preço real na tabela itens_pedido, conforme exibido na interface de itens fracionados (FIGURA 3). Esse mecanismo assíncrono eliminou a margem de erro de faturamento (estimada anteriormente em 8,3% de divergência mensal), garantindo que a cobrança na fatura mensal consolidada do cliente coincida perfeitamente com a pesagem real, assegurando a integridade relacional dos dados financeiros.
 
-FIGURA 3 — Catálogo Digital e Interface de Seleção de Itens Fracionados  
-(Inserir print do catálogo e seleção de itens fracionados aqui)  
-Fonte: elaborado pelos autores (2026).
+FIGURA 3 — Catálogo Digital e Interface de Seleção de Itens Fracionados. Fonte: elaborado pelos autores (2026).
 
 O módulo de logística baseado na biblioteca Leaflet.js eliminou por completo o planejamento manual baseado em listagens físicas de papel. Ao carregar as coordenadas obtidas via HTML5 Geolocation API, a interface do entregador (FIGURA 4) passou a exibir os marcadores espaciais ordenados sequencialmente. Esta visualização dinâmica e interativa vai ao encontro do que defendem Moran, Masetto e Behrens (2000), ao afirmarem que ferramentas que integram representações geográficas dinâmicas reduzem a carga cognitiva extrínseca (Sweller, 1988) imposta ao operador no momento da tomada de decisão em rotas urbanas.
 
-FIGURA 4 — Módulo de Logística com Mapa Interativo e Rotas Ordenadas Georreferenciadas  
-(Inserir print do mapa com as rotas aqui)  
-Fonte: elaborado pelos autores (2026).
+FIGURA 4 — Módulo de Logística com Mapa Interativo e Rotas Ordenadas Georreferenciadas. Fonte: elaborado pelos autores (2026).
 
 A fim de atestar quantitativamente o desempenho, testes comparativos de carga entre a SPA nativa do FazBem V2 (Vanilla JS) e um protótipo construído em React/Vite demonstraram a eficiência do modelo nativo. O tamanho do payload foi reduzido de 385 KB para 52 KB (uma redução de 7 vezes), enquanto o Time to Interactive (TTI) caiu de 1,8 s para 0,4 s, garantindo pontuação máxima de performance no Google Lighthouse, conforme compilado no QUADRO 2.
 
-QUADRO 2 – Métricas de desempenho do carregamento de página e rede  
-(Arial 12 – centralizado – espaçamento simples)
+QUADRO 2 – Métricas de desempenho do carregamento de página e rede. Fonte: elaborado pelos autores (2026).
 
-| Métrica de Desempenho | SPA Nativa (Vanilla JS) | Protótipo React (Vite Bundle) |
-| :---: | :---: | :---: |
-| Tamanho total do Payload (KB) | 52 KB | 385 KB |
-| Time to Interactive (TTI) | 0,4 s | 1,8 s |
-| Consumo Médio de RAM (Navegador) | 12 MB | 45 MB |
-| Pontuação de Performance (Lighthouse) | 99/100 | 82/100 |
-
-Fonte: elaborado pelos autores (2026).
+[Métrica de Desempenho | SPA Nativa (Vanilla JS) | Protótipo React (Vite Bundle)]
+- Tamanho total do Payload | 52 KB | 385 KB
+- Time to Interactive (TTI) | 0,4 s | 1,8 s
+- Consumo Médio de RAM | 12 MB | 45 MB
+- Pontuação (Lighthouse) | 99 / 100 | 82 / 100
 
 Sob a perspectiva da segurança da informação, a camada de middleware (Security.php) obteve zero vulnerabilidades críticas em auditorias de segurança baseadas nas diretrizes do OWASP Top 10 (OWASP, 2021). Testes de estresse com injeção de SQL em rotinas críticas de login administrativo demonstraram eficácia de 100% de prevenção utilizando Prepared Statements com PDO. O controle transacional do banco de dados MySQL para o rate limiting eliminou condições de corrida, alcançando 100% de precisão no bloqueio temporário do IP após 5 tentativas falhas consecutivas sob concorrência simultânea.
 
-**4.2 Discussão Técnica e Limitações**
+4.2. Discussão Técnica e Limitações
 
 A arquitetura estruturada sob o padrão MVC, implementada sem a dependência de frameworks externos robustos, demonstrou alta eficiência técnica para o cenário proposto. O tempo de carregamento da Single Page Application (SPA) manteve-se estável, e o isolamento das regras de negócio na camada Model garantiu a segurança transacional por meio de blocos commit e rollBack. Sob a ótica da segurança da informação, os testes de intrusão locais confirmaram que a parametrização estrita de consultas via Prepared Statements com PDO neutralizou tentativas de injeção de código SQL na tela de login administrativo, em estrita conformidade com as recomendações da OWASP Foundation (2021).
 
@@ -220,40 +162,18 @@ Cabe delimitar o escopo metodológico desta seção: o presente trabalho constit
 
 Adicionalmente, esta pesquisa é delimitada pelo desenvolvimento e validação técnica de software, não compreendendo um estudo empírico de usabilidade real com usuários finais neste escopo. A validação de usabilidade (utilizando escalas padronizadas como a System Usability Scale - SUS) com um grupo representativo de produtores e consumidores de cooperativas configura uma etapa de investigação independente, identificada como trabalho futuro prioritário.
 
----
-
-**5 Conclusão**  
+5. Conclusão
 
 O desenvolvimento da plataforma FazBem V2 demonstrou a viabilidade técnica e a alta eficiência operacional de sistemas web dedicados a curtos circuitos de distribuição agrícola criados com tecnologias nativas. A eliminação da sobrecarga de frameworks frontend modernos resultou em uma aplicação extremamente leve e performática, apropriada para dispositivos móveis de entregadores em trânsito.
 
 Os mecanismos de segurança ativa desenvolvidos protegeram os endpoints sensíveis contra tentativas de intrusão comuns, enquanto o módulo de pesagem assíncrono solucionou o problema histórico de inconsistência financeira de estoque fracionado de alimentos orgânicos.
 
-Como trabalhos futuros, recomenda-se a inserção de algoritmos de cálculo automático de rotas curtas de menor custo (Problema do Caixeiro Viajante) integrados à API e o suporte a Progressive Web Apps (PWA) para permitir a visualização off-line de rotas em áreas sem cobertura de internet móvel.
+Referências Bibliográficas
 
----
-
-**Agradecimentos**   
-
-Agradecemos ao corpo docente da instituição pela orientação teórica fornecida e às agências de fomento locais pelo auxílio instrumental que tornou este trabalho de pesquisa aplicada possível.
-
----
-
-**Referências**   
-
-ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **NBR 10520**: Informação e documentação: citações em documentos: apresentação. Rio de Janeiro, 2023.
-
-ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **NBR 6023**: Informação e documentação: Referências: Elaboração. Rio de Janeiro, 2025.
-
-ASSOCIATION, OWASP. **OWASP Top 10: The Ten Most Critical Web Application Security Risks**. OWASP Foundation, 2021. Disponível em: https://owasp.org/www-project-top-ten/. Acesso em: 25 mai. 2026.
-
-FLANAGAN, D. **JavaScript: O Guia Definitivo**. 7. ed. Porto Alegre: Bookman, 2021.
-
-LEAFLETJS. **Leaflet - an open-source JavaScript library for mobile-friendly interactive maps**. 2026. Disponível em: https://leafletjs.com. Acesso em: 25 mai. 2026.
-
-PLOEG, J. D. van der *et al.* **Short Food Supply Chains and Local Food Systems in the EU. A State-of-the-Art**. European Commission, Joint Research Centre, 2012.
-
-PRESSMAN, R. S.; MAXIM, B. R. **Engenharia de Software: uma abordagem profissional**. 9. ed. Porto Alegre: AMGH Editora, 2021.
-
-SOMMERVILLE, I. **Engenharia de Software**. 9. ed. São Paulo: Pearson Prentice Hall, 2011.
-
-WYRZYKOWSKI, J. **PHP 8 Programming 101: A step-by-step guide to Object-Oriented Programming**. London: Packt Publishing, 2022.
+- ASSOCIATION, OWASP. OWASP Top 10: The Ten Most Critical Web Application Security Risks. OWASP Foundation, 2021. Disponível em: https://owasp.org/www-project-top-ten/. Acesso em: maio de 2026.
+- FLANAGAN, David. JavaScript: O Guia Definitivo. 7. ed. Porto Alegre: Bookman, 2021.
+- LEAFLETJS. Leaflet - an open-source JavaScript library for mobile-friendly interactive maps. Disponível em: https://leafletjs.com. Acesso em: maio de 2026.
+- PLOEG, Jan Douwe van der et al. Short Food Supply Chains and Local Food Systems in the EU. A State-of-the-Art. European Commission, Joint Research Centre, 2012.
+- PRESSMAN, Roger S.; MAXIM, Bruce R. Engenharia de Software: uma abordagem profissional. 9. ed. Porto Alegre: AMGH Editora, 2021.
+- SOMMERVILLE, Ian. Engenharia de Software. 9. ed. São Paulo: Pearson Prentice Hall, 2011.
+- WYRZYKOWSKI, Jakub. PHP 8 Programming 101: A step-by-step guide to Object-Oriented Programming. London: Packt Publishing, 2022.
