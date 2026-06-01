@@ -169,7 +169,11 @@ Referências Bibliográficas
 - ASSOCIATION, OWASP. OWASP Top 10: The Ten Most Critical Web Application Security Risks. OWASP Foundation, 2021. Disponível em: https://owasp.org/www-project-top-ten/. Acesso em: maio de 2026.
 - FLANAGAN, David. JavaScript: O Guia Definitivo. 7. ed. Porto Alegre: Bookman, 2021.
 - LEAFLETJS. Leaflet - an open-source JavaScript library for mobile-friendly interactive maps. Disponível em: https://leafletjs.com. Acesso em: maio de 2026.
+- MAGENTO. Magento Open Source: e-commerce platform. Adobe Inc. Disponível em: https://magento.com. Acesso em: maio de 2026.
 - PLOEG, Jan Douwe van der et al. Short Food Supply Chains and Local Food Systems in the EU. A State-of-the-Art. European Commission, Joint Research Centre, 2012.
 - PRESSMAN, Roger S.; MAXIM, Bruce R. Engenharia de Software: uma abordagem profissional. 9. ed. Porto Alegre: AMGH Editora, 2021.
+- SHOPIFY. Shopify: cloud-based, multi-channel commerce platform. Shopify Inc. Disponível em: https://www.shopify.com. Acesso em: maio de 2026.
 - SOMMERVILLE, Ian. Engenharia de Software. 9. ed. São Paulo: Pearson Prentice Hall, 2011.
+- WOOCOMMERCE. WooCommerce: open source e-commerce platform for WordPress. Automattic Inc. Disponível em: https://woocommerce.com. Acesso em: maio de 2026.
 - WYRZYKOWSKI, Jakub. PHP 8 Programming 101: A step-by-step guide to Object-Oriented Programming. London: Packt Publishing, 2022.
+
