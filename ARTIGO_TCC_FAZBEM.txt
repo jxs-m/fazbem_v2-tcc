@@ -80,13 +80,35 @@ Fonte: elaborado pelos autores (2026).
 
 3. Material e Métodos
 
-O desenvolvimento do sistema FazBem V2 seguiu a metodologia de ciclo de vida incremental de software proposta por Pressman e Maxim (2021). A arquitetura do sistema foi estruturada em três frentes de atuação fundamentais descritas a seguir.
+O desenvolvimento do sistema FazBem V2 seguiu a metodologia de ciclo de vida incremental e iterativo proposta por Pressman e Maxim (2021). O processo de engenharia foi planejado para lidar de forma dinâmica com o fluxo contínuo de entregas e pedidos do agronegócio familiar.
 
-3.1. Arquitetura da Aplicação e Endpoints Assíncronos
+3.1. Metodologia de Desenvolvimento e Transferência do Quadro
 
-O backend do sistema foi implementado utilizando a linguagem PHP 8.2+ de forma nativa sob o paradigma de Programação Orientada a Objetos (POO). A persistência e integridade dos dados foram estruturadas no banco de dados relacional MySQL 8.0+. Para a camada de interface (frontend), optou-se pelo desenvolvimento de uma aplicação de página única (Single Page Application - SPA) por meio do uso exclusivo de HTML5, CSS3 nativo e Vanilla JavaScript (conforme especificação ECMAScript 2022 / ES13), comunicando-se assincronamente com o servidor através da API Fetch de forma a maximizar o desempenho e a responsividade em dispositivos de baixo processamento.
+A engenharia e o desenvolvimento da plataforma FazBem V2 adotaram o modelo de ciclo de vida incremental e iterativo, conforme fundamentado por Pressman e Maxim (2021). Este processo de desenvolvimento foi dividido em quatro fases bem delineadas: (a) Levantamento de Requisitos e Modelagem, caracterizada pelo mapeamento das dores operacionais e definição do esquema relacional de dados; (b) Projeto de Arquitetura e Segurança, onde estabeleceu-se a segregação de responsabilidades entre cliente e servidor e as regras de segurança ativa; (c) Desenvolvimento Modular, que envolveu a codificação isolada do frontend SPA em Vanilla JS e do backend em PHP, integrando-os com APIs RESTful; e (d) Validação Técnica, fase na qual foram executados os protocolos de testes funcionais, de estresse e homologação local para aferir a robustez do sistema. As tecnologias selecionadas para viabilizar essa estrutura incremental são detalhadas no Quadro 3.
 
-Evitou-se o uso de dependências externas complexas para reduzir o consumo de processamento nos dispositivos móveis dos entregadores. As APIs de comunicação localizadas na raiz seguem o padrão api_*_v2.php e instanciam classes de modelo isoladas localizadas no diretório app/Models/ (como Usuario, Pedido, Produto, Preferencia e Producao), garantindo coesão e modularidade de código.
+Quadro 3 – Tecnologias utilizadas no projeto, versões exatas e respectivas justificativas.
++------------------------+-------------------------+------------------------------------------+-------------------------------------------------+
+| Tecnologia             | Versão Exata            | Aplicação no FazBem V2                   | Justificativa Técnica / Impacto                 |
++------------------------+-------------------------+------------------------------------------+-------------------------------------------------+
+| PHP (Backend OOP)      | 8.2+                    | Processamento das requisições            | Fornece um ambiente rápido e seguro sem o       |
+|                        |                         | assíncronas, models e controllers.       | overhead de dependências externas.              |
++------------------------+-------------------------+------------------------------------------+-------------------------------------------------+
+| MySQL (Banco de Dados) | 8.0+                    | Persistência de dados transacionais,     | Garante integridade referencial e controle      |
+|                        |                         | faturamento e rate limiting.             | seguro contra condições de corrida.             |
++------------------------+-------------------------+------------------------------------------+-------------------------------------------------+
+| Vanilla JS (Frontend)  | ES13 (ECMAScript 2022)  | Gerenciamento dinâmico da interface,     | Minimiza o payload de rede e melhora a          |
+|                        |                         | captura de coordenadas e consumo Fetch.  | velocidade de carregamento em redes móveis.     |
++------------------------+-------------------------+------------------------------------------+-------------------------------------------------+
+| Leaflet.js             | 1.9.4                   | Plotagem dinâmica do mapa interativo e   | Biblioteca de mapas ultraleve (39 KB)           |
+|                        |                         | renderização poligonal da rota.          | integrada a tiles do OpenStreetMap.             |
++------------------------+-------------------------+------------------------------------------+-------------------------------------------------+
+Fonte: elaborado pelos autores (2026).
+
+3.2. Arquitetura SPA + MVC e o Fluxograma
+
+A comunicação do sistema FazBem V2 baseia-se em uma arquitetura híbrida projetada para garantir alta performance e evitar travamentos na interface do usuário. No lado do cliente, opera uma aplicação de página única (SPA - Single Page Application) que interage dinamicamente com o usuário; no lado do servidor, implementou-se o padrão estrutural MVC para processar a lógica de negócios e persistência. As transações de dados ocorrem de forma puramente assíncrona por meio de requisições HTTP utilizando a API Fetch do Vanilla JavaScript, a qual se comunica com os endpoints nativos do backend representados por arquivos independentes (como api_login_v2.php, api_pedidos_v2.php e api_rotas_v2.php). O tráfego de dados nestas rotas é realizado estritamente no formato leve JSON, permitindo que a interface permaneça responsiva e livre de interrupções visuais enquanto cálculos complexos são processados.
+
+A dinâmica operacional e o fluxo dos dados desde a interação na interface até a persistência no banco de dados estão ilustrados detalhadamente na Figura 1. O dado inicia sua trajetória na camada cliente (SPA), trafega de forma assíncrona até passar pelo middleware de segurança (Security.php), onde sofre validação de rate limits e tokens CSRF. Após a homologação de segurança, a requisição atinge os controladores PHP correspondentes, os quais instanciam as classes de modelo (Models) que encapsulam a lógica de negócio e realizam as transações transacionais no banco de dados relacional MySQL.
 
 FIGURA 1 – Fluxograma de funcionamento e arquitetura lógica/física do FazBem V2.
 Fonte: elaborado pelos autores (2026).
@@ -97,24 +119,25 @@ Fonte: elaborado pelos autores (2026).
 - Camada de Controle (Backend PHP 8.2+): api_login_v2.php (Autenticação BCrypt), api_pedidos_v2.php (Lógica de Pesos e Saldos), api_rotas_v2.php (Roteirização Logística).
 - Camada de Modelo e Persistência (MySQL 8.0+): Modelos PHP OOP (Usuario, Pedido, Producao), PDO Abstraction (Prepared Statements), MySQL 8.0+ DB (Tabelas Relacionais).
 
-3.2. Modelagem Relacional do Banco de Dados
+3.3. Detalhamento do Banco de Dados e Equação Matemática
 
-O esquema do banco de dados relacional foi planejado para suportar o fluxo operacional integrado. A modelagem inclui tabelas principais descritas abaixo:
-- usuarios: Registra as credenciais com hash seguro BCrypt, o papel do usuário (cliente, admin, separador, entregador) e o CPF.
-- enderecos: Armazena as localizações georreferenciadas dos clientes, contendo os campos de precisão espacial latitude e longitude.
-- produtos: Controla as propriedades físicas de comercialização por meio do atributo tipo_venda (Inteiro ou Fracionado), permitindo vendas a peso.
-- pedidos e itens_pedido: Gerenciam as transações de compra e os valores de quantidade real (quantidade_real) e preço proporcional (preco_real) apurados na expedição.
-- faturas_mensais: Consolida os custos de assinaturas e compras extras da semana em uma fatura única emitida mensalmente.
+A camada de persistência de dados do FazBem V2 foi projetada para suportar a volumetria operacional de múltiplos acessos recorrentes, utilizando um esquema relacional de doze tabelas integradas. Entre as entidades essenciais desse banco de dados, destacam-se a tabela usuarios, responsável pelo armazenamento de credenciais criptografadas; a tabela enderecos, que mapeia a localização física dos consumidores; a tabela itens_pedido, que gerencia os itens fracionados; e a tabela rate_limits, utilizada para persistir as tentativas falhas de autenticação. Para permitir o correto georreferenciamento e garantir a integridade das coordenadas espaciais que guiarão o módulo logístico, a tabela de endereços define seus atributos de geolocalização com dados decimais de alta precisão do tipo DECIMAL(10,8) para armazenar a latitude e a longitude com margens de erro inferiores a um centímetro no solo.
 
-3.3. Roteirização Logística e Leaflet.js
+No backend do sistema, localizado em app/Validator.php, a integridade no cadastro de novos usuários é garantida pela validação matemática de documentos sensíveis, especificamente o CPF. A verificação baseia-se no algoritmo de Módulo 11, cujo comportamento é formalizado matematicamente pela Equação 1:
 
-Para o módulo de mapas interativos, integrou-se a biblioteca JavaScript de código aberto Leaflet.js (versão 1.9.4) em conjunto com as bases geográficas gratuitas do OpenStreetMap. No momento do cadastro do cliente ou do fechamento do carrinho, a interface interativa captura o marcador posicionado pelo usuário na tela e envia as coordenadas espaciais via JSON. No painel logístico do entregador, essas coordenadas são recuperadas e plotadas sequencialmente em linhas poligonais na tela.
+S_t = sum_{i=1}^{t} d_i * (t + 2 - i),     R_t = (S_t * 10) mod 11             (1)
 
-3.4. Critérios de Validação Funcional
+Nesta equação, a variável t define a iteração de cálculo de validação documental, assumindo o valor de 9 para a verificação do primeiro dígito verificador (d_10) e 10 para o segundo dígito verificador (d_11). A variável d_i corresponde ao dígito do CPF posicionado no índice i, S_t representa o somatório ponderado dos dígitos pelos coeficientes lineares decrescentes correspondentes, e R_t representa o resto da divisão da soma ponderada multiplicada por 10 sob o módulo 11, determinando-se o dígito como 0 caso o resto seja igual a 10, ou o próprio valor de R_t caso contrário.
 
-Para garantir a robustez e a confiabilidade do sistema FazBem V2 antes de sua homologação, definiram-se critérios objetivos de validação funcional para os módulos críticos descritos a seguir:
-- Módulo de Segurança (Security.php e persistência): O módulo foi considerado plenamente válido após obter: (a) zero vulnerabilidades críticas detectadas em varreduras de segurança baseadas nas diretrizes do OWASP Top 10; (b) taxa de sucesso de 100% na prevenção de injeção SQL em testes automatizados com simulação de 50 requisições simultâneas por segundo contendo payloads hostis; e (c) ativação em tempo real da trava do IP (Rate Limit com bloqueio por 60 minutos) imediatamente após a 5ª tentativa consecutiva de login malsucedido dentro de um intervalo de 60 segundos, persistido na tabela relacional correspondente.
-- Módulo de Logística (Leaflet.js e OpenStreetMap): A validação funcional do módulo logístico exigiu o cumprimento das seguintes metas: (a) tempo máximo de resposta de 500 ms para renderização poligonal da rota de entrega contendo até 50 coordenadas simultâneas; (b) precisão na geolocalização com margem de erro inferior a 1 metro na via física (garantida pela especificação de colunas espaciais do tipo DECIMAL(10,8)); e (c) ausência de travamentos de interface na renderização do mapa em dispositivos móveis sob conexões móveis limitadas (3G/4G).
+3.4. Integração do Módulo de Logística
+
+O módulo logístico de distribuição do FazBem V2 foi planejado para automatizar a montagem de rotas de entrega dinâmicas. O sistema inicia o fluxo capturando a posição geográfica em tempo real do consumidor no momento do checkout ou do cadastro por meio da API nativa HTML5 Geolocation, após o consentimento explícito do usuário no navegador. Essas coordenadas de latitude e longitude são enviadas e armazenadas de forma segura e estruturada no banco de dados. Posteriormente, os controladores do backend recuperam a sequência ordenada dos endereços de entrega e os transmitem para o dispositivo móvel do entregador logado no sistema.
+
+A renderização interativa dos pontos de entrega é executada no frontend pela biblioteca Leaflet.js. Esta ferramenta consome imagens dinâmicas (tiles) públicas providas pelo servidor do OpenStreetMap para compor o mapa de fundo, traçando e interligando os pontos georreferenciados por meio de linhas poligonais (L.polyline) contínuas. Para otimizar a comunicação em trânsito, o sistema integra atalhos para a API externa do WhatsApp, permitindo que o entregador envie mensagens predefinidas com apenas um clique e acesse rotas externas de navegação diretamente pelo dispositivo.
+
+3.5. Protocolo de Aceite e Critérios de Validação
+
+Com o intuito de estabelecer a conformidade técnica da aplicação com os objetivos do projeto, instituiu-se um protocolo científico rigoroso de aceite contendo critérios objetivos de validação funcional estruturados em três grandes pilares de homologação operacional: (a) Segurança Cibernética, cuja meta exige a ausência total de vulnerabilidades críticas listadas no OWASP Top 10 e a ativação automática da trava de IP persistida no banco de dados (Rate Limit) para bloqueio por 60 minutos contínuos após o registro de exatamente 5 tentativas consecutivas de acesso malsucedido no intervalo de 60 segundos; (b) Eficiência e Estabilidade Logística, que estabelece um limiar máximo de tempo de resposta de 500 ms para que o algoritmo de roteirização e a biblioteca Leaflet.js realizem a renderização visual poligonal de trajetos contendo até 50 coordenadas de entregas simultâneas, mantendo a estabilidade de consumo de memória RAM do navegador estável em dispositivos móveis sob conexões de dados 3G e 4G; e (c) Persistência e Integridade de Dados, que assegura a atomicidade absoluta das transações financeiras e de estoque baseadas em propriedades ACID através do uso de blocos estruturados de controle transacional no banco de dados (commit e rollBack) para evitar inconsistências ou faturamentos incorretos durante a janela concorrente de checkout e pesagem.
 
 4. Resultados e Discussão
 
