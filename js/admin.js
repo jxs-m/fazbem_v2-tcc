@@ -23,22 +23,20 @@ async function carregarPedidos() {
         if (json.success) {
             tbody.innerHTML = '';
 
-            let totalFaturamento = 0;
-            document.getElementById('dash-pedidos').innerText = json.data.length;
-
             json.data.forEach(p => {
-                totalFaturamento += parseFloat(p.valor_total);
-
                 const dataF = new Date(p.data_pedido).toLocaleDateString('pt-BR');
                 const totalF = parseFloat(p.valor_total).toFixed(2).replace('.', ',');
 
                 const selEnt = `<select onchange="atualizarStatus(${p.id}, 'entrega', this.value)" class="select-status"><option value="Em separação" ${p.status_entrega === 'Em separação' ? 'selected' : ''}>Em separação</option><option value="Aguardando Entrega" ${p.status_entrega === 'Aguardando Entrega' ? 'selected' : ''}>Aguardando Entrega</option><option value="Saiu para entrega" ${p.status_entrega === 'Saiu para entrega' ? 'selected' : ''}>Saiu para entrega</option><option value="Entregue" ${p.status_entrega === 'Entregue' ? 'selected' : ''}>Entregue</option></select>`;
 
-                tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button></td></tr>`;
+                let btnComprovante = '';
+                if (p.status_pagamento === 'Pago') {
+                    btnComprovante = `<a href="comprovante.php?tipo=pedido&id=${p.id}" target="_blank" class="btn" style="background:#1d4ed8; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:12px; margin-left:5px; display:inline-block;">Comprovante</a>`;
+                }
+
+                tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button>${btnComprovante}</td></tr>`;
             });
 
-            // Atualiza o Card de Faturamento
-            document.getElementById('dash-faturamento').innerText = 'R$ ' + totalFaturamento.toFixed(2).replace('.', ',');
         }
     } catch (e) { tbody.innerHTML = '<tr><td colspan="6">Erro</td></tr>'; }
 }
@@ -51,11 +49,19 @@ async function carregarDashboardV2() {
 
         if (json.success) {
 
-            let faturamento = parseFloat(json.data.faturamento).toFixed(2).replace('.', ',');
+            let faturamento = parseFloat(json.data.faturamento || 0).toFixed(2).replace('.', ',');
+            let fatEsperadoMes = parseFloat(json.data.faturamento_esperado_mes || 0).toFixed(2).replace('.', ',');
+            let fatEsperado = parseFloat(json.data.faturamento_esperado || 0).toFixed(2).replace('.', ',');
+            let fatMes = parseFloat(json.data.faturamento_mes || 0).toFixed(2).replace('.', ',');
             let creditos = parseFloat(json.data.total_creditos || 0).toFixed(2).replace('.', ',');
 
             document.getElementById('dash-pedidos').innerText = json.data.total_pedidos;
             document.getElementById('dash-faturamento').innerText = 'R$ ' + faturamento;
+            
+            if (document.getElementById('dash-faturamento-esperado-mes')) document.getElementById('dash-faturamento-esperado-mes').innerText = 'R$ ' + fatEsperadoMes;
+            if (document.getElementById('dash-faturamento-esperado')) document.getElementById('dash-faturamento-esperado').innerText = 'R$ ' + fatEsperado;
+            if (document.getElementById('dash-faturamento-mes')) document.getElementById('dash-faturamento-mes').innerText = 'R$ ' + fatMes;
+
             document.getElementById('dash-estoque').innerText = json.data.estoque_critico;
             document.getElementById('dash-clientes').innerText = json.data.total_clientes;
             document.getElementById('dash-creditos').innerText = 'R$ ' + creditos;
@@ -801,8 +807,14 @@ async function salvarOrdemRotas() {
     }
 }
 
-async function abrirModalGerarPedidos() {
+let modoGerarKit = 'gerar';
+
+async function abrirModalGerarPedidos(modo = 'gerar') {
+    modoGerarKit = modo;
     document.getElementById('modalGerarPedidos').style.display = 'flex';
+    document.getElementById('modalGerarTitle').innerText = modo === 'editar' ? 'Editar Pedidos da Semana (Desfaz e Recria)' : 'Gerar Pedidos da Semana';
+    document.getElementById('btnConfirmarGerarPedidos').innerText = modo === 'editar' ? 'Confirmar Edição (Re-gerar)' : 'Criar Pedidos em Lote';
+    
     const container = document.getElementById('lista-produtos-gerar');
     container.innerHTML = '<span style="color:#888;">Carregando produtos...</span>';
     try {
@@ -817,7 +829,7 @@ async function abrirModalGerarPedidos() {
                     container.innerHTML += `
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:0.9em; margin-bottom:5px;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; flex:1;">
-                                <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}">
+                                <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}" data-unidade="${escapeHTML(p.unidade)}" data-tipovenda="${escapeHTML(p.tipo_venda)}">
                                 <span>${escapeHTML(p.nome)} (Estoque: ${estoqueFloat} ${unit})</span>
                             </label>
                             <input type="number" id="qtd-prod-${p.id}" value="1" min="1" max="${estoqueFloat}" style="width:60px; padding:2px 5px; font-size:0.9em;" title="Quantidade">
@@ -834,28 +846,67 @@ async function abrirModalGerarPedidos() {
 async function confirmarGerarPedidos() {
     const selecionados = Array.from(document.querySelectorAll('.chk-prod-gerar:checked')).map(cb => {
         let qtd = parseInt(document.getElementById('qtd-prod-' + cb.value).value) || 1;
-        return { id: cb.value, nome: cb.getAttribute('data-nome'), quantidade: qtd };
+        let unidade = cb.getAttribute('data-unidade') || 'un';
+        let tipoVenda = cb.getAttribute('data-tipovenda') || 'Inteiro';
+        let nome = cb.getAttribute('data-nome');
+        
+        let textoApresentacao = "";
+        if (tipoVenda === 'Fracionado') {
+            textoApresentacao = `${qtd}g de ${nome}`;
+        } else {
+            let descUnidade = unidade;
+            if (qtd > 1 && !descUnidade.endsWith('s')) {
+                if (descUnidade.toLowerCase() === 'pé') descUnidade = 'pés';
+                else if (descUnidade.toLowerCase() === 'maço') descUnidade = 'maços';
+                else if (descUnidade.toLowerCase() !== 'un') descUnidade += 's';
+            }
+            textoApresentacao = `${qtd} ${descUnidade} de ${nome}`;
+        }
+
+        return { id: cb.value, nome: nome, quantidade: qtd, textoApresentacao: textoApresentacao };
     });
 
     if (selecionados.length === 0) {
         return alert('Selecione pelo menos um produto para compor o Kit da Semana.');
     }
 
-    if (!confirm('Deseja realmente gerar os pedidos em lote para todos os assinantes ativos com esses itens e quantidades?')) return;
+    let mensagemConfirmacao = modoGerarKit === 'editar' 
+        ? 'Isso irá CANCELAR E DELETAR todos os pedidos de assinatura "Em separação" gerados nesta semana (devolvendo os estoques), e recriá-los com esta nova lista. Deseja continuar?'
+        : 'Deseja realmente gerar os pedidos em lote para todos os assinantes ativos com esses itens e quantidades?';
+
+    if (!confirm(mensagemConfirmacao)) return;
+
+    // Atualiza automaticamente o texto do Kit da Semana
+    const kitText = selecionados.map(s => s.textoApresentacao).join(', ');
+    try {
+        await fetch('api_config.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kit_semana: kitText })
+        });
+        if(document.getElementById('config-kit-semana')) {
+            document.getElementById('config-kit-semana').value = kitText;
+        }
+    } catch(e) { console.error('Erro ao salvar kit_semana automaticamente:', e); }
 
     const btn = document.getElementById('btnConfirmarGerarPedidos');
-    btn.innerText = 'Gerando...';
+    btn.innerText = 'Processando...';
     btn.disabled = true;
 
+    const apiUrl = modoGerarKit === 'editar' ? 'api_admin_editar_kit_semana.php' : 'api_admin_gerar_pedidos_v2.php';
+
     try {
-        const res = await fetch('api_admin_gerar_pedidos_v2.php', {
+        const res = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ produtos_kit: selecionados })
         });
         const json = await res.json();
         if (json.success) {
-            alert('Pedidos gerados com sucesso! Foram criados ' + json.gerados + ' pedidos.');
+            let msg = modoGerarKit === 'editar'
+                ? `Kit da semana editado com sucesso! ${json.removidos} pedidos desfeitos e ${json.gerados} novos gerados.\n\nO texto visível aos clientes também foi atualizado.`
+                : `Pedidos gerados com sucesso! Foram criados ${json.gerados} pedidos.\n\nO texto do "Kit da Semana" visível aos clientes também foi atualizado automaticamente.`;
+            alert(msg);
             fecharModal('modalGerarPedidos');
             carregarPedidos();
             carregarDashboardCounts();
@@ -863,9 +914,9 @@ async function confirmarGerarPedidos() {
             alert('Erro: ' + json.message);
         }
     } catch(e) {
-        alert('Erro de conexão ao gerar pedidos.');
+        alert('Erro de conexão ao gerar/editar pedidos.');
     } finally {
-        btn.innerText = 'Criar Pedidos em Lote';
+        btn.innerText = modoGerarKit === 'editar' ? 'Confirmar Edição (Re-gerar)' : 'Criar Pedidos em Lote';
         btn.disabled = false;
     }
 }
@@ -913,6 +964,11 @@ async function carregarFaturasAdmin() {
                 let bgBadge = f.status === 'Pago' ? '#dcfce7' : '#fee2e2';
                 let colBadge = f.status === 'Pago' ? '#166534' : '#991b1b';
                 
+                let statusDisplay = `<span style="background:${bgBadge}; color:${colBadge}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${f.status}</span>`;
+                if (f.status === 'Pago') {
+                    statusDisplay += `<br><a href="comprovante.php?tipo=fatura&id=${f.id}" target="_blank" style="font-size:11px; text-decoration:underline; color:#1d4ed8; display:inline-block; margin-top:4px;">Ver Recibo</a>`;
+                }
+
                 tbody.innerHTML += `<tr>
                     <td>#${f.id}</td>
                     <td>${escapeHTML(f.mes_referencia)}</td>
@@ -921,7 +977,7 @@ async function carregarFaturasAdmin() {
                     <td>R$ ${parseFloat(f.valor_extras).toFixed(2).replace('.', ',')}</td>
                     <td style="color:#b45309">- R$ ${parseFloat(f.valor_desconto_creditos).toFixed(2).replace('.', ',')}</td>
                     <td style="font-weight:bold; color:#16a34a">R$ ${parseFloat(f.valor_total).toFixed(2).replace('.', ',')}</td>
-                    <td><span style="background:${bgBadge}; color:${colBadge}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${f.status}</span></td>
+                    <td>${statusDisplay}</td>
                 </tr>`;
             });
         } else {

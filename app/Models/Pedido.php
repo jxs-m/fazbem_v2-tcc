@@ -83,7 +83,7 @@ class Pedido {
         return $stmt->fetch()['total'] > 0;
     }
 
-    public function criarPedido($usuario_id, $valor_total_cliente, $forma_pagamento, $carrinho) {
+    public function criarPedido($usuario_id, $valor_total_cliente, $forma_pagamento, $carrinho, $transacao_id = null, $status_pagamento = 'Pendente') {
         try {
             $this->pdo->beginTransaction();
 
@@ -156,10 +156,10 @@ class Pedido {
             }
 
             // Inserir o pedido com o valor total recalculado e seguro
-            $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega) 
-                          VALUES (?, ?, 'Pendente', 'Em separação')";
+            $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, forma_pagamento, transacao_id) 
+                          VALUES (?, ?, ?, 'Em separação', ?, ?)";
             $stmtPedido = $this->pdo->prepare($sqlPedido);
-            $stmtPedido->execute([$usuario_id, $total_calculado]);
+            $stmtPedido->execute([$usuario_id, $total_calculado, $status_pagamento, $forma_pagamento, $transacao_id]);
             
             $pedido_id = $this->pdo->lastInsertId();
 

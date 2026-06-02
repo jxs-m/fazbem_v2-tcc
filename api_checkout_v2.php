@@ -44,11 +44,63 @@ try {
     $carrinho = $data['itens']; 
     $pedidoModel = new Pedido();
 
+    // Validações locais críticas antes de efetuar a cobrança
     if ($pedidoModel->verificarPedidoExistenteSemana($usuario_id)) {
         throw new Exception("Você já realizou um pedido esta semana. O limite é de apenas um pedido por pessoa.");
     }
 
-    $numero_pedido = $pedidoModel->criarPedido($usuario_id, $valor_total, $forma_pagamento, $carrinho);
+    // Integração com Mercado Pago (Checkout Transparente)
+    $payment_response = null;
+    if (isset($data['mercado_pago_data'])) {
+        require_once __DIR__ . '/app/MercadoPagoService.php';
+        $mpService = new MercadoPagoService();
+        $mpData = $data['mercado_pago_data'];
+        
+        $paymentPayload = [
+            "transaction_amount" => (float) $valor_total,
+            "description" => "Pedido Cesta Faz Bem",
+            "payment_method_id" => $mpData['payment_method_id'] ?? null,
+            "payer" => [
+                "email" => $mpData['payer']['email'] ?? ''
+            ]
+        ];
+
+        // Se for Cartão de Crédito
+        if (isset($mpData['token'])) {
+            $paymentPayload["token"] = $mpData['token'];
+            $paymentPayload["installments"] = $mpData['installments'] ?? 1;
+            if (isset($mpData['issuer_id'])) {
+                $paymentPayload["issuer_id"] = $mpData['issuer_id'];
+            }
+        }
+
+        // Dados do pagador (CPF)
+        if (isset($mpData['payer']['identification'])) {
+            $paymentPayload['payer']['identification'] = $mpData['payer']['identification'];
+        }
+
+        $mpResult = $mpService->createPayment($paymentPayload);
+
+        // O Mercado Pago retorna 200 OK ou 201 Created para sucesso.
+        if ($mpResult['status'] !== 200 && $mpResult['status'] !== 201) {
+            $errorMsg = $mpResult['response']['message'] ?? ($mpResult['response']['error'] ?? 'Erro desconhecido no Mercado Pago.');
+            throw new Exception("Falha ao processar pagamento no Mercado Pago: " . $errorMsg);
+        }
+
+        $payment_response = $mpResult['response'];
+        $forma_pagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
+    }
+
+    $mpPaymentId = null;
+    $status_pagamento = 'Pendente';
+    if (isset($payment_response)) {
+        $mpPaymentId = $payment_response['id'] ?? null;
+        if (isset($payment_response['status']) && $payment_response['status'] === 'approved') {
+            $status_pagamento = 'Pago';
+        }
+    }
+
+    $numero_pedido = $pedidoModel->criarPedido($usuario_id, $valor_total, $forma_pagamento, $carrinho, $mpPaymentId, $status_pagamento);
 
     echo json_encode([
         'success' => true, 

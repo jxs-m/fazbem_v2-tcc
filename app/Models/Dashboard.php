@@ -16,11 +16,32 @@ class Dashboard {
         return $stmt->fetch()['total'];
     }
 
-    public function getFaturamentoTotal() {
-        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento != 'Cancelado'";
+    public function getFaturamentoPago() {
+        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pago'";
         $stmt = $this->pdo->query($sql);
         $resultado = $stmt->fetch()['faturamento'];
-        return $resultado ? $resultado : 0; // Se for null, retorna 0
+        return $resultado ? $resultado : 0;
+    }
+
+    public function getValorEsperadoMes() {
+        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pendente' AND MONTH(data_pedido) = MONTH(CURRENT_DATE()) AND YEAR(data_pedido) = YEAR(CURRENT_DATE())";
+        $stmt = $this->pdo->query($sql);
+        $resultado = $stmt->fetch()['faturamento'];
+        return $resultado ? $resultado : 0;
+    }
+
+    public function getValorEsperado() {
+        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pendente'";
+        $stmt = $this->pdo->query($sql);
+        $resultado = $stmt->fetch()['faturamento'];
+        return $resultado ? $resultado : 0;
+    }
+
+    public function getValorTotalMes() {
+        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pago' AND MONTH(data_pedido) = MONTH(CURRENT_DATE()) AND YEAR(data_pedido) = YEAR(CURRENT_DATE())";
+        $stmt = $this->pdo->query($sql);
+        $resultado = $stmt->fetch()['faturamento'];
+        return $resultado ? $resultado : 0;
     }
 
     public function getEstoqueCritico() {
@@ -59,7 +80,10 @@ class Dashboard {
     public function getResumoGeral() {
         return [
             'total_pedidos' => $this->getTotalPedidos(),
-            'faturamento' => $this->getFaturamentoTotal(),
+            'faturamento' => $this->getFaturamentoPago(),
+            'faturamento_esperado_mes' => $this->getValorEsperadoMes(),
+            'faturamento_esperado' => $this->getValorEsperado(),
+            'faturamento_mes' => $this->getValorTotalMes(),
             'estoque_critico' => $this->getEstoqueCritico(),
             'total_clientes' => $this->getTotalClientes(),
             'total_creditos' => $this->getTotalCreditos(),

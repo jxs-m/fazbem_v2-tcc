@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         let qtyRequestedUn = baseGrams !== null && parseFloat(item.peso_estimado_g) > 0 
                             ? Math.round((parseFloat(item.quantidade) * baseGrams) / parseFloat(item.peso_estimado_g))
                             : parseFloat(item.quantidade);
-                        qtyDisplay = `${qtyRequestedUn} un`;
+                        qtyDisplay = `${qtyRequestedUn} ${item.unidade}`;
 
                         if (baseGrams !== null) {
                             let expectedG = Math.round(parseFloat(item.quantidade) * baseGrams);
@@ -103,13 +103,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     let precoUnit = parseFloat(item.preco_unitario).toFixed(2).replace('.', ',');
                     let subtotalF = subtotal.toFixed(2).replace('.', ',');
 
-                    itensDiv.innerHTML += `
-                        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f4f6; font-size:13px; color:#374151;">
+                    let itemDetailsHTML = '';
+                    if (p.tipo_pedido === 'Assinatura') {
+                        itemDetailsHTML = `
+                            <div>
+                                <strong>${escapeHTML(item.nome)}</strong><br>
+                                <span style="font-size:11px; color:#6b7280;">Qtd: ${qtyDisplay}</span>
+                            </div>
+                            <div style="font-weight:600; color:#9ca3af; font-size:11px;">Incluso no Kit</div>
+                        `;
+                    } else {
+                        itemDetailsHTML = `
                             <div>
                                 <strong>${escapeHTML(item.nome)}</strong><br>
                                 <span style="font-size:11px; color:#6b7280;">Qtd: ${qtyDisplay} (R$ ${precoUnit} / ${item.unidade})</span>
                             </div>
                             <div style="font-weight:600; color:#374151;">R$ ${subtotalF}</div>
+                        `;
+                    }
+
+                    itensDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f3f4f6; font-size:13px; color:#374151;">
+                            ${itemDetailsHTML}
                         </div>
                     `;
                 });
@@ -239,7 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
           if (json.data.length === 0) { tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#999">Sem pedidos.</td></tr>'; return; }
           json.data.forEach(p => {
             let tagClass = p.status_entrega === 'Entregue' ? 'tag-green' : 'tag-yellow';
-            tbody.innerHTML += `<tr><td><div style="font-weight:bold">${new Date(p.data_pedido).toLocaleDateString('pt-BR')}</div><span class="tag ${tagClass}">${escapeHTML(p.status_entrega)}</span></td><td style="text-align:right"><div style="font-weight:bold; color:#2b8a3e">R$ ${parseFloat(p.valor_total).toFixed(2).replace('.', ',')}</div><div style="font-size:12px">${escapeHTML(p.status_pagamento)}</div></td></tr>`;
+            let statusPagamento = escapeHTML(p.status_pagamento);
+            if (p.status_pagamento === 'Pago') {
+                statusPagamento = `<span style="color:#16a34a; font-weight:bold;">Pago</span> <a href="comprovante.php?tipo=pedido&id=${p.id}" target="_blank" style="font-size:11px; text-decoration:underline; color:#1d4ed8; display:block; margin-top:2px;">Recibo</a>`;
+            }
+            tbody.innerHTML += `<tr><td><div style="font-weight:bold">${new Date(p.data_pedido).toLocaleDateString('pt-BR')}</div><span class="tag ${tagClass}">${escapeHTML(p.status_entrega)}</span></td><td style="text-align:right"><div style="font-weight:bold; color:#2b8a3e">R$ ${parseFloat(p.valor_total).toFixed(2).replace('.', ',')}</div><div style="font-size:12px">${statusPagamento}</div></td></tr>`;
           });
         }
       } catch (e) { }
@@ -317,8 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
           json.faturas.forEach(f => {
             let totalF = parseFloat(f.valor_total).toFixed(2).replace('.', ',');
             let btnAction = f.status === 'Pago' 
-                ? `<span style="color:#16a34a; font-weight:bold;">Pago</span>` 
-                : `<button class="btn btn-edit" style="background:#166534; color:white; padding:4px 8px;" onclick="pagarFatura(${f.id})">Pagar Agora</button>`;
+                ? `<span style="color:#16a34a; font-weight:bold; display:block; margin-bottom:2px;">Pago</span><a href="comprovante.php?tipo=fatura&id=${f.id}" class="btn" style="background:#1d4ed8; color:white; padding:2px 6px; font-size:11px; text-decoration:none; border-radius:4px; display:inline-block;" target="_blank">Ver Recibo</a>` 
+                : `<button class="btn btn-edit" style="background:#166534; color:white; padding:4px 8px;" onclick="abrirModalPagamento(${f.id}, ${f.valor_total})">Pagar Agora</button>`;
             
             tbody.innerHTML += `<tr>
                 <td><strong>${escapeHTML(f.mes_referencia)}</strong><br><small>Vcto: Mensal</small></td>
@@ -330,21 +349,92 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Erro ao carregar faturas.</td></tr>'; }
     }
 
-    async function pagarFatura(id) {
-        if(!confirm('Deseja prosseguir para o pagamento desta fatura?')) return;
-        // Mock pagamento
+    let mpPerfil = null;
+    let bricksBuilderPerfil = null;
+    let paymentBrickControllerPerfil = null;
+    let faturaAtualId = null;
+
+    async function initMercadoPagoPerfil() {
+      try {
+        const res = await fetch('api_mp_key.php');
+        const json = await res.json();
+        if (json.public_key) {
+            mpPerfil = new MercadoPago(json.public_key, { locale: 'pt-BR' });
+            bricksBuilderPerfil = mpPerfil.bricks();
+        }
+      } catch (e) { console.error('Erro ao carregar MP Key no Perfil', e); }
+    }
+    
+    // Inicializar MP ao carregar a página
+    initMercadoPagoPerfil();
+
+    function fecharModalMP() {
+        document.getElementById('mp-modal').style.display = 'none';
+        if (paymentBrickControllerPerfil) {
+            paymentBrickControllerPerfil.unmount();
+            paymentBrickControllerPerfil = null;
+        }
+    }
+
+    async function abrirModalPagamento(id, valor) {
+        faturaAtualId = id;
+        const modal = document.getElementById('mp-modal');
+        if (!modal) {
+            alert('Por favor, atualize a página completamente (Ctrl + F5 ou Limpar Cache do navegador). A nova janela de pagamento ainda não foi carregada no seu navegador!');
+            return;
+        }
+        modal.style.display = 'flex';
+
+        if (!bricksBuilderPerfil) {
+            alert('Mercado Pago não inicializado corretamente.');
+            return;
+        }
+
+        const settings = {
+            initialization: { amount: parseFloat(valor) },
+            customization: {
+                paymentMethods: { creditCard: "all", debitCard: "all", pix: "all" }
+            },
+            callbacks: {
+                onReady: () => { console.log('Brick is ready'); },
+                onSubmit: ({ selectedPaymentMethod, formData }) => {
+                    return new Promise((resolve, reject) => {
+                        processarFaturaBackend(formData)
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                },
+                onError: (error) => { console.error(error); alert('Erro na interface de pagamento.'); }
+            }
+        };
+
+        if (paymentBrickControllerPerfil) {
+            paymentBrickControllerPerfil.unmount();
+        }
+        paymentBrickControllerPerfil = await bricksBuilderPerfil.create('payment', 'paymentBrick_container', settings);
+    }
+
+    async function processarFaturaBackend(formData) {
         try {
             const res = await fetch('api_faturamento_v2.php?acao=pagar_fatura', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fatura_id: id })
+                body: JSON.stringify({ 
+                    fatura_id: faturaAtualId,
+                    mercado_pago_data: formData
+                })
             });
             const json = await res.json();
             if (json.success) {
-                alert('Obrigado! Fatura paga com sucesso.');
+                alert('✅ Fatura paga com sucesso!');
+                fecharModalMP();
                 carregarFaturas();
             } else {
-                alert('Erro: ' + json.message);
+                alert('❌ Erro: ' + json.message);
+                throw new Error(json.message);
             }
-        } catch(e) { alert('Erro de conexão ao pagar a fatura.'); }
+        } catch(e) { 
+            console.error(e);
+            throw e; 
+        }
     }

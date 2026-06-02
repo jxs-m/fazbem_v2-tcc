@@ -33,11 +33,11 @@ try {
             exit;
         }
 
-        $sql = "UPDATE configuracoes SET valor = ? WHERE chave = ?";
+        $sql = "INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)";
         $stmt = $pdo->prepare($sql);
 
         foreach ($input as $chave => $valor) {
-            $stmt->execute([$valor, $chave]);
+            $stmt->execute([$chave, $valor]);
         }
 
         echo json_encode(['success' => true, 'message' => 'Configurações atualizadas.']);

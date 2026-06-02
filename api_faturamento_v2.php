@@ -4,6 +4,13 @@ session_start();
 if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+    http_response_code(200);
+    exit;
+}
 require_once __DIR__ . '/app/Database.php';
 require_once __DIR__ . '/app/Security.php';
 
@@ -110,18 +117,73 @@ try {
             break;
 
         case 'pagar_fatura':
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                http_response_code(405);
-                throw new Exception("Método não permitido. Utilize POST.");
-            }
             Security::checkCSRF();
             if ($_SESSION['tipo_usuario'] !== 'cliente') throw new Exception("Apenas clientes.");
-            $data = json_decode(file_get_contents('php://input'), true);
+            
+            $rawData = file_get_contents('php://input');
+            error_log("PAGAR_FATURA - METHOD: " . $_SERVER['REQUEST_METHOD'] . " | BODY: " . $rawData);
+            
+            $data = json_decode($rawData, true);
             $f_id = $data['fatura_id'] ?? null;
             if (!$f_id) throw new Exception("ID da fatura inválido.");
 
-            $pdo->prepare("UPDATE faturas_mensais SET status = 'Pago', pago_em = NOW() WHERE id = ? AND usuario_id = ?")
-                ->execute([$f_id, $_SESSION['usuario_id']]);
+            $stmtF = $pdo->prepare("SELECT valor_total FROM faturas_mensais WHERE id = ? AND usuario_id = ? AND status != 'Pago'");
+            $stmtF->execute([$f_id, $_SESSION['usuario_id']]);
+            $fatura = $stmtF->fetch();
+            if (!$fatura) throw new Exception("Fatura não encontrada ou já paga.");
+            $valor_total = $fatura['valor_total'];
+
+            if (isset($data['mercado_pago_data'])) {
+                require_once __DIR__ . '/app/MercadoPagoService.php';
+                $mpService = new MercadoPagoService();
+                $mpData = $data['mercado_pago_data'];
+                
+                $paymentPayload = [
+                    "transaction_amount" => (float) $valor_total,
+                    "description" => "Pagamento de Fatura Mensal #" . $f_id,
+                    "payment_method_id" => $mpData['payment_method_id'] ?? null,
+                    "payer" => [
+                        "email" => $mpData['payer']['email'] ?? ''
+                    ]
+                ];
+
+                if (isset($mpData['token'])) {
+                    $paymentPayload["token"] = $mpData['token'];
+                    $paymentPayload["installments"] = isset($mpData['installments']) ? (int)$mpData['installments'] : 1;
+                    if (isset($mpData['issuer_id'])) {
+                        $paymentPayload["issuer_id"] = $mpData['issuer_id'];
+                    }
+                }
+
+                if (isset($mpData['payer']['identification'])) {
+                    $paymentPayload['payer']['identification'] = $mpData['payer']['identification'];
+                }
+
+                $mpResult = $mpService->createPayment($paymentPayload);
+
+                if ($mpResult['status'] !== 200 && $mpResult['status'] !== 201) {
+                    $errorMsg = $mpResult['response']['message'] ?? ($mpResult['response']['error'] ?? 'Erro no Mercado Pago.');
+                    throw new Exception("Falha ao processar pagamento: " . $errorMsg);
+                }
+            }
+
+            $mpPaymentId = null;
+            $formaPagamento = 'Saldo/Crédito';
+            if (isset($mpResult) && isset($mpResult['response'])) {
+                $mpPaymentId = $mpResult['response']['id'] ?? null;
+                $formaPagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
+            }
+
+            $pdo->beginTransaction();
+            try {
+                $pdo->prepare("UPDATE faturas_mensais SET status = 'Pago', pago_em = NOW(), transacao_id = ?, forma_pagamento = ? WHERE id = ? AND usuario_id = ?")
+                    ->execute([$mpPaymentId, $formaPagamento, $f_id, $_SESSION['usuario_id']]);
+                $pdo->commit();
+            } catch (Exception $dbEx) {
+                $pdo->rollBack();
+                error_log("CRITICAL ERROR: Fatura paga no MP mas falhou ao atualizar localmente. ID Fatura: " . $f_id . " | Erro: " . $dbEx->getMessage());
+                throw new Exception("Pagamento aprovado, mas ocorreu um erro ao registrar localmente. Entre em contato com o suporte informando a Fatura #" . $f_id);
+            }
             
             echo json_encode(['success' => true, 'message' => 'Fatura paga com sucesso!']);
             break;

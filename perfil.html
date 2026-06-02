@@ -118,9 +118,17 @@
       <h2>Meus Dados</h2>
       <div id="dados-pessoais" style="font-size:14px; line-height:1.6; color:#444;"></div>
     </div>
+    <div id="mp-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+      <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px; max-height:90vh; overflow-y:auto; position:relative;">
+        <button onclick="fecharModalMP()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:20px; cursor:pointer;">&times;</button>
+        <h2 style="margin-top:0;">Pagar Fatura</h2>
+        <div id="paymentBrick_container"></div>
+      </div>
+    </div>
 
   </main>
 
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
   <script src="utils.js"></script>
   <script src="js/perfil.js"></script>
 </body>
