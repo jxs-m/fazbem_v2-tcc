@@ -159,16 +159,78 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
       }
     }
 
-    function repetirPedido() {
+    async function repetirPedido() {
       if (confirm('Carregar itens da última semana? Isso substituirá seu carrinho atual.')) {
-        carrinhoDados = [
-          { id: 1, nome: 'Abóbora', preco: 6.00, quantidade: 1 },
-          { id: 3, nome: 'Alface Crespa', preco: 3.50, quantidade: 2 },
-          { id: 7, nome: 'Kit Sopa', preco: 9.90, quantidade: 1 }
-        ];
-        localStorage.setItem('fazbem_carrinho', JSON.stringify(carrinhoDados));
-        atualizarContador();
-        alert('Itens carregados com sucesso!');
+        try {
+          const res = await fetch('api_meus_pedidos_v2.php?acao=ultimo_pedido');
+          const json = await res.json();
+          if (json.success) {
+            carrinhoDados = [];
+            json.itens.forEach(i => {
+                let p = {
+                    id: i.produto_id,
+                    nome: i.nome,
+                    preco_base: parseFloat(i.preco),
+                    unidade: i.unidade,
+                    tipo_venda: i.tipo_venda,
+                    peso_estimado_g: parseFloat(i.peso_estimado_g) || 0
+                };
+                
+                let baseGrams = getBaseGrams(p.unidade);
+                let tipo_compra = 'Unidade';
+                let input_qtd = parseFloat(i.quantidade);
+                
+                if (p.tipo_venda === 'Fracionado') {
+                    tipo_compra = 'Peso';
+                    if (baseGrams !== null) {
+                        input_qtd = input_qtd * baseGrams;
+                    }
+                } else {
+                    if (baseGrams !== null && p.peso_estimado_g > 0) {
+                        input_qtd = Math.round((input_qtd * baseGrams) / p.peso_estimado_g);
+                    }
+                }
+                
+                if (tipo_compra === 'Unidade' && input_qtd < 1) input_qtd = 1;
+
+                let newItem = {
+                    id: p.id,
+                    nome: p.nome,
+                    preco_base: p.preco_base,
+                    unidade: p.unidade,
+                    tipo_venda: p.tipo_venda,
+                    tipo_compra: tipo_compra,
+                    input_qtd: Math.round(input_qtd),
+                    peso_estimado_g: p.peso_estimado_g
+                };
+                
+                let multiplier = 0;
+                let requestedGrams = 0;
+
+                if (tipo_compra === 'Unidade') {
+                    requestedGrams = newItem.input_qtd * newItem.peso_estimado_g;
+                    multiplier = (baseGrams !== null) ? (requestedGrams / baseGrams) : newItem.input_qtd;
+                } else {
+                    requestedGrams = newItem.input_qtd;
+                    multiplier = (baseGrams !== null) ? (requestedGrams / baseGrams) : newItem.input_qtd;
+                }
+
+                newItem.quantidade_calculada = multiplier;
+                newItem.gramas_calculadas = requestedGrams;
+                newItem.preco_estimado_calculado = multiplier * newItem.preco_base;
+                
+                carrinhoDados.push(newItem);
+            });
+            
+            localStorage.setItem('fazbem_carrinho', JSON.stringify(carrinhoDados));
+            atualizarContador();
+            alert('Itens carregados com sucesso!');
+          } else {
+            alert(json.message || 'Erro ao carregar o pedido.');
+          }
+        } catch (e) {
+          alert('Erro de conexão ao buscar pedido anterior.');
+        }
       }
     }
 
@@ -206,6 +268,7 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
     function getBaseGrams(unidadeStr) {
       let u = (unidadeStr || '').toLowerCase();
       if (u.includes('kg')) return 1000;
+      if (u === 'g') return 1;
       if (u.includes('g') && !u.includes('kg')) {
          let num = parseInt(u);
          if (!isNaN(num) && num > 0) return num;

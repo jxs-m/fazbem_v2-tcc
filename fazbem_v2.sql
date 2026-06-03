@@ -1,7 +1,7 @@
 /*M!999999\- enable the sandbox mode */ 
 -- MariaDB dump 10.19-11.8.1-MariaDB, for debian-linux-gnu (x86_64)
 --
--- Host: localhost    Database: fazbem_v2
+-- Host: localhost    Database: fazbemdb
 -- ------------------------------------------------------
 -- Server version	11.8.1-MariaDB-4
 
@@ -33,7 +33,7 @@ CREATE TABLE `assinaturas` (
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `assinaturas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,20 +44,15 @@ LOCK TABLES `assinaturas` WRITE;
 /*!40000 ALTER TABLE `assinaturas` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `assinaturas` VALUES
-(1,2,'Semanal',100.00,'Ativa','2026-03-30 15:49:18'),
-(6,13,'Semanal',100.00,'Ativa','2026-04-01 02:29:00'),
-(7,14,'Semanal',100.00,'Cancelada','2026-05-04 14:07:30'),
-(8,15,'Semanal',100.00,'Pausada','2026-04-01 02:30:07'),
-(9,16,'Semanal',100.00,'Ativa','2026-05-01 19:50:06'),
-(10,18,'Quinzenal',100.00,'Ativa','2026-05-24 07:40:59'),
-(11,19,'Semanal',100.00,'Ativa','2026-05-24 07:40:59'),
-(12,20,'Semanal',100.00,'Ativa','2026-05-24 07:41:00'),
-(13,21,'Semanal',100.00,'Ativa','2026-05-24 07:41:00'),
-(14,22,'Quinzenal',100.00,'Ativa','2026-05-24 07:41:00'),
-(15,23,'Quinzenal',100.00,'Ativa','2026-05-24 07:41:00'),
-(16,24,'Semanal',100.00,'Ativa','2026-05-24 07:41:00'),
-(17,25,'Quinzenal',100.00,'Ativa','2026-05-24 07:41:01'),
-(18,26,'Semanal',100.00,'Ativa','2026-05-24 07:41:01');
+(19,29,'Quinzenal',50.00,'Ativa','2026-06-01 23:37:14'),
+(20,30,'Semanal',100.00,'Ativa','2026-06-01 23:37:14'),
+(21,31,'Semanal',100.00,'Ativa','2026-06-01 23:37:15'),
+(22,32,'Semanal',100.00,'Ativa','2026-06-01 23:37:15'),
+(23,33,'Quinzenal',50.00,'Ativa','2026-06-01 23:37:15'),
+(24,34,'Quinzenal',50.00,'Ativa','2026-06-01 23:37:16'),
+(25,35,'Semanal',100.00,'Ativa','2026-06-01 23:37:16'),
+(26,36,'Quinzenal',50.00,'Ativa','2026-06-01 23:37:16'),
+(27,37,'Semanal',100.00,'Ativa','2026-06-01 23:37:17');
 /*!40000 ALTER TABLE `assinaturas` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -84,7 +79,7 @@ LOCK TABLES `configuracoes` WRITE;
 /*!40000 ALTER TABLE `configuracoes` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `configuracoes` VALUES
-('kit_semana','Aguardando definição do administrador...');
+('kit_semana','1 unidade de leite moça, 1 unidade de maçã, 1 unidade de Porno gay');
 /*!40000 ALTER TABLE `configuracoes` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -107,7 +102,7 @@ CREATE TABLE `enderecos` (
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `enderecos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -118,8 +113,15 @@ LOCK TABLES `enderecos` WRITE;
 /*!40000 ALTER TABLE `enderecos` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `enderecos` VALUES
-(1,16,'Rua Monteiro Lobato, 4442, Uruguiana','iffar',1,-29.78189440,-57.10677266),
-(2,14,'Av. Principal, 45',NULL,1,-29.76914574,-57.08496094);
+(4,35,'Dr Maia 2040, ',NULL,1,-29.75963120,-57.07201870),
+(5,34,'iris Valls 2182 ',NULL,1,-29.77115670,-57.09263340),
+(6,36,'Marechal Deodoro, 2311 ',NULL,1,-29.77854500,-57.09566150),
+(7,37,' Julio de Castilhos 1882',NULL,1,-29.76112420,-57.08316290),
+(8,29,'Rua General Vitorino 1853 ',NULL,1,-29.76883070,-57.09110890),
+(9,33,'General Vitorino 2038',NULL,1,-29.76883070,-57.09110890),
+(10,31,'General Vitorino 1897',NULL,1,-29.76883070,-57.09110890),
+(11,32,'General Vitórino 1910',NULL,1,-29.76883070,-57.09110890),
+(12,30,'General Vitorino 1897',NULL,1,-29.76883070,-57.09110890);
 /*!40000 ALTER TABLE `enderecos` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -142,10 +144,12 @@ CREATE TABLE `faturas_mensais` (
   `status` enum('Pendente','Pago','Cancelado') DEFAULT 'Pendente',
   `criado_em` timestamp NULL DEFAULT current_timestamp(),
   `pago_em` timestamp NULL DEFAULT NULL,
+  `transacao_id` varchar(100) DEFAULT NULL,
+  `forma_pagamento` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `faturas_mensais_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -156,19 +160,15 @@ LOCK TABLES `faturas_mensais` WRITE;
 /*!40000 ALTER TABLE `faturas_mensais` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `faturas_mensais` VALUES
-(1,2,'2026-05',100.00,73.50,0.00,173.50,'Pendente','2026-05-23 02:02:39',NULL),
-(2,13,'2026-05',100.00,59.00,0.00,159.00,'Pendente','2026-05-23 02:02:39',NULL),
-(3,15,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-23 02:02:39',NULL),
-(4,16,'2026-05',100.00,46.50,50.00,96.50,'Pago','2026-05-23 02:02:39','2026-05-23 02:04:01'),
-(5,18,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(6,19,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(7,20,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(8,21,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(9,22,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(10,23,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(11,24,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(12,25,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL),
-(13,26,'2026-05',100.00,0.00,0.00,100.00,'Pendente','2026-05-24 07:54:33',NULL);
+(27,29,'2026-06',50.00,0.00,0.00,50.00,'Pendente','2026-06-02 00:26:43',NULL,NULL,NULL),
+(28,30,'2026-06',100.00,0.00,0.00,100.00,'Pago','2026-06-02 00:26:43','2026-06-02 23:31:40','1346935489','Mercado Pago - master'),
+(29,31,'2026-06',100.00,0.00,0.00,100.00,'Pendente','2026-06-02 00:26:43',NULL,NULL,NULL),
+(30,32,'2026-06',100.00,0.00,0.00,100.00,'Pago','2026-06-02 00:26:43','2026-06-02 23:34:06','1346935521','Mercado Pago - master'),
+(31,33,'2026-06',50.00,0.00,0.00,50.00,'Pendente','2026-06-02 00:26:43',NULL,NULL,NULL),
+(32,34,'2026-06',50.00,0.00,0.00,50.00,'Pago','2026-06-02 00:26:43','2026-06-02 01:26:19','1327317540','Mercado Pago - master'),
+(33,35,'2026-06',100.00,0.00,0.00,100.00,'Pendente','2026-06-02 00:26:43',NULL,NULL,NULL),
+(34,36,'2026-06',50.00,0.00,0.00,50.00,'Pendente','2026-06-02 00:26:43',NULL,NULL,NULL),
+(35,37,'2026-06',100.00,0.00,0.00,100.00,'Pendente','2026-06-02 00:26:43',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `faturas_mensais` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -193,7 +193,7 @@ CREATE TABLE `itens_pedido` (
   KEY `produto_id` (`produto_id`),
   CONSTRAINT `itens_pedido_ibfk_1` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE CASCADE,
   CONSTRAINT `itens_pedido_ibfk_2` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -204,21 +204,33 @@ LOCK TABLES `itens_pedido` WRITE;
 /*!40000 ALTER TABLE `itens_pedido` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `itens_pedido` VALUES
-(1,1,1,1.000,NULL,5.00,NULL),
-(2,2,1,4.000,NULL,5.00,NULL),
-(3,3,1,1.000,NULL,5.00,NULL),
-(4,4,1,6.000,NULL,5.00,NULL),
-(7,9,23,1.000,NULL,7.00,NULL),
-(8,10,22,1.000,NULL,5.50,NULL),
-(9,10,23,1.000,NULL,7.00,NULL),
-(10,11,23,1.000,NULL,7.00,NULL),
-(11,12,23,1.000,1.000,7.00,7.00),
-(12,12,22,1.000,1.050,5.50,5.78),
-(13,12,19,1.000,1.000,6.00,6.00),
-(14,12,18,1.000,1.000,8.50,8.50),
-(23,17,19,1.000,1.000,6.00,6.00),
-(24,17,21,1.000,1.000,4.00,4.00),
-(25,17,20,1.000,1.000,3.50,3.50);
+(96,75,31,1.000,1.000,0.00,0.00),
+(97,75,30,0.170,0.170,0.00,0.00),
+(98,75,32,1.000,1.000,0.00,0.00),
+(99,76,31,1.000,1.000,0.00,0.00),
+(100,76,30,0.170,0.170,0.00,0.00),
+(101,76,32,1.000,1.000,0.00,0.00),
+(102,77,31,1.000,NULL,0.00,NULL),
+(103,77,30,0.170,NULL,0.00,NULL),
+(104,77,32,1.000,NULL,0.00,NULL),
+(105,78,31,1.000,NULL,0.00,NULL),
+(106,78,30,0.170,NULL,0.00,NULL),
+(107,78,32,1.000,NULL,0.00,NULL),
+(108,79,31,1.000,NULL,0.00,NULL),
+(109,79,30,0.170,NULL,0.00,NULL),
+(110,79,32,1.000,NULL,0.00,NULL),
+(111,80,31,1.000,NULL,0.00,NULL),
+(112,80,30,0.170,NULL,0.00,NULL),
+(113,80,32,1.000,NULL,0.00,NULL),
+(114,81,31,1.000,NULL,0.00,NULL),
+(115,81,30,0.170,NULL,0.00,NULL),
+(116,81,32,1.000,NULL,0.00,NULL),
+(117,82,31,1.000,NULL,0.00,NULL),
+(118,82,30,0.170,NULL,0.00,NULL),
+(119,82,32,1.000,NULL,0.00,NULL),
+(120,83,31,1.000,NULL,0.00,NULL),
+(121,83,30,0.170,NULL,0.00,NULL),
+(122,83,32,1.000,NULL,0.00,NULL);
 /*!40000 ALTER TABLE `itens_pedido` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -274,12 +286,14 @@ CREATE TABLE `pedidos` (
   `rota_id` int(11) DEFAULT NULL,
   `ordem_entrega` int(11) DEFAULT 9999,
   `entregue_em` timestamp NULL DEFAULT NULL,
+  `transacao_id` varchar(100) DEFAULT NULL,
+  `forma_pagamento` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   KEY `fk_rota` (`rota_id`),
   CONSTRAINT `fk_rota` FOREIGN KEY (`rota_id`) REFERENCES `rotas` (`id`) ON DELETE SET NULL,
   CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -290,18 +304,15 @@ LOCK TABLES `pedidos` WRITE;
 /*!40000 ALTER TABLE `pedidos` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `pedidos` VALUES
-(1,2,5.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-03-30 16:34:19','Avulso',NULL,9999,NULL),
-(2,2,20.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-03-30 16:34:32','Avulso',NULL,9999,NULL),
-(3,2,5.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-03-30 16:34:41','Avulso',NULL,9999,NULL),
-(4,2,30.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-03-30 16:34:50','Avulso',NULL,9999,NULL),
-(5,13,45.50,'Pago','Entregue',NULL,NULL,'2026-03-27 02:29:00','Avulso',NULL,9999,NULL),
-(6,13,52.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-04-01 02:29:00','Avulso',NULL,9999,NULL),
-(7,14,110.00,'Pago','Entregue',NULL,NULL,'2026-03-30 02:29:00','Avulso',NULL,9999,NULL),
-(9,13,7.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-04-01 12:59:01','Avulso',NULL,9999,NULL),
-(10,16,12.50,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-04-25 12:29:58','Avulso',NULL,9999,NULL),
-(11,16,7.00,'Pago','Entregue',' [Faturado em 2026-05]',NULL,'2026-04-27 15:42:30','Avulso',NULL,9999,NULL),
-(12,16,27.28,'Pago','Aguardando Entrega',' [Faturado em 2026-05] [Pesado]',NULL,'2026-05-04 11:48:05','Avulso',NULL,2,NULL),
-(17,2,13.50,'Pago','Aguardando Entrega',' [Faturado em 2026-05] [Pesado]',NULL,'2026-05-04 11:52:01','Avulso',NULL,1,NULL);
+(75,29,0.00,'Pendente','Entregue',' [Pesado]',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,'2026-06-03 11:03:10',NULL,NULL),
+(76,30,0.00,'Pendente','Entregue',' [Pesado]',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,'2026-06-03 11:07:59',NULL,NULL),
+(77,31,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL),
+(78,32,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL),
+(79,33,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL),
+(80,34,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL),
+(81,35,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL),
+(82,36,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL),
+(83,37,25.00,'Pendente','Em separação','',NULL,'2026-06-03 01:29:40','Assinatura',NULL,9999,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `pedidos` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -321,7 +332,7 @@ CREATE TABLE `preferencias` (
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `preferencias_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -332,12 +343,8 @@ LOCK TABLES `preferencias` WRITE;
 /*!40000 ALTER TABLE `preferencias` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `preferencias` VALUES
-(2,13,'Troca Fixa','exemplo'),
-(3,16,'Troca Fixa','todas'),
-(4,2,'Troca Pontual','desliga o freeze a noitche'),
-(5,2,'Troca Fixa','nada'),
-(6,19,'Troca Fixa','Troca tempero por rúcula - não consome lalique'),
-(12,24,'Troca Fixa','Atenção nas quantidades 4 alfaces 2 rúculas o restante normal');
+(16,30,'Troca Fixa','Troca tempero por rúcula - não consome lalique'),
+(17,35,'Troca Fixa','Atenção nas quantidades 4 alfaces 2 rúculas o restante normal');
 /*!40000 ALTER TABLE `preferencias` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -363,7 +370,7 @@ CREATE TABLE `produtos` (
   `temporario` tinyint(1) DEFAULT 0,
   `duracao_dias` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -374,18 +381,11 @@ LOCK TABLES `produtos` WRITE;
 /*!40000 ALTER TABLE `produtos` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `produtos` VALUES
-(1,'maçã','Frutas','Inteiro',5.00,'kg',-7.000,'uploads/69ca7fc877243.webp','2026-03-30 13:51:04',0,0,NULL),
-(18,'Maçã Gala','Frutas','Inteiro',8.50,'kg',49.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(19,'Banana Prata','Frutas','Inteiro',6.00,'un',10.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(20,'Alface Crespa','Verduras','Inteiro',3.50,'un',29.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(21,'Rúcula Fresca','Verduras','Inteiro',4.00,'maço',24.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(22,'Cenoura','Legumes','Inteiro',5.50,'kg',58.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(23,'Batata Inglesa','Legumes','Inteiro',7.00,'kg',96.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(24,'Cebola Picada','Processados','Fracionado',12.00,'500g',500.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(25,'Ovos Caipira','Outros','Inteiro',18.00,'dúzia',20.000,NULL,'2026-04-01 02:29:00',0,0,NULL),
-(26,'banana2','Frutas','Inteiro',6.00,'kg',10.000,'uploads/6a139010ba681.webp','2026-05-24 23:56:00',100,0,NULL),
-(27,'Bergamota','Frutas','Inteiro',4.50,'kg',10.000,'uploads/bergamota.png','2026-05-25 15:12:09',180,1,5),
-(28,'leite de boi','Processados','Inteiro',8.00,'litro',30.000,'uploads/6a146adaf33be.jpg','2026-05-25 15:29:30',100,1,67);
+(30,'maçã','Frutas','Inteiro',8.00,'kg',13.470,'uploads/6a1e1a094ea11.png','2026-06-01 23:47:21',170,0,NULL),
+(31,'leite moça','Processados','Inteiro',8.00,'L',43.000,'uploads/6a1e1dd353ead.jpg','2026-06-02 00:03:31',1000,0,NULL),
+(32,'Porno gay','Outros','Inteiro',67.69,'U',58.000,'uploads/6a1f64315a84d.png','2026-06-02 23:16:01',60000,0,NULL),
+(33,'cenoura','Legumes','Inteiro',5.00,'kg',41.000,'uploads/6a1f84d14db84.png','2026-06-03 01:35:13',200,0,NULL),
+(34,'alface picada','Processados','Fracionado',4.00,'kg',41.000,'uploads/6a1f856ed8810.png','2026-06-03 01:37:50',0,0,NULL);
 /*!40000 ALTER TABLE `produtos` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -405,7 +405,7 @@ CREATE TABLE `rate_limits` (
   `first_attempt` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_ip_endpoint` (`ip`,`endpoint`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -416,7 +416,9 @@ LOCK TABLES `rate_limits` WRITE;
 /*!40000 ALTER TABLE `rate_limits` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `rate_limits` VALUES
-(1,'::1','/faz_bem_v2/api_login_v2.php',1,1779722983);
+(2,'::1','/faz_bem_v2/api_login_v2.php',2,1780526830),
+(3,'10.1.7.75','/faz_bem_v2/api_login_v2.php',4,1780442022),
+(4,'10.1.9.102','/faz_bem_v2/api_login_v2.php',1,1780526983);
 /*!40000 ALTER TABLE `rate_limits` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -508,9 +510,6 @@ CREATE TABLE `transacoes_financeiras` (
 LOCK TABLES `transacoes_financeiras` WRITE;
 /*!40000 ALTER TABLE `transacoes_financeiras` DISABLE KEYS */;
 set autocommit=0;
-INSERT INTO `transacoes_financeiras` VALUES
-(1,16,'Credito',50.00,'Pausa na Assinatura (Compensação Semanal)','2026-04-27 16:58:17'),
-(2,16,'Debito',50.00,'Abatimento na Fatura de 2026-05','2026-05-23 02:02:39');
 /*!40000 ALTER TABLE `transacoes_financeiras` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -536,7 +535,7 @@ CREATE TABLE `usuarios` (
   `saldo_compensacao` decimal(10,2) DEFAULT 0.00,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -547,24 +546,18 @@ LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `usuarios` VALUES
-(1,'Administrador','admin@fazbem.com','$2y$12$VdCu/pYmBHf1jkVDKbcBRufKw3eU2C1x1bLqpZ2Jh5WMHlZ8IJyDy','00000000000',NULL,'Sistema',NULL,'admin','2026-03-30 14:27:23',0.00),
-(2,'Murilo Siqueira Jaques','rodnei@gmail.com','$2y$12$h5EQ3DaXifzYQyWSEpJp7eBY.P5NAdyVwv9a5gy/okxVSgGAua2r6','55991791570',NULL,'Rua Sete de Setembro, 1865','rcrcrf','cliente','2026-03-30 15:49:18',0.00),
-(12,'Admin Faz Bem','admin2@fazbem.com','$2y$12$GvrcwPTctRCjuQ/Bw5G7JuxnnN6riWJ.ERRiU/fXJFRM4Odzw3KSW','(55) 99999-0000',NULL,'Sede Faz Bem','','admin','2026-04-01 02:29:00',0.00),
-(13,'Carlos Silva','carlos@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 98888-1111',NULL,'Rua das Flores, 123','Casa verde','cliente','2026-04-01 02:29:00',0.00),
-(14,'Ana Pereira','ana@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 97777-2222',NULL,'Av. Principal, 45','Apto 302','cliente','2026-04-01 02:29:00',0.00),
-(15,'Marcos Souza','marcos@email.com','$2y$12$3PrQBBZ1bhba8DyGVpJcouGS94RQP4VI/Gaplft9wqvpwp7FuZ7Oq','(55) 96666-3333',NULL,'Bairro Novo, 90','Perto da padaria','cliente','2026-04-01 02:29:00',0.00),
-(16,'rogerio','rogerin@email.com','$2y$12$/c.5rcb9KC1RG0kgytrBJuHTAK2NdXMrYw4Nc/iQxj5Js79Uv8XGG','55991791570',NULL,'Rua Monteiro Lobato, 4442, Uruguiana','iffar','cliente','2026-04-25 12:29:20',0.00),
-(17,'lilo','lilo@email.com','$2y$12$i.gf3k0dFijQH.PPaIH8s.uBXchxr6gnznF07CMcNQ4TTs4hhFp0y','55991791570',NULL,'Sistema',NULL,'entregador','2026-04-26 10:36:02',0.00),
-(18,'Lila Tellechea Pinto','lila348@email.com','$2y$12$b.AflEmwB7WKtuCHVIipMO4y.Bxk1CT9AJ7OGNtanp4hPeIT9wSuy','55 996131314',NULL,'Rua General Vitorino 1853 - Ap 1100, CEP 97.501-543',NULL,'cliente','2026-05-24 07:40:59',0.00),
-(19,'Natasha Frasson Pavin','natasha212@email.com','$2y$12$rFfc.JAn5uz.Ip.GkBEPNe30pBILx/JZu.nDKROl3uIvGmCFXzW0C','55 999971771','012.860.600-28','General Vitorino 1897 apto 703, CEP 97.501-543',NULL,'cliente','2026-05-24 07:40:59',0.00),
-(20,'Luiz Eduardo Medaglia','luiz674@email.com','$2y$12$BuavFk7kDBcLU2Rzi.DT7.CmlcSAOLXf2dNdhOZ6tmdpgpWP0eBQW','55 999666886','011.574.800-80','General Vitorino 1897 apto 202, CEP 97.501-543',NULL,'cliente','2026-05-24 07:41:00',0.00),
-(21,'Mauricio Lima Fontoura','mauricio167@email.com','$2y$12$7pjFLk6YflGlpmuiTdD3p.V/H3vm6sW7zJ0AEgKoJ85hJ5uwZiwG6','55 996308588','010.413.140-35','General Vitórino 1910 Apartamento 803, CEP 97.501-610',NULL,'cliente','2026-05-24 07:41:00',0.00),
-(22,'Lillian Buling Couto Schultz','lillian308@email.com','$2y$12$Iu3IbLAK729Vq18fLwwBLOuswYDM75357zTSvZfbT.qJELUxZa/qO','55 996954974','953.407.260-53','General Vitorino 2038, CEP 97.501-84',NULL,'cliente','2026-05-24 07:41:00',0.00),
-(23,'Elisa de Oliveira Rosa','elisa267@email.com','$2y$12$d1n.H3SXXN.0SsXxEGfvY.3QDuGBGRSEhkLI6SeP/pGYpAQY.HpL2','55 981423562','028.487.600-36','Rua Iris Valls 2182 ap 102, CEP 97.501-758',NULL,'cliente','2026-05-24 07:41:00',0.00),
-(24,'Carla Uhmann','carla395@email.com','$2y$12$WJ9peW7yGJOCMdZznCDsheZBUvGvUew6q5eX5ne0vxRIqVrmckGKe','55 999980688','533.131.510-00','Dr Maia 2040, CEP 97.501-676',NULL,'cliente','2026-05-24 07:41:00',0.00),
-(25,'Fabiana de Moura Rubim','fabiana669@email.com','$2y$12$EDmyqsHrMlW974/t0oZtnOE5uSNmlZEeFs6MdMzXS//mX5f0iP.rS','55 981185946','941.626.890-91','Marechal Deodoro, 2311 - Apto 702 Ed. Renoir, CEP 97501-771',NULL,'cliente','2026-05-24 07:41:01',0.00),
-(26,'Letícia Rodhen','letícia395@email.com','$2y$12$QqrwxdABaXPEJru/SiC3Juy7WQX/NUa2shoHC7H25ooLKeRLdKVLe','55 996590923','018.322.210-59','Rua Julio de Castilho 1882, CEP 97.501-753',NULL,'cliente','2026-05-24 07:41:01',0.00),
-(27,'peso','peso@fazbem','$2y$12$/0LzheRoSrM/JjtWtP7RiObXyd/15KWhCRtTR58l2s5w.WznJ8Qle','55991791570',NULL,'Sistema',NULL,'separador','2026-05-24 22:14:37',0.00);
+(28,'Administrador','admin@fazbem.com','$2y$12$N5Iv5I5fj7qvaoXIGipKaeqa5b4apGh2LLB/v2OclX3BbF/T5CKk2','00000000000',NULL,'Sistema',NULL,'admin','2026-06-01 23:33:25',0.00),
+(29,'Lila Tellechea Pinto','lila.tellechea.pinto@import.local','$2y$12$Fv7GAybIKsA/N81t/iMiK.SzEgkL1r39.P7EHt/Z.riqna2Y2V3/S','55 996131314','','Rua General Vitorino 1853 ',NULL,'cliente','2026-06-01 23:37:14',0.00),
+(30,'Natasha Frasson Pavin','natasha.frasson.pavin@import.local','$2y$12$ZAy7TLPRF26T8YA5m8tnhetDA5l//I400UlSfwtcXMoibPX83PER6','55 999971771','012.860.600-28','General Vitorino 1897',NULL,'cliente','2026-06-01 23:37:14',0.00),
+(31,'Luiz Eduardo Medaglia','luiz.eduardo.medaglia@import.local','$2y$12$D60rie934JJ3z4A6Fnd3n.Dk1HKC1uBZ.QZuvt59Ey8LqaZJZ4m8G','55 999666886','011.574.800-80','General Vitorino 1897',NULL,'cliente','2026-06-01 23:37:15',0.00),
+(32,'Mauricio Lima Fontoura','mauricio.lima.fontoura@import.local','$2y$12$1Tubc9lvSB4sV78gonxpV.Zs/qWv/cDOtzVKn8DpGqDmj6TMXt/9a','55 996308588','010.413.140-35','General Vitórino 1910',NULL,'cliente','2026-06-01 23:37:15',0.00),
+(33,'Lillian Buling Couto Schultz','lillian.buling.couto.schultz@import.local','$2y$12$5wWG1WZR4wsMPZzYZ7H2Z.X.xRxTkehUumUNyorww2BCgykdutFLq','55 996954974','953.407.260-53','General Vitorino 2038',NULL,'cliente','2026-06-01 23:37:15',0.00),
+(34,'Elisa de Oliveira Rosa','elisa.de.oliveira.rosa@import.local','$2y$12$8ENI5i1KmmOQlijBzK7j4.ocSYXNVM6gvXzJ4MHgb3HdeyvKuZZeu','55 981423562','028.487.600-36','iris Valls 2182 ',NULL,'cliente','2026-06-01 23:37:16',0.00),
+(35,'Carla Uhmann','carla.uhmann@import.local','$2y$12$5y92e5lkKE4cxZQK0mYEPueHs17TMWZuYMXUhpUs5zu7r1Weo9Rcq','55 999980688','533.131.510-00','Dr Maia 2040, ',NULL,'cliente','2026-06-01 23:37:16',0.00),
+(36,'Fabiana de Moura Rubim','fabiana.de.moura.rubim@import.local','$2y$12$Yypy88DYzvqnfqouE8LZJ.moPrCKC7Hzqer0aLafLxnHIfZyklE7u','55 981185946','941.626.890-91','Marechal Deodoro, 2311 ',NULL,'cliente','2026-06-01 23:37:16',0.00),
+(37,'Leticia Rodhen','leticia.rodhen@import.local','$2y$12$GJxrdSUY.c1uWmAINnPTu.x45vlX6l93Xp66wqxfCwbJE86bdGheO','55 996590923','018.322.210-59',' Julio de Castilhos 1882',NULL,'cliente','2026-06-01 23:37:17',0.00),
+(38,'peso','peso@fazbem','$2y$12$mQtK7YTiITWurRhivKQVX.BXkIg/i7pEar3ImDEKglLJnd81jdXCS','55991791570',NULL,'Sistema',NULL,'separador','2026-06-01 23:43:27',0.00),
+(39,'entregador','lilo@email.com','$2y$12$gU7WGGwJY3dQcIpUrcBDfOLBeczRGQqNeStsyNR5KwaoEPWL0tr6q','55991791570',NULL,'Sistema',NULL,'entregador','2026-06-01 23:43:52',0.00);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -578,4 +571,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-05-25 13:02:45
+-- Dump completed on 2026-06-03 20:10:02

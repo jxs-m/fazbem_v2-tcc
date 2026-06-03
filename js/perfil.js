@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getBaseGrams(unidadeStr) {
         let u = (unidadeStr || '').toLowerCase();
         if (u.includes('kg')) return 1000;
+        if (u === 'g') return 1;
         if (u.includes('g') && !u.includes('kg')) {
            let num = parseInt(u);
            if (!isNaN(num) && num > 0) return num;
@@ -81,7 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         let qtyRequestedUn = baseGrams !== null && parseFloat(item.peso_estimado_g) > 0 
                             ? Math.round((parseFloat(item.quantidade) * baseGrams) / parseFloat(item.peso_estimado_g))
                             : parseFloat(item.quantidade);
-                        qtyDisplay = `${qtyRequestedUn} ${item.unidade}`;
+                        
+                        let unitText = item.unidade;
+                        if (baseGrams !== null && parseFloat(item.peso_estimado_g) > 0) {
+                            unitText = qtyRequestedUn === 1 ? 'unidade' : 'unidades';
+                        }
+                        qtyDisplay = `${qtyRequestedUn} ${unitText}`;
 
                         if (baseGrams !== null) {
                             let expectedG = Math.round(parseFloat(item.quantidade) * baseGrams);

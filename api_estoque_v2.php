@@ -34,7 +34,8 @@ try {
         
         $produto_id = $input['produto_id'] ?? null;
         $tipo = $input['tipo'] ?? null; // Entrada, Saída, Descarte
-        $qtde = (int)($input['quantidade'] ?? 0);
+        $qtde = (float)($input['quantidade'] ?? 0);
+        $unidade_escolhida = $input['unidade_escolhida'] ?? null;
         $desc = $input['descricao'] ?? '';
 
         if (!$produto_id || !$tipo || $qtde <= 0) {
@@ -44,16 +45,38 @@ try {
 
         $pdo->beginTransaction();
 
-        
+        $sqlProd = "SELECT unidade, peso_estimado_g FROM produtos WHERE id = ?";
+        $stmtProd = $pdo->prepare($sqlProd);
+        $stmtProd->execute([$produto_id]);
+        $prodInfo = $stmtProd->fetch();
+
+        $estoqueIncremento = $qtde;
+
+        if ($prodInfo && $unidade_escolhida) {
+            $unidade_banco = strtolower($prodInfo['unidade']);
+            if ($unidade_escolhida === 'un' || $unidade_escolhida === 'unidade') {
+                if (strpos($unidade_banco, 'kg') !== false && !empty($prodInfo['peso_estimado_g'])) {
+                    $estoqueIncremento = ($qtde * $prodInfo['peso_estimado_g']) / 1000;
+                } elseif (strpos($unidade_banco, 'g') !== false && !empty($prodInfo['peso_estimado_g'])) {
+                    $estoqueIncremento = $qtde * $prodInfo['peso_estimado_g'];
+                }
+            } elseif ($unidade_escolhida === 'g' && strpos($unidade_banco, 'kg') !== false) {
+                $estoqueIncremento = $qtde / 1000;
+            } elseif ($unidade_escolhida === 'kg' && strpos($unidade_banco, 'g') !== false) {
+                $estoqueIncremento = $qtde * 1000;
+            }
+        }
+
+        $descCompleta = trim("[$qtde $unidade_escolhida] " . $desc);
+
         $sqlMov = "INSERT INTO movimentacoes_estoque (produto_id, tipo, quantidade, descricao) VALUES (?, ?, ?, ?)";
         $stmtMov = $pdo->prepare($sqlMov);
-        $stmtMov->execute([$produto_id, $tipo, $qtde, $desc]);
+        $stmtMov->execute([$produto_id, $tipo, $estoqueIncremento, $descCompleta]);
 
-        
         $operador = ($tipo === 'Entrada') ? '+' : '-';
         $sqlUpd = "UPDATE produtos SET estoque_atual = estoque_atual $operador ? WHERE id = ?";
         $stmtUpd = $pdo->prepare($sqlUpd);
-        $stmtUpd->execute([$qtde, $produto_id]);
+        $stmtUpd->execute([$estoqueIncremento, $produto_id]);
 
         $pdo->commit();
         echo json_encode(['success' => true]);

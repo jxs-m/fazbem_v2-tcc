@@ -34,7 +34,7 @@ class Pedido {
 
    
     public function buscarItens($pedido_id) {
-        $sql = "SELECT i.quantidade, i.quantidade_real, i.preco_unitario, i.preco_real, pr.nome, pr.unidade, pr.tipo_venda, pr.peso_estimado_g 
+        $sql = "SELECT i.quantidade, i.quantidade_real, i.preco_unitario, i.preco_real, pr.id as produto_id, pr.nome, pr.unidade, pr.tipo_venda, pr.peso_estimado_g, pr.preco 
                 FROM itens_pedido i
                 JOIN produtos pr ON i.produto_id = pr.id
                 WHERE i.pedido_id = ?";

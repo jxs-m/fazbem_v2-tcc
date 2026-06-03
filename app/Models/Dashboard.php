@@ -17,29 +17,33 @@ class Dashboard {
     }
 
     public function getFaturamentoPago() {
-        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pago'";
+        $sql = "SELECT SUM(valor_total) as faturamento FROM faturas_mensais WHERE status = 'Pago'";
         $stmt = $this->pdo->query($sql);
         $resultado = $stmt->fetch()['faturamento'];
         return $resultado ? $resultado : 0;
     }
 
     public function getValorEsperadoMes() {
-        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pendente' AND MONTH(data_pedido) = MONTH(CURRENT_DATE()) AND YEAR(data_pedido) = YEAR(CURRENT_DATE())";
-        $stmt = $this->pdo->query($sql);
+        $mesAtual = date('Y-m');
+        $sql = "SELECT SUM(valor_total) as faturamento FROM faturas_mensais WHERE status = 'Pendente' AND mes_referencia = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$mesAtual]);
         $resultado = $stmt->fetch()['faturamento'];
         return $resultado ? $resultado : 0;
     }
 
     public function getValorEsperado() {
-        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pendente'";
+        $sql = "SELECT SUM(valor_total) as faturamento FROM faturas_mensais WHERE status = 'Pendente'";
         $stmt = $this->pdo->query($sql);
         $resultado = $stmt->fetch()['faturamento'];
         return $resultado ? $resultado : 0;
     }
 
     public function getValorTotalMes() {
-        $sql = "SELECT SUM(valor_total) as faturamento FROM pedidos WHERE status_pagamento = 'Pago' AND MONTH(data_pedido) = MONTH(CURRENT_DATE()) AND YEAR(data_pedido) = YEAR(CURRENT_DATE())";
-        $stmt = $this->pdo->query($sql);
+        $mesAtual = date('Y-m');
+        $sql = "SELECT SUM(valor_total) as faturamento FROM faturas_mensais WHERE status = 'Pago' AND mes_referencia = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$mesAtual]);
         $resultado = $stmt->fetch()['faturamento'];
         return $resultado ? $resultado : 0;
     }

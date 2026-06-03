@@ -12,10 +12,10 @@ class Database {
     public static function getConexao() {
         if (!isset(self::$conexao)) {
             try {
-                $host = getenv('DB_HOST') ?: 'localhost';
-                $dbname = getenv('DB_NAME') ?: 'fazbem_v2';
-                $user = getenv('DB_USER') ?: 'root';
-                $pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : ''; 
+                $host = $_ENV['DB_HOST'] ?? (getenv('DB_HOST') ?: 'localhost');
+                $dbname = $_ENV['DB_NAME'] ?? (getenv('DB_NAME') ?: 'fazbem_v2');
+                $user = $_ENV['DB_USER'] ?? (getenv('DB_USER') ?: 'root');
+                $pass = $_ENV['DB_PASS'] ?? (getenv('DB_PASS') !== false ? getenv('DB_PASS') : ''); 
 
                 self::$conexao = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
                 self::$conexao->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

@@ -27,7 +27,7 @@
           <label style="margin:0; display:flex; align-items:center; gap:6px; cursor:pointer;">
             <input type="checkbox" style="width:auto; margin:0;" /> Lembrar-me
           </label>
-          <a href="#" class="link-small" onclick="alert('Link de recuperação enviado!')">Esqueci a senha</a>
+          <a href="#" class="link-small" onclick="document.getElementById('modalRecuperarSenha').style.display='flex'">Esqueci a senha</a>
         </div>
 
         <button class="btn-primary" type="submit">Entrar</button>
@@ -45,6 +45,28 @@
 
     </main>
   </div>
+
+  <div id="modalRecuperarSenha" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:24px; border-radius:12px; width:90%; max-width:400px; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+        <h2 style="margin-top:0; color:#1e40af; font-size:1.2rem;">Recuperar Senha</h2>
+        <p style="font-size:0.9rem; color:#4b5563; margin-bottom:16px;">Para criar uma nova senha sem usar e-mail, por favor, confirme seus dados abaixo.</p>
+        
+        <label for="recEmail" style="display:block; margin-bottom:4px; font-weight:600; font-size:0.85rem; color:#374151;">E-mail cadastrado</label>
+        <input type="email" id="recEmail" style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box;">
+
+        <label for="recTelefone" style="display:block; margin-bottom:4px; font-weight:600; font-size:0.85rem; color:#374151;">Telefone cadastrado (com DDD, apenas números)</label>
+        <input type="text" id="recTelefone" placeholder="Ex: 11999999999" style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box;">
+
+        <label for="recNovaSenha" style="display:block; margin-bottom:4px; font-weight:600; font-size:0.85rem; color:#374151;">Nova Senha</label>
+        <input type="password" id="recNovaSenha" style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #d1d5db; border-radius:6px; box-sizing:border-box;">
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button onclick="document.getElementById('modalRecuperarSenha').style.display='none'" style="background:#f3f4f6; color:#374151; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600;">Cancelar</button>
+            <button onclick="recuperarSenha()" style="background:#16a34a; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600;">Redefinir Senha</button>
+        </div>
+    </div>
+  </div>
+
     <script src="utils.js"></script>
     <script src="js/login.js"></script>
 </body>

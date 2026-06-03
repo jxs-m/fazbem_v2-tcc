@@ -24,6 +24,23 @@ try {
         exit;
     }
 
+    if ($acao === 'ultimo_pedido') {
+        $sql = "SELECT id FROM pedidos 
+                WHERE usuario_id = ? 
+                AND YEARWEEK(data_pedido, 0) < YEARWEEK(NOW(), 0)
+                ORDER BY data_pedido DESC LIMIT 1";
+        $stmt = $pedidoModel->pdo->prepare($sql);
+        $stmt->execute([$_SESSION['usuario_id']]);
+        $ultimo = $stmt->fetch();
+        if ($ultimo) {
+            $itens = $pedidoModel->buscarItens($ultimo['id']);
+            echo json_encode(['success' => true, 'itens' => $itens]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Nenhum pedido de semanas anteriores foi encontrado.']);
+        }
+        exit;
+    }
+
     $pedidos = $pedidoModel->buscarPorUsuario($_SESSION['usuario_id']);
 
     echo json_encode(['success' => true, 'data' => $pedidos]);

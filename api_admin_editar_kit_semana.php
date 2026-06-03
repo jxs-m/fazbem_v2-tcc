@@ -145,26 +145,53 @@ try {
         foreach ($itensDoPedido as $item) {
             $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
             
+            $sqlInfoProd = "SELECT unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id = ?";
+            $stmtInfoProd = $pdo->prepare($sqlInfoProd);
             $stmtInfoProd->execute([$item['id']]);
             $prodInfo = $stmtInfoProd->fetch();
             
             $estoqueDecremento = $qtd;
-            if ($prodInfo && $prodInfo['tipo_venda'] === 'Fracionado') {
-                $unidade = strtolower($prodInfo['unidade']);
-                $baseGrams = null;
-                if (strpos($unidade, 'kg') !== false) {
-                    $baseGrams = 1000;
-                } elseif (strpos($unidade, 'g') !== false) {
-                    $num = intval($unidade);
-                    if ($num > 0) $baseGrams = $num;
-                }
-                
-                if ($baseGrams !== null) {
-                    $estoqueDecremento = $qtd * $baseGrams;
+            $unidade_escolhida = $item['unidade_escolhida'] ?? null;
+
+            if ($prodInfo) {
+                $unidade_banco = strtolower($prodInfo['unidade']);
+                if ($prodInfo['tipo_venda'] === 'Fracionado') {
+                    $baseGrams = null;
+                    if (strpos($unidade_banco, 'kg') !== false) {
+                        $baseGrams = 1000;
+                    } elseif ($unidade_banco === 'g') {
+                        $baseGrams = 1;
+                    } elseif (strpos($unidade_banco, 'g') !== false) {
+                        $num = intval($unidade_banco);
+                        if ($num > 0) $baseGrams = $num;
+                    }
+                    
+                    if ($baseGrams !== null) {
+                        if ($unidade_escolhida === 'g') {
+                            $estoqueDecremento = $qtd / $baseGrams;
+                        } elseif ($unidade_escolhida === 'kg') {
+                            $estoqueDecremento = ($qtd * 1000) / $baseGrams;
+                        } else {
+                            $estoqueDecremento = $qtd * $baseGrams;
+                        }
+                    } elseif ($unidade_escolhida === 'g' && strpos($unidade_banco, 'kg') !== false) {
+                        $estoqueDecremento = $qtd / 1000;
+                    } elseif ($unidade_escolhida === 'kg' && strpos($unidade_banco, 'g') !== false) {
+                        $estoqueDecremento = $qtd * 1000;
+                    }
+                } else {
+                    // Inteiro
+                    if ($unidade_escolhida === 'un' || $unidade_escolhida === 'unidade') {
+                        if (strpos($unidade_banco, 'kg') !== false && !empty($prodInfo['peso_estimado_g'])) {
+                            $estoqueDecremento = ($qtd * $prodInfo['peso_estimado_g']) / 1000;
+                        } elseif (strpos($unidade_banco, 'g') !== false && !empty($prodInfo['peso_estimado_g'])) {
+                            $estoqueDecremento = $qtd * $prodInfo['peso_estimado_g'];
+                        }
+                    }
                 }
             }
 
-            $stmtItemNovo->execute([$pedidoNovoId, $item['id'], $qtd]);
+            $stmtItemNovo->execute([$pedidoNovoId, $item['id'], $estoqueDecremento]);
             $stmtEstoqueNovo->execute([$estoqueDecremento, $item['id']]);
         }
 

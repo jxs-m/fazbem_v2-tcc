@@ -35,7 +35,7 @@ class Security {
      * @param int $maxAttempts Quantidade máxima de requisições permitidas
      * @param int $decaySeconds Tempo em segundos para limpar o registro
      */
-    public static function checkRateLimit($maxAttempts = 5, $decaySeconds = 60) {
+    public static function checkRateLimit($maxAttempts = 4, $decaySeconds = 60) {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown_ip';
         $endpoint = $_SERVER['SCRIPT_NAME'];
         

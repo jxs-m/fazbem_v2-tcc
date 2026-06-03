@@ -116,6 +116,7 @@ async function carregarDashboardV2() {
 function getBaseGrams(unidadeStr) {
     let u = (unidadeStr || '').toLowerCase();
     if (u.includes('kg')) return 1000;
+    if (u === 'g') return 1;
     if (u.includes('g') && !u.includes('kg')) {
        let num = parseInt(u);
        if (!isNaN(num) && num > 0) return num;
@@ -282,7 +283,7 @@ async function carregarProdutos() {
             json.data.forEach(p => {
                 if (p.estoque_atual < 10) critico++;
                 let estoqueFloat = parseFloat(p.estoque_atual);
-                let estoqueDisplay = p.tipo_venda === 'Fracionado' ? `${estoqueFloat} g` : `${estoqueFloat} ${p.unidade}`;
+                let estoqueDisplay = `${estoqueFloat} ${p.unidade}`;
                 tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual < 10 ? 'low-stock' : ''}">${estoqueDisplay}</td><td style="text-align:right"><button class="btn btn-edit" title="Ajustar Estoque" onclick='abrirModalEstoque(${JSON.stringify(p).replace(/'/g, "&#39;")})'>📦</button> <button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p).replace(/'/g, "&#39;")})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></td></tr>`;
             });
             document.getElementById('dash-estoque').innerText = critico;
@@ -522,7 +523,19 @@ function abrirModalEstoque(p) {
     document.getElementById('modalEstoque').style.display = 'flex';
     document.getElementById('estProdId').value = p.id;
     document.getElementById('estProdNome').innerText = p.nome;
-    document.getElementById('estProdUni').innerText = p.tipo_venda === 'Fracionado' ? 'g' : p.unidade;
+    
+    const selectUni = document.getElementById('estUni');
+    let isUnSelected = p.unidade === 'un' || p.unidade === 'unidade' || p.tipo_venda === 'Inteiro';
+    let isGSelected = p.tipo_venda === 'Fracionado';
+    selectUni.innerHTML = `
+        <option value="un" ${isUnSelected && !isGSelected ? 'selected' : ''}>unidade(s)</option>
+        <option value="g" ${isGSelected ? 'selected' : ''}>g</option>
+        <option value="kg" ${p.unidade === 'kg' && !isUnSelected ? 'selected' : ''}>kg</option>
+        <option value="maço" ${p.unidade === 'maço' ? 'selected' : ''}>maço(s)</option>
+        <option value="pé" ${p.unidade === 'pé' ? 'selected' : ''}>pé(s)</option>
+        <option value="${escapeHTML(p.unidade)}" ${!['un','kg','g','maço','pé'].includes(p.unidade) ? 'selected' : ''}>${escapeHTML(p.unidade)}</option>
+    `;
+    
     document.getElementById('estQtde').value = '';
     document.getElementById('estDesc').value = '';
     document.getElementById('estTipo').value = 'Entrada';
@@ -533,6 +546,7 @@ async function salvarMovimentacao() {
         produto_id: document.getElementById('estProdId').value,
         tipo: document.getElementById('estTipo').value,
         quantidade: document.getElementById('estQtde').value,
+        unidade_escolhida: document.getElementById('estUni').value,
         descricao: document.getElementById('estDesc').value
     };
 
@@ -826,13 +840,24 @@ async function abrirModalGerarPedidos(modo = 'gerar') {
                 if(p.estoque_atual > 0) {
                     let estoqueFloat = parseFloat(p.estoque_atual);
                     let unit = p.tipo_venda === 'Fracionado' ? 'g' : p.unidade;
+                    let isUnSelected = p.unidade === 'un' || p.unidade === 'unidade' || p.tipo_venda === 'Inteiro';
+                    let isGSelected = p.tipo_venda === 'Fracionado';
                     container.innerHTML += `
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:0.9em; margin-bottom:5px;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; flex:1;">
                                 <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}" data-unidade="${escapeHTML(p.unidade)}" data-tipovenda="${escapeHTML(p.tipo_venda)}">
                                 <span>${escapeHTML(p.nome)} (Estoque: ${estoqueFloat} ${unit})</span>
                             </label>
-                            <input type="number" id="qtd-prod-${p.id}" value="1" min="1" max="${estoqueFloat}" style="width:60px; padding:2px 5px; font-size:0.9em;" title="Quantidade">
+                            <div style="display:flex; gap: 5px;">
+                                <input type="number" id="qtd-prod-${p.id}" value="1" min="1" max="9999" style="width:60px; padding:2px 5px; font-size:0.9em;" title="Quantidade">
+                                <select id="uni-prod-${p.id}" style="padding:2px 5px; font-size:0.9em; width: 80px;">
+                                    <option value="un" ${isUnSelected && !isGSelected ? 'selected' : ''}>unidade(s)</option>
+                                    <option value="g" ${isGSelected ? 'selected' : ''}>g</option>
+                                    <option value="kg">kg</option>
+                                    <option value="maço">maço(s)</option>
+                                    <option value="pé">pé(s)</option>
+                                </select>
+                            </div>
                         </div>
                     `;
                 }
@@ -846,24 +871,28 @@ async function abrirModalGerarPedidos(modo = 'gerar') {
 async function confirmarGerarPedidos() {
     const selecionados = Array.from(document.querySelectorAll('.chk-prod-gerar:checked')).map(cb => {
         let qtd = parseInt(document.getElementById('qtd-prod-' + cb.value).value) || 1;
-        let unidade = cb.getAttribute('data-unidade') || 'un';
+        let unidade_escolhida = document.getElementById('uni-prod-' + cb.value).value;
         let tipoVenda = cb.getAttribute('data-tipovenda') || 'Inteiro';
         let nome = cb.getAttribute('data-nome');
         
         let textoApresentacao = "";
-        if (tipoVenda === 'Fracionado') {
+        if (unidade_escolhida === 'g') {
             textoApresentacao = `${qtd}g de ${nome}`;
+        } else if (unidade_escolhida === 'kg') {
+            textoApresentacao = `${qtd}kg de ${nome}`;
         } else {
-            let descUnidade = unidade;
+            let descUnidade = unidade_escolhida;
             if (qtd > 1 && !descUnidade.endsWith('s')) {
                 if (descUnidade.toLowerCase() === 'pé') descUnidade = 'pés';
                 else if (descUnidade.toLowerCase() === 'maço') descUnidade = 'maços';
+                else if (descUnidade.toLowerCase() === 'un' || descUnidade.toLowerCase() === 'unidade') descUnidade = 'unidades';
                 else if (descUnidade.toLowerCase() !== 'un') descUnidade += 's';
             }
+            if (descUnidade === 'un' && qtd === 1) descUnidade = 'unidade';
             textoApresentacao = `${qtd} ${descUnidade} de ${nome}`;
         }
 
-        return { id: cb.value, nome: nome, quantidade: qtd, textoApresentacao: textoApresentacao };
+        return { id: cb.value, nome: nome, quantidade: qtd, textoApresentacao: textoApresentacao, unidade_escolhida: unidade_escolhida };
     });
 
     if (selecionados.length === 0) {
