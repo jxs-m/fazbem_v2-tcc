@@ -15,13 +15,23 @@ class Security {
 
    
     public static function checkCSRF() {
-       
         if (in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD', 'OPTIONS'])) {
             return true;
         }
 
-        $headers = getallheaders();
-        $tokenEnviado = $headers['X-CSRF-Token'] ?? $headers['x-csrf-token'] ?? '';
+        $headers = [];
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+        } else {
+            foreach ($_SERVER as $name => $value) {
+                if (substr($name, 0, 5) == 'HTTP_') {
+                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                }
+            }
+        }
+
+        $headers = array_change_key_case($headers, CASE_LOWER);
+        $tokenEnviado = $headers['x-csrf-token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
         if (empty($tokenEnviado) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $tokenEnviado)) {
             http_response_code(403);
@@ -31,48 +41,52 @@ class Security {
     }
 
     /**
-     
      * @param int $maxAttempts Quantidade máxima de requisições permitidas
      * @param int $decaySeconds Tempo em segundos para limpar o registro
      */
-    public static function checkRateLimit($maxAttempts = 4, $decaySeconds = 60) {
+    public static function checkRateLimit($maxAttempts = 10, $decaySeconds = 60) {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown_ip';
         $endpoint = $_SERVER['SCRIPT_NAME'];
         
         require_once __DIR__ . '/Database.php';
-        $pdo = Database::getConexao();
+        try {
+            $pdo = Database::getConexao();
+            $now = time();
 
-        $now = time();
+            // Busca o registro atual
+            $sqlBusca = "SELECT attempts, first_attempt FROM rate_limits WHERE ip = ? AND endpoint = ?";
+            $stmtBusca = $pdo->prepare($sqlBusca);
+            $stmtBusca->execute([$ip, $endpoint]);
+            $row = $stmtBusca->fetch();
 
-        // Busca o registro atual
-        $sqlBusca = "SELECT attempts, first_attempt FROM rate_limits WHERE ip = ? AND endpoint = ?";
-        $stmtBusca = $pdo->prepare($sqlBusca);
-        $stmtBusca->execute([$ip, $endpoint]);
-        $row = $stmtBusca->fetch();
-
-        if (!$row) {
-            // Insere o primeiro acesso
-            $sqlInsert = "INSERT INTO rate_limits (ip, endpoint, attempts, first_attempt) VALUES (?, ?, 1, ?)";
-            $stmtInsert = $pdo->prepare($sqlInsert);
-            $stmtInsert->execute([$ip, $endpoint, $now]);
-        } else {
-            // Se o tempo expirou, reseta. Se não, incrementa.
-            if ($now - $row['first_attempt'] > $decaySeconds) {
-                $sqlUpdate = "UPDATE rate_limits SET attempts = 1, first_attempt = ? WHERE ip = ? AND endpoint = ?";
-                $stmtUpdate = $pdo->prepare($sqlUpdate);
-                $stmtUpdate->execute([$now, $ip, $endpoint]);
+            if (!$row) {
+                // Insere o primeiro acesso
+                $sqlInsert = "INSERT INTO rate_limits (ip, endpoint, attempts, first_attempt) VALUES (?, ?, 1, ?)";
+                $stmtInsert = $pdo->prepare($sqlInsert);
+                $stmtInsert->execute([$ip, $endpoint, $now]);
             } else {
-                $attempts = $row['attempts'] + 1;
-                $sqlUpdate = "UPDATE rate_limits SET attempts = ? WHERE ip = ? AND endpoint = ?";
-                $stmtUpdate = $pdo->prepare($sqlUpdate);
-                $stmtUpdate->execute([$attempts, $ip, $endpoint]);
+                // Se o tempo expirou, reseta. Se não, incrementa.
+                if ($now - $row['first_attempt'] > $decaySeconds) {
+                    $sqlUpdate = "UPDATE rate_limits SET attempts = 1, first_attempt = ? WHERE ip = ? AND endpoint = ?";
+                    $stmtUpdate = $pdo->prepare($sqlUpdate);
+                    $stmtUpdate->execute([$now, $ip, $endpoint]);
+                } else {
+                    $attempts = $row['attempts'] + 1;
+                    $sqlUpdate = "UPDATE rate_limits SET attempts = ? WHERE ip = ? AND endpoint = ?";
+                    $stmtUpdate = $pdo->prepare($sqlUpdate);
+                    $stmtUpdate->execute([$attempts, $ip, $endpoint]);
 
-                if ($attempts > $maxAttempts) {
-                    http_response_code(429);
-                    echo json_encode(['success' => false, 'message' => 'Muitas requisições. Aguarde antes de tentar novamente.']);
-                    exit;
+                    if ($attempts > $maxAttempts) {
+                        http_response_code(429);
+                        echo json_encode(['success' => false, 'message' => 'Muitas requisições. Aguarde antes de tentar novamente.']);
+                        exit;
+                    }
                 }
             }
+        } catch (Throwable $e) {
+            // Em caso de erro com a tabela rate_limits ou banco de dados,
+            // registramos o erro no log do servidor e permitimos a requisição continuar.
+            error_log("Erro no rate limiting: " . $e->getMessage());
         }
     }
 }

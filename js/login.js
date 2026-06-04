@@ -8,10 +8,13 @@ async function handleLogin() {
       }
 
       try {
+        const params = new URLSearchParams();
+        params.append('email', email);
+        params.append('senha', senha);
+
         const response = await fetch('api_login_v2.php', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, senha })
+          body: params
         });
 
         const result = await response.json();

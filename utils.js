@@ -17,6 +17,10 @@ function escapeHTML(str) {
         .replace(/'/g, "&#039;");
 }
 
+if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.startsWith('192.168.')) {
+    window.location.href = window.location.href.replace('http:', 'https:');
+}
+
 
 let csrfToken = null;
 let csrfPromise = null;
@@ -43,6 +47,10 @@ async function fetchCSRFToken() {
 window.fetch = async function (url, options = {}) {
     const method = options.method ? options.method.toUpperCase() : 'GET';
     const requiresCsrf = ['POST', 'PUT', 'DELETE'].includes(method);
+
+    if (!options.credentials) {
+        options.credentials = 'same-origin';
+    }
 
     if (requiresCsrf && url !== 'api_csrf.php') {
         const token = await fetchCSRFToken();
