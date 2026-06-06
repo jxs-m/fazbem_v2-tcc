@@ -40,5 +40,11 @@ class Produto {
             return $stmt->execute([$nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $tipo_venda, $temporario, $duracao_dias, $id]);
         }
     }
+
+    public function deletar($id) {
+        $sql = "DELETE FROM produtos WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$id]);
+    }
 }
 ?>

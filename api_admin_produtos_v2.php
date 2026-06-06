@@ -83,7 +83,22 @@ try {
         exit;
     }
 
-    // Se tentar usar PUT, DELETE, etc.
+    if ($method === 'DELETE') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (empty($data['id'])) {
+            throw new Exception("ID do produto não informado para exclusão.");
+        }
+
+        $sucesso = $produtoModel->deletar($data['id']);
+        if ($sucesso) {
+            echo json_encode(['success' => true, 'message' => 'Produto excluído com sucesso!']);
+        } else {
+            throw new Exception("Não foi possível excluir o produto. Pode estar vinculado a um pedido.");
+        }
+        exit;
+    }
+
+    // Se tentar usar PUT, PATCH, etc.
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método não permitido.']);
 

@@ -177,6 +177,24 @@ class Pedido {
             }
 
             $this->pdo->commit();
+
+            // Lógica para adicionar o valor na fatura mensal do usuário
+            // Busca a primeira fatura pendente do usuário
+            $stmtFatura = $this->pdo->prepare("SELECT id FROM faturas_mensais WHERE usuario_id = ? AND status = 'Pendente' ORDER BY mes_referencia ASC LIMIT 1");
+            $stmtFatura->execute([$usuario_id]);
+            $fatura = $stmtFatura->fetch();
+
+            if ($fatura) {
+                // Atualiza a fatura pendente existente
+                $stmtUpdFatura = $this->pdo->prepare("UPDATE faturas_mensais SET valor_extras = valor_extras + ?, valor_total = valor_total + ? WHERE id = ?");
+                $stmtUpdFatura->execute([$total_calculado, $total_calculado, $fatura['id']]);
+            } else {
+                // Se não tem fatura pendente, cria uma nova pro próximo mês com o valor extra
+                $mes_referencia = date('Y-m', strtotime('+1 month'));
+                $stmtInsFatura = $this->pdo->prepare("INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_total, status) VALUES (?, ?, 0, ?, ?, 'Pendente')");
+                $stmtInsFatura->execute([$usuario_id, $mes_referencia, $total_calculado, $total_calculado]);
+            }
+
             return $pedido_id;
 
         } catch (Exception $e) {

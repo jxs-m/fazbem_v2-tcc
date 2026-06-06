@@ -121,102 +121,50 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
       renderizarCarrinho();
     }
 
-    let mp = null;
-    let bricksBuilder = null;
-    let paymentBrickController = null;
-
-    async function initMercadoPago() {
-      try {
-        const res = await fetch('api_mp_key.php');
-        const json = await res.json();
-        if (json.public_key) {
-            mp = new MercadoPago(json.public_key, { locale: 'pt-BR' });
-            bricksBuilder = mp.bricks();
-            await renderPaymentBrick();
-        } else {
-            console.warn('Public Key do Mercado Pago não configurada no .env');
-        }
-      } catch (e) {
-          console.error('Erro ao carregar MP Key', e);
-      }
-    }
-
-    async function renderPaymentBrick() {
-      const totalCalculado = carrinho.reduce((acc, item) => acc + (item.preco_estimado_calculado !== undefined ? item.preco_estimado_calculado : (item.preco * item.quantidade)), 0);
-      if (totalCalculado <= 0) return;
-
-      const container = document.getElementById('paymentBrick_container');
-      if(container) container.style.display = 'block';
-      
-      const btnAntigo = document.getElementById('btn-finalizar');
-      if(btnAntigo) btnAntigo.style.display = 'none';
-
-      const settings = {
-          initialization: {
-              amount: totalCalculado
-          },
-          customization: {
-              paymentMethods: {
-                  creditCard: "all",
-                  debitCard: "all",
-                  pix: "all"
-              }
-          },
-          callbacks: {
-              onReady: () => {
-                  console.log('Mercado Pago Brick is ready');
-              },
-              onSubmit: ({ selectedPaymentMethod, formData }) => {
-                  return new Promise((resolve, reject) => {
-                      processarPagamentoBackend(formData)
-                          .then(resolve)
-                          .catch(reject);
-                  });
-              },
-              onError: (error) => {
-                  console.error(error);
-                  alert('Ocorreu um erro na interface de pagamento.');
-              }
-          }
-      };
-      
-      if (paymentBrickController) {
-          paymentBrickController.unmount();
-      }
-      paymentBrickController = await bricksBuilder.create('payment', 'paymentBrick_container', settings);
-    }
-
-    async function processarPagamentoBackend(formData) {
+    async function finalizarPedido() {
       const totalCalculado = carrinho.reduce((acc, item) => acc + (item.preco_estimado_calculado !== undefined ? item.preco_estimado_calculado : (item.preco * item.quantidade)), 0);
       
+      if (totalCalculado <= 0) {
+          alert('Carrinho vazio.');
+          return;
+      }
+
       const payload = {
           itens: carrinho,
           total: totalCalculado,
-          pagamento: 'Mercado Pago',
-          mercado_pago_data: formData
+          pagamento: 'A cobrar na fatura mensal'
       };
 
-      const res = await fetch('api_checkout_v2.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-      });
+      try {
+          document.getElementById('btn-finalizar').disabled = true;
+          document.getElementById('btn-finalizar').innerText = 'Processando...';
 
-      const text = await res.text();
-      let json;
-      try { json = JSON.parse(text); } catch (e) { throw new Error("Erro no servidor: " + text); }
+          const res = await fetch('api_checkout_v2.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
 
-      if (json.success) {
-          alert('✅ Pedido Confirmado!\n\nSeu pagamento foi processado com sucesso.');
-          localStorage.removeItem('fazbem_carrinho');
-          window.location.href = 'catalogo.html';
-      } else {
-          alert('❌ ' + json.message);
-          if (json.message.includes('login')) window.location.href = 'login.html';
-          throw new Error(json.message);
+          const text = await res.text();
+          let json;
+          try { json = JSON.parse(text); } catch (e) { throw new Error("Erro no servidor: " + text); }
+
+          if (json.success) {
+              alert('✅ Pedido Confirmado!\n\nO valor deste pedido extra foi adicionado à sua fatura mensal.');
+              localStorage.removeItem('fazbem_carrinho');
+              window.location.href = 'catalogo.html';
+          } else {
+              alert('❌ ' + json.message);
+              if (json.message.includes('login')) window.location.href = 'login.html';
+              document.getElementById('btn-finalizar').disabled = false;
+              document.getElementById('btn-finalizar').innerText = 'Finalizar Pedido';
+          }
+      } catch (error) {
+          alert('Erro ao processar pedido: ' + error.message);
+          document.getElementById('btn-finalizar').disabled = false;
+          document.getElementById('btn-finalizar').innerText = 'Finalizar Pedido';
       }
     }
-
 
     async function carregarResumoFiscal() {
         const nfBox = document.getElementById('nota-fiscal-box');
@@ -281,4 +229,3 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
 
     renderizarCarrinho();
     carregarResumoFiscal();
-    initMercadoPago();

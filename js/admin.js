@@ -12,6 +12,14 @@ function showSection(id) {
     if (id === 'rotas') carregarRotas();
     if (id === 'faturamento') carregarFaturasAdmin();
     if (id === 'dashboard') carregarDashboardCounts();
+
+    // Fechar menu lateral no celular após selecionar
+    const aside = document.querySelector('aside');
+    const overlay = document.getElementById('sidebar-overlay');
+    const btn = document.getElementById('btn-menu-toggle');
+    if (aside) aside.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+    if (btn) btn.innerText = '☰';
 }
 
 async function carregarPedidos() {
@@ -284,7 +292,7 @@ async function carregarProdutos() {
                 if (p.estoque_atual < 10) critico++;
                 let estoqueFloat = parseFloat(p.estoque_atual);
                 let estoqueDisplay = `${estoqueFloat} ${p.unidade}`;
-                tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual < 10 ? 'low-stock' : ''}">${estoqueDisplay}</td><td style="text-align:right"><button class="btn btn-edit" title="Ajustar Estoque" onclick='abrirModalEstoque(${JSON.stringify(p).replace(/'/g, "&#39;")})'>📦</button> <button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p).replace(/'/g, "&#39;")})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></td></tr>`;
+                tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual < 10 ? 'low-stock' : ''}">${estoqueDisplay}</td><td><div class="table-actions"><button class="btn btn-edit" title="Ajustar Estoque" onclick='abrirModalEstoque(${JSON.stringify(p).replace(/'/g, "&#39;")})'>📦</button> <button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p).replace(/'/g, "&#39;")})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></div></td></tr>`;
             });
             document.getElementById('dash-estoque').innerText = critico;
         }
@@ -1031,5 +1039,16 @@ async function gerarFaturasDoMes() {
         }
     } catch(e) {
         alert('Erro de conexão ao gerar faturas.');
+    }
+}
+
+function toggleSidebar() {
+    const aside = document.querySelector('aside');
+    const overlay = document.getElementById('sidebar-overlay');
+    const btn = document.getElementById('btn-menu-toggle');
+    if (aside) aside.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('active');
+    if (btn) {
+        btn.innerText = (aside && aside.classList.contains('open')) ? '✕' : '☰';
     }
 }

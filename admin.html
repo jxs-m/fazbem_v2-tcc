@@ -5,11 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin — Faz Bem</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin.css?v=3">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 </head>
 
 <body>
+
+    <div class="mobile-header no-print">
+        <button id="btn-menu-toggle" onclick="toggleSidebar()">☰</button>
+        <span>🌿 Admin Faz Bem</span>
+    </div>
+
+    <div class="sidebar-overlay no-print" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <aside class="no-print">
         <h1>🌿 Admin Faz Bem</h1>
@@ -67,7 +74,7 @@
                     <div class="val" id="dash-creditos" style="color:var(--green-primary)">R$ 0,00</div>
                     <small style="color:#666;">Total retido em crédito de clientes pausados</small>
                 </div>
-                <div class="card" style="grid-column: span 3;">
+                <div class="card card-wide">
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 300px;">
                             <h3 style="color: #b45309;">Campanha de Reativação (Pausados)</h3>
@@ -144,10 +151,10 @@
                     <small style="color:#666;">Limite logístico: 200</small>
                 </div>
                 
-                <div class="card" style="grid-column: span 3;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="card card-wide">
+                    <div class="card-header-flex">
                         <h3>Geração Automática de Pedidos</h3>
-                        <div style="display:flex; gap:8px;">
+                        <div class="card-actions-flex">
                             <button class="btn" style="background:#3b82f6; color:white;" onclick="notificarAssinantes()">📢 Notificar Assinantes</button>
                             <button class="btn" style="background:#f59e0b; color:white;" onclick="abrirModalGerarPedidos('editar')">✏️ Refazer Kit da Semana</button>
                             <button class="btn" style="background:#10b981; color:white;" onclick="abrirModalGerarPedidos('gerar')">⚡ Gerar Pedidos da Semana</button>
@@ -158,7 +165,7 @@
             </div>
 
             <div class="card" style="margin-bottom: 24px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <div class="card-header-flex" style="margin-bottom: 10px;">
                     <h3 style="margin:0;">Divulgação do Kit da Semana (Visível para os Clientes)</h3>
                     <button class="btn btn-primary" onclick="salvarKitSemana()">💾 Salvar Divulgação</button>
                 </div>

@@ -86,3 +86,9 @@
     .info-link {
       display: block; margin-top: 24px; font-size: 13px; color: var(--green-1); text-decoration: none;
     }
+
+    @media (max-width: 375px) {
+      .card {
+        padding: 24px 16px;
+      }
+    }
