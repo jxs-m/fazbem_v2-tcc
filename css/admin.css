@@ -190,6 +190,14 @@
             border-color: #fdba74;
         }
 
+        .table-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
         .btn {
             padding: 8px 16px;
             border-radius: 6px;
@@ -218,14 +226,6 @@
         .btn-danger {
             background: #fee2e2;
             color: #dc2626;
-        }
-
-        .table-actions {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            justify-content: flex-end;
-            flex-wrap: nowrap;
         }
 
         .header-actions {
@@ -456,8 +456,11 @@
             table .btn {
                 padding: 6px 10px;
                 font-size: 12px;
-                margin: 2px 0;
-                display: inline-block;
+                margin: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
             }
 
             .header-actions {

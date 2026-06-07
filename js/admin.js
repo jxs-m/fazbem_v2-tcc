@@ -39,10 +39,10 @@ async function carregarPedidos() {
 
                 let btnComprovante = '';
                 if (p.status_pagamento === 'Pago') {
-                    btnComprovante = `<a href="comprovante.php?tipo=pedido&id=${p.id}" target="_blank" class="btn" style="background:#1d4ed8; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:12px; margin-left:5px; display:inline-block;">Comprovante</a>`;
+                    btnComprovante = `<a href="comprovante.php?tipo=pedido&id=${p.id}" target="_blank" class="btn" style="background:#1d4ed8; color:white; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:12px; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;">Comprovante</a>`;
                 }
 
-                tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selEnt}</td><td><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button>${btnComprovante}</td></tr>`;
+                tbody.innerHTML += `<tr><td>#${p.id}</td><td><strong>${escapeHTML(p.cliente)}</strong></td><td>${dataF}</td><td>R$ ${totalF}</td><td>${selEnt}</td><td><div class="table-actions"><button class="btn btn-view" onclick="verDetalhes(${p.id})">Ver Itens</button>${btnComprovante}</div></td></tr>`;
             });
 
         }
@@ -445,7 +445,7 @@ function renderizarClientes(lista) {
         let freqBadge = c.frequencia === 'Semanal' ? '📅 Semanal' : '🗓 Quinzenal';
         let totalGasto = parseFloat(c.total_gasto || 0).toFixed(2).replace('.', ',');
         let pref = c.preferencias ? escapeHTML(c.preferencias) : '-';
-        tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><small>${pref}</small></td><td><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></td></tr>`;
+        tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><small>${pref}</small></td><td><div class="table-actions"><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></div></td></tr>`;
     });
 }
 
@@ -613,9 +613,7 @@ async function carregarFuncionarios() {
                             <td>${escapeHTML(e.email)}</td>
                             <td>${escapeHTML(e.telefone || '-')}</td>
                             <td><span style="background:${badgeBg}; color:${badgeColor}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold; text-transform:uppercase">${escapeHTML(e.tipo_usuario)}</span></td>
-                            <td style="text-align:right">
-                                <button class="btn btn-danger" onclick="excluirFuncionario(${e.id})">🗑️ Excluir</button>
-                            </td>
+                            <td><div class="table-actions"><button class="btn btn-danger" onclick="excluirFuncionario(${e.id})">🗑️ Excluir</button></div></td>
                         </tr>`;
             });
         } else {
