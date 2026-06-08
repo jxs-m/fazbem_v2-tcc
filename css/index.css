@@ -512,6 +512,110 @@ pre code {
     text-align: center;
 }
 
+
+/* Flowchart Styles */
+.flowchart-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    margin: 16px 0;
+}
+
+.flowchart-layer {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    background-color: var(--light);
+    width: 90%;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+.flowchart-layer.interface {
+    border-left: 5px solid #3b82f6; /* Blue for Interface */
+}
+
+.flowchart-layer.security {
+    border-left: 5px solid #ef4444; /* Red for Security/Buffer */
+}
+
+.flowchart-layer.processing {
+    border-left: 5px solid #f59e0b; /* Orange for processing/controllers */
+}
+
+.flowchart-layer.models {
+    border-left: 5px solid #10b981; /* Green for Models */
+}
+
+.flowchart-layer-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.layer-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.layer-badge.interface-bg { background-color: #3b82f6; }
+.layer-badge.security-bg { background-color: #ef4444; }
+.layer-badge.processing-bg { background-color: #f59e0b; }
+.layer-badge.models-bg { background-color: #10b981; }
+
+.flowchart-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.flowchart-node {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    color: var(--text);
+}
+
+.flowchart-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-muted);
+    font-weight: bold;
+    font-size: 16px;
+    margin: 4px 0;
+}
+
+.flowchart-arrow-text {
+    font-size: 11px;
+    color: var(--primary);
+    font-family: monospace;
+    font-style: italic;
+    background-color: var(--primary-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    border: 1px solid var(--primary-light);
+}
+
 /* Footer style */
 .academic-footer {
     border-top: 1px solid var(--border);
