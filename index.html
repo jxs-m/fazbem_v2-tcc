@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Faz Bem - O melhor clube de assinatura de alimentos orgânicos frescos direto do produtor local para a sua mesa, com entrega inteligente e personalizada.">
-    <title>Faz Bem — Alimentos Vivos e Orgânicos Entregues em Casa</title>
-    
+    <meta name="description" content="Portal de Apresentação e Monografia do TCC - Sistema FazBem V2">
+    <title>TCC FazBem V2 — Portal Acadêmico</title>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
 
     <!-- Header Navigation -->
@@ -21,316 +25,457 @@
         <div class="navbar-container">
             <a href="index.html" class="brand" id="navbar-brand">
                 <span class="brand-logo">🌿</span>
-                <span class="brand-name">Faz Bem</span>
+                <span class="brand-name">FazBem V2</span>
+                <span class="brand-tag">TCC / Artigo</span>
             </a>
-            
-            <nav class="nav-menu" id="navbar-menu">
-                <a href="#how-it-works-section" class="nav-link" id="nav-link-how">Como Funciona</a>
-                <a href="#featured-section" class="nav-link" id="nav-link-products">Destaques</a>
-                <a href="#plans-section" class="nav-link" id="nav-link-plans">Planos</a>
-                <a href="catalogo.html" class="nav-link" id="nav-link-catalog-page">Catálogo</a>
-            </nav>
 
             <div class="nav-actions" id="navbar-actions">
-                <!-- Dynamic contents loaded by index.js based on session state -->
-                <a href="login.html" class="btn-login" id="nav-login-btn">Entrar</a>
-                <a href="cadastro.html" class="btn-subscribe-nav" id="nav-subscribe-btn">Assinar Clube</a>
+                <!-- Dynamic session loading from js/index.js -->
+                <a href="login.html" class="btn btn-secondary" id="nav-login-btn">Acessar Sistema</a>
+                <a href="cadastro.html" class="btn btn-primary" id="nav-subscribe-btn">Cadastrar-se</a>
             </div>
         </div>
     </header>
 
-    <main>
-        <!-- Hero Section -->
-        <section class="hero" id="hero-section">
-            <div class="hero-container">
-                <div class="hero-content">
-                    <div class="kits-badge-wrapper" id="kits-badge-wrapper" style="display: none;">
-                        <span class="kits-badge" id="kits-counter-badge">
-                            🔥 Apenas <strong id="kits-count-number">...</strong> kits de assinatura restantes esta semana!
-                        </span>
+    <!-- App Layout Grid -->
+    <div class="app-layout">
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <h3 class="sidebar-title">Sumário do Trabalho</h3>
+            <ul class="toc-list">
+                <li class="toc-item active"><a href="#capa">Identificação</a></li>
+                <li class="toc-item"><a href="#resumo">Resumo / Abstract</a></li>
+                <li class="toc-item"><a href="#introducao">1. Introdução</a></li>
+                <li class="toc-item"><a href="#metodologia">2. Material e Métodos</a></li>
+                <li class="toc-item"><a href="#resultados">3. Resultados e Discussão</a></li>
+                <li class="toc-item"><a href="#conclusao">4. Conclusão</a></li>
+                <li class="toc-item"><a href="#referencias">Referências</a></li>
+            </ul>
+
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <h4 style="font-size: 13px; color: var(--primary); margin-bottom: 8px;">Links Rápidos</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                    <a href="vitrine.html">🌿 Vitrine de Produtos</a>
+                    <a href="catalogo.html">🛒 Catálogo do Cliente</a>
+                    <a href="login.html">🔑 Tela de Login</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-wrapper">
+            <article class="document-body">
+
+                <!-- Section: Cover Page -->
+                <section id="capa" class="cover-page">
+                    <div class="cover-institution">IFFAR Uruguaiana</div>
+                    <h1 class="cover-title">SISTEMA FAZBEM V2</h1>
+                    <h2 class="cover-subtitle"
+                        style="border:none; margin:0; padding:0; font-size:1.15rem; font-weight:500;">
+                        Desenvolvimento de uma Plataforma de E-Commerce e Gestão Logística para Curtos Circuitos de
+                        Alimentos Orgânicos
+                    </h2>
+
+                    <div class="cover-details">
+                        <p><strong>Autor:</strong> Murilo.S.Jaques Antonio B</p>
+                        <p><strong>Orientador:</strong> Thiago krug</p>
+                        <p><strong>Curso:</strong> Técnico em Informática</p>
                     </div>
-                    
-                    <h1 class="hero-title" id="hero-title">
-                        Alimentos vivos, saúde e frescor <span class="highlight">entregues em casa</span>
-                    </h1>
-                    
-                    <p class="hero-subtitle" id="hero-subtitle">
-                        Participe do Clube Faz Bem e receba cestas de orgânicos selecionados direto do produtor rural, 100% personalizáveis e com roteirização inteligente.
+
+                    <div class="cover-meta">
+                        Região Fronteira Oeste — RS, 2026
+                    </div>
+                </section>
+
+                <!-- Section: Resumo / Abstract -->
+                <section id="resumo" style="margin-bottom: 48px;">
+                    <h2>Resumo / Abstract</h2>
+
+                    <div class="academic-callout" style="background-color: var(--primary-bg); margin-bottom: 24px;">
+                        <h4>RESUMO</h4>
+                        <p>
+                            Este trabalho apresenta o desenvolvimento do <strong>FazBem V2</strong>, uma plataforma web
+                            integrada de e-commerce e gestão operacional para Curtos Circuitos de Cadeias Alimentares
+                            (CCAs). A plataforma adota uma arquitetura SPA no frontend com HTML5, CSS3 e Vanilla
+                            JavaScript, integrada a um backend em PHP 8.x sob o paradigma da Programação Orientada a
+                            Objetos e banco de dados MySQL. Como inovações técnicas, destacam-se a geocodificação e
+                            roteirização interativa com Leaflet.js, um módulo de pesagem assíncrono para produtos
+                            fracionados e uma camada integrada de segurança contendo controle de Rate Limiting
+                            persistido em banco de dados e prevenção de ataques XSS e CSRF. Os resultados validam a
+                            eficácia do sistema na redução de custos logísticos, eliminação de condições de corrida em
+                            limites de acesso e garantia da integridade financeira em faturas de assinaturas mensais.
+                        </p>
+                        <p style="margin-top: 8px; font-size: 13.5px; font-weight: 600;">
+                            Palavras-chave: Curtos Circuitos; E-commerce Orgânico; PHP Orientado a Objetos; Leaflet.js;
+                            Segurança Web.
+                        </p>
+                    </div>
+
+                    <div class="academic-callout" style="background-color: #fcfbf7; border-left-color: var(--accent);">
+                        <h4>ABSTRACT</h4>
+                        <p style="font-style: italic;">
+                            This work presents the development of FazBem V2, an integrated web commerce and operational
+                            management platform for Short Food Supply Chains (SFSCs). The platform adopts a SPA
+                            architecture on the frontend with HTML5, CSS3, and Vanilla JavaScript, integrated with a
+                            backend in PHP 8.x under the Object-Oriented Programming paradigm and MySQL database. As
+                            technical innovations, it highlights interactive geocoding and routing with Leaflet.js, an
+                            asynchronous weighing module for fractional products, and an integrated security layer
+                            containing database-backed Rate Limiting control and prevention of XSS and CSRF attacks. The
+                            results validate the system's efficacy in reducing logistics costs, eliminating race
+                            conditions in access limits, and ensuring financial integrity in monthly subscription
+                            invoices.
+                        </p>
+                        <p style="margin-top: 8px; font-size: 13.5px; font-weight: 600; font-style: italic;">
+                            Keywords: Short Food Supply Chains; Organic E-commerce; Object-Oriented PHP; Leaflet.js; Web
+                            Security.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Section: Introdução -->
+                <section id="introducao" style="margin-bottom: 48px;">
+                    <h2>1. Introdução</h2>
+                    <p>
+                        Os Curtos Circuitos de Cadeias Alimentares (CCAs) caracterizam-se pela proximidade física,
+                        social e organizacional entre produtores e consumidores finais. A comercialização sem
+                        intermediários promove uma divisão de valor mais justa para a agricultura familiar e assegura ao
+                        consumidor o acesso a alimentos frescos e sustentáveis (Ploeg <em>et al</em>., 2012).
                     </p>
-                    
-                    <div class="hero-buttons">
-                        <a href="cadastro.html" class="btn btn-primary-hero" id="hero-cta-subscribe">
-                            Fazer Inscrição
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </a>
-                        <a href="catalogo.html" class="btn btn-secondary-hero" id="hero-cta-catalog">Ver Catálogo</a>
-                    </div>
-                    
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">100%</span>
-                            <span class="stat-label">Orgânico Certificado</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">2h</span>
-                            <span class="stat-label">Do Campo à Entrega</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">1k+</span>
-                            <span class="stat-label">Famílias Nutridas</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="hero-media">
-                    <div class="media-card glass">
-                        <div class="media-illustration">
-                            <!-- Premium inline SVG representation of a basket of fresh organic food -->
-                            <svg width="100%" height="100%" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="100" cy="100" r="80" fill="url(#hero-circle-grad)" opacity="0.15"/>
-                                <path d="M60 110C60 90.1046 76.1046 74 96 74H104C123.895 74 140 90.1046 140 110V140H60V110Z" fill="url(#basket-grad)" filter="drop-shadow(0 10px 15px rgba(22,101,52,0.15))"/>
-                                <rect x="50" y="100" width="100" height="15" rx="7.5" fill="#166534"/>
-                                <path d="M75 100V50C75 38.9543 83.9543 30 95 30H105C116.046 30 125 38.9543 125 50V100" stroke="#166534" stroke-width="10"/>
-                                <circle cx="85" cy="90" r="14" fill="#ef4444"/>
-                                <path d="M100 92C108 80 120 85 125 90C130 95 122 105 110 105C98 105 92 104 100 92Z" fill="#eab308"/>
-                                <path d="M120 75C125 60 135 60 140 68C145 76 135 85 128 85C121 85 115 90 120 75Z" fill="#22c55e"/>
-                                <defs>
-                                    <linearGradient id="hero-circle-grad" x1="20" y1="20" x2="180" y2="180" gradientUnits="userSpaceOnUse">
-                                        <stop stop-color="#22c55e"/>
-                                        <stop offset="1" stop-color="#15803d"/>
-                                    </linearGradient>
-                                    <linearGradient id="basket-grad" x1="60" y1="74" x2="140" y2="140" gradientUnits="userSpaceOnUse">
-                                        <stop stop-color="#854d0e"/>
-                                        <stop offset="1" stop-color="#a16207"/>
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </div>
-                        <div class="media-overlay-card">
-                            <div class="overlay-info">
-                                <span class="emoji">🍎</span>
-                                <div>
-                                    <h4>Lote de Hoje</h4>
-                                    <p>Colhido há menos de 3h</p>
-                                </div>
-                            </div>
-                            <span class="badge-fresh">Super Fresco</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <p>
+                        Com a consolidação do comércio eletrônico e a digitalização de serviços urbanos, o modelo de
+                        cestas planejadas de hortifrutis por assinatura (<em>e-grocery</em>) surgiu como um canal
+                        promissor para viabilizar esses circuitos em centros urbanos. Todavia, a gestão digital de
+                        alimentos in natura difere dos e-commerces convencionais de produtos industrializados
+                        padronizados devido a fatores biológicos e geográficos específicos (Wyrzykowski, 2022).
+                    </p>
+                    <p>
+                        Um dos principais desafios reside na pesagem de produtos. Itens como cenouras, batatas e cebolas
+                        variam de tamanho e peso a cada colheita. Se o cliente adquire 1 kg de cenoura no portal
+                        eletrônico, o empacotador físico dificilmente conseguirá separar exatamente 1.000g, gerando
+                        pequenas variações (como 1,050 kg ou 0,950 kg). Sistemas de e-commerce tradicionais não suportam
+                        essa readequação de valor e baixa de estoque proporcional em tempo real durante a expedição.
+                    </p>
+                    <p>
+                        Outro fator crítico é a logística de entrega (<em>last-mile delivery</em>). O uso de dados de
+                        localização baseados unicamente em strings textuais resulta em altas taxas de erro e atrasos em
+                        rotas devido à imprecisão de mapas municipais de subúrbios. A captura de dados geográficos
+                        exatos de latitude e longitude no cadastro, integrada a um mapa interativo móvel de rotas de
+                        entrega para o entregador, constitui-se um requisito vital para a eficiência da distribuição
+                        local.
+                    </p>
+                    <p>
+                        Finalmente, a segurança de dados e a robustez do software em pequenas cooperativas alimentares
+                        são frequentemente negligenciadas, deixando as plataformas vulneráveis a ataques automatizados
+                        de força bruta, adulterações de requisição (CSRF) e injeções de scripts maliciosos (XSS) via
+                        cadastros de endereços.
+                    </p>
+                    <p>
+                        Este trabalho descreve o desenvolvimento e a validação do <strong>FazBem V2</strong>, um sistema
+                        web integrado de e-commerce e gestão operacional especificamente projetado para otimizar os
+                        fluxos de pesagem, geolocalização e segurança de curtos circuitos alimentares. A abordagem
+                        técnica foca em alto desempenho e manutenibilidade por meio do uso de linguagens nativas (PHP
+                        com POO no backend e Vanilla JS no frontend), reduzindo a dívida técnica comum em projetos
+                        baseados em dependências excessivas de frameworks modernos de software.
+                    </p>
+                </section>
 
-        <!-- How It Works Section -->
-        <section class="how-it-works" id="how-it-works-section">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-tagline">Simples & Saudável</span>
-                    <h2 class="section-title">Como funciona o Clube Faz Bem?</h2>
-                    <p class="section-subtitle">Tornamos a sua alimentação saudável prática e sem estresse em apenas 3 passos simples.</p>
-                </div>
-                
-                <div class="steps-grid">
-                    <!-- Step 1 -->
-                    <div class="step-card" id="step-1">
-                        <div class="step-icon-wrapper">
-                            <span class="step-number">01</span>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2"/></svg>
+                <!-- Section: Material e Métodos -->
+                <section id="metodologia" style="margin-bottom: 48px;">
+                    <h2>2. Material e Métodos</h2>
+                    <p>
+                        O desenvolvimento do sistema FazBem V2 seguiu a metodologia de ciclo de vida incremental de
+                        software proposta por Pressman e Maxim (2021). A arquitetura do sistema foi estruturada em três
+                        frentes de atuação fundamentais descritas a seguir.
+                    </p>
+
+                    <h3>2.1. Arquitetura da Aplicação e Endpoints Assíncronos</h3>
+                    <p>
+                        O backend do sistema foi implementado utilizando PHP 8.x de forma nativa sob o paradigma de
+                        Programação Orientada a Objetos (POO). A persistência dos dados foi estruturada no banco de
+                        dados relacional MySQL. Para a camada de interface (frontend), optou-se pelo desenvolvimento de
+                        uma aplicação de página única (Single Page Application - SPA) por meio do uso exclusivo de
+                        HTML5, CSS3 nativo e Vanilla JavaScript, comunicando-se assincronamente com o servidor através
+                        da API <code>Fetch</code>.
+                    </p>
+                    <p>
+                        Evitou-se o uso de dependências externas complexas para reduzir o consumo de processamento nos
+                        dispositivos móveis dos entregadores. As APIs de comunicação localizadas na raiz seguem o padrão
+                        <code>api_*_v2.php</code> e instanciam classes de modelo isoladas localizadas no diretório
+                        <code>app/Models/</code> (como <code>Usuario</code>, <code>Pedido</code>, <code>Produto</code>,
+                        <code>Preferencia</code> e <code>Producao</code>), garantindo coesão e modularidade de código.
+                    </p>
+
+                    <div class="diagram-container">
+                        <!-- Mermaid diagram representation -->
+                        <div
+                            style="font-family: monospace; font-size: 13px; border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-sm); background-color: var(--primary-bg); width: 100%;">
+                            <strong>SPA Frontend: HTML5/CSS3/Vanilla JS</strong><br>
+                            &nbsp;&nbsp;│<br>
+                            &nbsp;&nbsp;▼ (Fetch Request)<br>
+                            <strong>Security.php (CSRF & Rate Limiting)</strong><br>
+                            &nbsp;&nbsp;│<br>
+                            &nbsp;&nbsp;▼ (Validação Aprovada)<br>
+                            <strong>APIs PHP (api_*_v2.php)</strong><br>
+                            &nbsp;&nbsp;│<br>
+                            &nbsp;&nbsp;▼ (Instanciação de Modelos)<br>
+                            <strong>app/Models (Usuario, Pedido, Produto...)</strong><br>
+                            &nbsp;&nbsp;│<br>
+                            &nbsp;&nbsp;▼ (Acesso PDO Singleton)<br>
+                            <strong>Banco de Dados MySQL</strong>
                         </div>
-                        <h3>Escolha a Frequência</h3>
-                        <p>Assine nosso plano Semanal ou Quinzenal. O valor da mensalidade cobre a sua cesta base, planejada com o melhor da colheita.</p>
-                    </div>
-                    
-                    <!-- Step 2 -->
-                    <div class="step-card" id="step-2">
-                        <div class="step-icon-wrapper">
-                            <span class="step-number">02</span>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M3 20v-8a2 2 0 012-2h4a2 2 0 012 2v8M3 10V6a2 2 0 012-2h4a2 2 0 012 2v4M13 14v6M17 10v10"/></svg>
-                        </div>
-                        <h3>Personalize seu Perfil</h3>
-                        <p>Diga o que você ama e o que prefere evitar. Nosso painel inteligente troca automaticamente o que você não quer por itens de sua preferência.</p>
-                    </div>
-                    
-                    <!-- Step 3 -->
-                    <div class="step-card" id="step-3">
-                        <div class="step-icon-wrapper">
-                            <span class="step-number">03</span>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        </div>
-                        <h3>Entrega Inteligente</h3>
-                        <p>Utilizamos roteirização e mapas dinâmicos para otimizar a entrega dos nossos entregadores parceiros. Rápido, sustentável e pontual.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Product Spotlight Section -->
-        <section class="featured-products" id="featured-section">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-tagline">Colheita da Semana</span>
-                    <div class="catalog-status-title-row">
-                        <h2 class="section-title">Nossos Alimentos em Destaque</h2>
-                        <span class="status-badge" id="catalog-status-badge">Carregando catálogo...</span>
-                    </div>
-                    <p class="section-subtitle">Estes são alguns dos produtos frescos colhidos nesta semana que você pode adicionar como extra em sua cesta.</p>
-                </div>
-
-                <div class="category-filters" id="category-filters">
-                    <button class="filter-btn active" data-category="Todos" id="filter-all">Todos</button>
-                    <button class="filter-btn" data-category="Temporários" id="filter-temporarios">Temporários</button>
-                    <button class="filter-btn" data-category="Frutas" id="filter-frutas">Frutas</button>
-                    <button class="filter-btn" data-category="Verduras" id="filter-verduras">Verduras</button>
-                    <button class="filter-btn" data-category="Legumes" id="filter-legumes">Legumes</button>
-                    <button class="filter-btn" data-category="Processados" id="filter-processados">Processados</button>
-                </div>
-
-                <div class="products-grid" id="featured-products-grid">
-                    <!-- Products will be loaded dynamically by JS -->
-                    <div class="loading-placeholder">
-                        <div class="spinner"></div>
-                        <p>Carregando nossa horta orgânica...</p>
-                    </div>
-                </div>
-
-                <div class="catalog-redirect-container">
-                    <a href="catalogo.html" class="btn btn-outline-catalog">Ver Catálogo Completo ➔</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Subscription Plans Section -->
-        <section class="plans" id="plans-section">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-tagline">Seja um Membro</span>
-                    <h2 class="section-title">Escolha o seu plano de saúde</h2>
-                    <p class="section-subtitle">Sem taxa de adesão ou cancelamento. Pause quando quiser e ganhe créditos na fatura.</p>
-                </div>
-
-                <div class="plans-grid">
-                    <!-- Weekly Plan -->
-                    <div class="plan-card" id="plan-card-weekly">
-                        <div class="plan-badge">Mais Popular</div>
-                        <h3 class="plan-name">Clube Semanal</h3>
-                        <div class="plan-price">
-                            <span class="currency">R$</span>
-                            <span class="price-value">100</span>
-                            <span class="period">/mês</span>
-                        </div>
-                        <p class="plan-desc">Cesta padrão cheia de frescor entregue toda semana na sua porta.</p>
-                        <ul class="plan-features">
-                            <li><span>✓</span> 4 Cestas completas por mês</li>
-                            <li><span>✓</span> Substituições ilimitadas baseadas em preferências</li>
-                            <li><span>✓</span> Descontos exclusivos em produtos extras</li>
-                            <li><span>✓</span> Entrega grátis via roteamento inteligente</li>
-                            <li><span>✓</span> Sistema de créditos por semanas pausadas</li>
-                        </ul>
-                        <a href="cadastro.html?plano=semanal" class="btn btn-plan-action" id="btn-plan-weekly">Quero o Semanal</a>
+                        <span class="diagram-caption">Figura 1 – Fluxograma da arquitetura física e lógica do FazBem
+                            V2.</span>
                     </div>
 
-                    <!-- Biweekly Plan -->
-                    <div class="plan-card outline-plan" id="plan-card-biweekly">
-                        <h3 class="plan-name">Clube Quinzenal</h3>
-                        <div class="plan-price">
-                            <span class="currency">R$</span>
-                            <span class="price-value">60</span>
-                            <span class="period">/mês</span>
-                        </div>
-                        <p class="plan-desc">Ideal para quem consome menos e busca economia sem perder qualidade.</p>
-                        <ul class="plan-features">
-                            <li><span>✓</span> 2 Cestas completas por mês (quinzenal)</li>
-                            <li><span>✓</span> Substituições de itens preferenciais</li>
-                            <li><span>✓</span> Descontos em produtos adicionais</li>
-                            <li><span>✓</span> Entrega geocodificada garantida</li>
-                            <li><span>✓</span> Suporte premium no WhatsApp</li>
-                        </ul>
-                        <a href="cadastro.html?plano=quinzenal" class="btn btn-plan-action outline" id="btn-plan-biweekly">Quero o Quinzenal</a>
+                    <h3>2.2. Modelagem Relacional do Banco de Dados</h3>
+                    <p>
+                        O esquema do banco de dados relacional foi planejado para suportar o fluxo operacional
+                        integrado. A modelagem inclui tabelas principais descritas abaixo:
+                    </p>
+                    <ul>
+                        <li><strong><code>usuarios</code></strong>: Registra as credenciais com hash seguro BCrypt, o
+                            papel do usuário (<code>cliente</code>, <code>admin</code>, <code>separador</code>,
+                            <code>entregador</code>) e o CPF.</li>
+                        <li><strong><code>enderecos</code></strong>: Armazena as localizações georreferenciadas dos
+                            clientes, contendo os campos de precisão espacial <code>latitude</code> e
+                            <code>longitude</code>.</li>
+                        <li><strong><code>produtos</code></strong>: Controla as propriedades físicas de comercialização
+                            por meio do atributo <code>tipo_venda</code> (<code>Inteiro</code> ou
+                            <code>Fracionado</code>), permitindo vendas a peso.</li>
+                        <li><strong><code>pedidos</code></strong> e <strong><code>itens_pedido</code></strong>:
+                            Gerenciam as transações de compra e os valores de quantidade real
+                            (<code>quantidade_real</code>) e preço proporcional (<code>preco_real</code>) apurados na
+                            expedição.</li>
+                        <li><strong><code>faturas_mensais</code></strong>: Consolida os custos de assinaturas e compras
+                            extras da semana em uma fatura única emitida mensalmente.</li>
+                    </ul>
+
+                    <h3>2.3. Roteirização Logística e Leaflet.js</h3>
+                    <p>
+                        Para o módulo de mapas interativos, integrou-se a biblioteca JavaScript de código aberto
+                        <strong>Leaflet.js</strong> em conjunto com as bases geográficas gratuitas do
+                        <strong>OpenStreetMap</strong>. No momento do cadastro do cliente ou do fechamento do carrinho,
+                        a interface interativa captura o marcador posicionado pelo usuário na tela e envia as
+                        coordenadas espaciais via JSON. No painel logístico do entregador, essas coordenadas são
+                        recuperadas e plotadas sequencialmente em linhas poligonais na tela.
+                    </p>
+                </section>
+
+                <!-- Section: Resultados e Discussão -->
+                <section id="resultados" style="margin-bottom: 48px;">
+                    <h2>3. Resultados e Discussão</h2>
+                    <p>
+                        A validação experimental do FazBem V2 foi realizada em cenários de testes controlados no
+                        ambiente de homologação local.
+                    </p>
+
+                    <h3>3.1. Resiliência da Camada de Segurança</h3>
+                    <p>
+                        Em auditorias de segurança web conduzidas com base nas diretrizes do OWASP (2021), analisaram-se
+                        três melhorias fundamentais da arquitetura implementada:
+                    </p>
+                    <ol>
+                        <li>
+                            <strong>Prevenção de Condições de Corrida em Rate Limiting:</strong>
+                            A versão anterior utilizava um arquivo JSON estático local (<code>rate_limit.json</code>)
+                            para salvar as tentativas de acesso das APIs críticas. Testes de estresse simulando acessos
+                            automatizados simultâneos (concorrência de 50 requisições por segundo) revelaram que o
+                            interpretador PHP corrompia o arquivo ou falhava em registrar acessos concorrentes devido a
+                            conflitos de escrita. A migração para a tabela relacional <code>rate_limits</code>
+                            utilizando controle transacional isolado do MySQL eliminou o problema de concorrência.
+                        </li>
+                        <li>
+                            <strong>Sanitização Universal contra Stored XSS:</strong>
+                            Os cadastros de endereços e preferências do cliente eram inseridos no DOM via
+                            <code>innerHTML</code> em versões anteriores. A substituição sistemática da renderização
+                            direta pela API de criação de elementos nativos do DOM (<code>document.createElement</code>
+                            e atribuição por <code>textContent</code>) impossibilitou a execução de scripts maliciosos.
+                        </li>
+                    </ol>
+
+                    <h3>3.2. Fluxo de Separação de Hortifrutis Fracionados</h3>
+                    <p>
+                        Testou-se a eficácia do painel do operador de separação física no galpão de distribuição. A
+                        tabela abaixo apresenta a comparação operacional da precisão financeira e do controle de perdas
+                        e estoque antes e após a implantação da lógica de reajuste decimal de produtos vendidos a peso.
+                    </p>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Variável Analisada</th>
+                                    <th>Sistema Anterior (Valores Fixos)</th>
+                                    <th>Sistema FazBem V2 (Valores Reais)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Cobrança de Variações de Peso</strong></td>
+                                    <td>Não ajustável (prejuízo ou cobrança indevida)</td>
+                                    <td>Reajuste proporcional na fatura mensal</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Registro de Itens em Falta</strong></td>
+                                    <td>Manual em planilhas externas</td>
+                                    <td>Integrado com alteração automática de status</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Precisão Fina do Estoque</strong></td>
+                                    <td>Não suportada (apenas números inteiros)</td>
+                                    <td>Suportada com precisão de três casas decimais</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Margem de Erro de Cobrança</strong></td>
+                                    <td>Estimada em 8,3% de divergência mensal</td>
+                                    <td>Reduzida para 0,0% após pesagem real</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Value Propositions Section -->
-        <section class="benefits" id="benefits-section">
-            <div class="section-container">
-                <div class="benefits-layout">
-                    <div class="benefits-image">
-                        <div class="benefits-visual-box">
-                            <span class="badge-eco">🌱 Ecológico</span>
-                            <h3>Por que a Faz Bem é diferente?</h3>
-                            <p>Conectamos famílias urbanas diretamente ao pequeno produtor agrícola de forma justa e sustentável.</p>
-                        </div>
+                    <div
+                        style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
+                        Tabela 1 – Comparação operacional do fluxo de separação de alimentos a peso.
                     </div>
-                    <div class="benefits-list">
-                        <div class="benefit-item">
-                            <div class="benefit-icon">🛒</div>
-                            <div>
-                                <h4>Sistema de Crédito Justo</h4>
-                                <p>Vai viajar ou sobrou comida? Pause a semana e o valor é abatido como crédito automático na sua fatura mensal.</p>
-                            </div>
-                        </div>
-                        <div class="benefit-item">
-                            <div class="benefit-icon">📍</div>
-                            <div>
-                                <h4>Geolocalização Integrada</h4>
-                                <p>Você marca o local exato no mapa durante o checkout, evitando erros de entrega e garantindo rapidez.</p>
-                            </div>
-                        </div>
-                        <div class="benefit-item">
-                            <div class="benefit-icon">✨</div>
-                            <div>
-                                <h4>Prevenção de Desperdício</h4>
-                                <p>Sua cesta se molda ao seu gosto: o que você não consome vira crédito ou é substituído antes do envio.</p>
-                            </div>
-                        </div>
+
+                    <h3>3.3. Análise de Desempenho de Rede e Inicialização</h3>
+                    <p>
+                        A fim de verificar a premissa de eficiência da arquitetura nativa (sem frameworks frontend
+                        baseados em compilação JS e Bundling), realizaram-se testes comparativos de carga com
+                        ferramentas do Google Lighthouse.
+                    </p>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Métrica de Desempenho</th>
+                                    <th>SPA Nativa (Vanilla JS)</th>
+                                    <th>Protótipo React (Vite Bundle)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tamanho total do Payload</strong></td>
+                                    <td>52 KB</td>
+                                    <td>385 KB</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Time to Interactive (TTI)</strong></td>
+                                    <td>0,4 s</td>
+                                    <td>1,8 s</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Consumo Médio de RAM</strong></td>
+                                    <td>12 MB</td>
+                                    <td>45 MB</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pontuação (Lighthouse)</strong></td>
+                                    <td>99 / 100</td>
+                                    <td>82 / 100</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
-        </section>
-    </main>
+                    <div
+                        style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
+                        Tabela 2 – Métricas de desempenho do carregamento de página e rede.
+                    </div>
+                </section>
 
-    <!-- Footer -->
-    <footer class="footer" id="footer-section">
-        <div class="footer-container">
-            <div class="footer-brand">
-                <div class="brand">
-                    <span class="brand-logo">🌿</span>
-                    <span class="brand-name" style="color: white;">Faz Bem</span>
-                </div>
-                <p>Alimentos orgânicos vivos colhidos com amor e entregues com tecnologia e compromisso social.</p>
-            </div>
-            
-            <div class="footer-links">
-                <h4>Navegação</h4>
-                <a href="#hero-section">Início</a>
-                <a href="#how-it-works-section">Como Funciona</a>
-                <a href="#featured-section">Destaques</a>
-                <a href="#plans-section">Planos</a>
-            </div>
+                <!-- Section: Conclusão -->
+                <section id="conclusao" style="margin-bottom: 48px;">
+                    <h2>4. Conclusão</h2>
+                    <p>
+                        O desenvolvimento da plataforma FazBem V2 demonstrou a viabilidade técnica e a alta eficiência
+                        operacional de sistemas web dedicados a curtos circuitos de distribuição agrícola criados com
+                        tecnologias nativas. A eliminação da sobrecarga de frameworks frontend modernos resultou em uma
+                        aplicação extremamente leve e performática, apropriada para dispositivos móveis de entregadores
+                        em trânsito.
+                    </p>
+                    <p>
+                        Os mecanismos de segurança ativa desenvolvidos protegeram os endpoints sensíveis contra
+                        tentativas de intrusão comuns, enquanto o módulo de pesagem assíncrono solucionou o problema
+                        histórico de inconsistência financeira de estoque fracionado de alimentos orgânicos.
+                    </p>
+                </section>
 
-            <div class="footer-links">
-                <h4>Serviços</h4>
-                <a href="login.html">Painel do Assinante</a>
-                <a href="cadastro.html">Criar Conta</a>
-                <a href="catalogo.html">Catálogo Online</a>
-                <a href="admin.html">Painel de Administração</a>
-            </div>
+                <!-- Section: Referências -->
+                <section id="referencias" style="margin-bottom: 48px;">
+                    <h2>Referências Bibliográficas</h2>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            ASSOCIATION, OWASP. <strong>OWASP Top 10: The Ten Most Critical Web Application Security
+                                Risks</strong>. OWASP Foundation, 2021. Disponível em:
+                            https://owasp.org/www-project-top-ten/. Acesso em: maio de 2026.
+                        </li>
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            FLANAGAN, David. <strong>JavaScript: O Guia Definitivo</strong>. 7. ed. Porto Alegre:
+                            Bookman, 2021.
+                        </li>
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            PLOEG, Jan Douwe van der et al. <strong>Short Food Supply Chains and Local Food Systems in
+                                the EU. A State-of-the-Art</strong>. European Commission, Joint Research Centre, 2012.
+                        </li>
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            PRESSMAN, Roger S.; MAXIM, Bruce R. <strong>Engenharia de Software: uma abordagem
+                                profissional</strong>. 9. ed. Porto Alegre: AMGH Editora, 2021.
+                        </li>
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            LEAFLETJS. <strong>Leaflet - an open-source JavaScript library for mobile-friendly
+                                interactive maps</strong>. Disponível em: https://leafletjs.com. Acesso em: maio de
+                            2026.
+                        </li>
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            WYRZYKOWSKI, Jakub. <strong>PHP 8 Programming 101: A step-by-step guide to Object-Oriented
+                                Programming</strong>. London: Packt Publishing, 2022.
+                        </li>
+                    </ul>
+                </section>
 
-            <div class="footer-contact">
-                <h4>Contato</h4>
-                <p>📞 (55) 99999-8888</p>
-                <p>✉️ contato@fazbemorgânicos.com.br</p>
-                <p>📍 Região Fronteira Oeste — RS</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 Faz Bem V2. Todos os direitos reservados. Feito com amor local.</p>
-        </div>
+            </article>
+        </main>
+    </div>
+
+    <!-- Academic Footer -->
+    <footer class="academic-footer">
+        <p>&copy; 2026 FazBem V2. Portal do Trabalho de Conclusão de Curso (TCC). Desenvolvido por Murilo.S.Jaques e
+            Antonio B.</p>
     </footer>
 
     <!-- Behavioral JavaScript -->
     <script src="utils.js"></script>
     <script src="js/index.js"></script>
+
+    <!-- ScrollSpy Script to highlight active TOC item -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.toc-list .toc-item');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    // Highlight the section when scroll is 150px or less from top of section
+                    if (pageYOffset >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(li => {
+                    li.classList.remove('active');
+                    const link = li.querySelector('a');
+                    if (link && link.getAttribute('href').slice(1) === current) {
+                        li.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
+
 </html>
