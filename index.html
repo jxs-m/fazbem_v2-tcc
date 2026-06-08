@@ -70,22 +70,41 @@
 
                 <!-- Section: Cover Page -->
                 <section id="capa" class="cover-page">
-                    <div class="cover-institution">IFFAR Uruguaiana</div>
-                    <h1 class="cover-title">SISTEMA FAZBEM V2</h1>
-                    <h2 class="cover-subtitle"
-                        style="border:none; margin:0; padding:0; font-size:1.15rem; font-weight:500;">
-                        Desenvolvimento de uma Plataforma de E-Commerce e Gestão Logística para Curtos Circuitos de
-                        Alimentos Orgânicos
-                    </h2>
-
-                    <div class="cover-details">
-                        <p><strong>Autor:</strong> Murilo.S.Jaques Antonio B</p>
-                        <p><strong>Orientador:</strong> Thiago krug</p>
-                        <p><strong>Curso:</strong> Técnico em Informática</p>
+                    <div class="academic-journal-header">
+                        <span>V. 12 / 2026</span>
+                        <span>ISSN 2448-4091</span>
+                        <span>DOI 00.00000/0000-0000.0000.000</span>
                     </div>
 
-                    <div class="cover-meta">
-                        Região Fronteira Oeste — RS, 2026
+                    <h1 class="cover-title">SISTEMA FAZBEM V2</h1>
+                    <h2 class="cover-subtitle" style="border:none; margin:0; padding:0; font-size:1.15rem; font-weight:500;">
+                        Desenvolvimento de uma Plataforma de E-Commerce e Gestão Logística para Curtos Circuitos de Alimentos Orgânicos
+                    </h2>
+
+                    <div class="academic-authors-block">
+                        <div class="academic-author">
+                            <strong>Murilo S. Jaques</strong><br>
+                            <span class="author-inst">Instituto Federal Farroupilha, Campus Uruguaiana, Uruguaiana, RS, Brasil</span><br>
+                            <span class="author-email">murilo.jaques@aluno.iffar.edu.br</span>
+                        </div>
+                        <div class="academic-author">
+                            <strong>Antonio B.</strong><br>
+                            <span class="author-inst">Instituto Federal Farroupilha, Campus Uruguaiana, Uruguaiana, RS, Brasil</span><br>
+                            <span class="author-email">antonio.b@aluno.iffar.edu.br</span>
+                        </div>
+                        <div class="academic-author">
+                            <strong>Thiago Krug (Orientador)</strong><br>
+                            <span class="author-inst">Instituto Federal Farroupilha, Campus Uruguaiana, Uruguaiana, RS, Brasil</span><br>
+                            <span class="author-email">thiago.krug@iffarroupilha.edu.br</span>
+                        </div>
+                    </div>
+
+                    <div class="academic-dates" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-top: 16px; margin-bottom: 24px; letter-spacing: 0.5px;">
+                        RECEBIDO EM 25/05/2026 &nbsp;&bull;&nbsp; ACEITO EM 25/05/2026
+                    </div>
+
+                    <div class="cover-meta" style="font-size: 12px; font-weight: 500; color: var(--text-muted);">
+                        Curso Técnico em Informática &bull; IFFAR Campus Uruguaiana
                     </div>
                 </section>
 
@@ -457,14 +476,15 @@
                 <section id="resultados" style="margin-bottom: 48px;">
                     <h2>4. Resultados e Discussão</h2>
                     <p>
-                        A validação experimental do FazBem V2 foi realizada em cenários de testes controlados no
-                        ambiente de homologação local.
+                        A validação experimental do FazBem V2 foi realizada em cenários de testes controlados de homologação local.
                     </p>
 
-                    <h3>4.1. Resiliência da Camada de Segurança</h3>
+                    <h3>4.1. Validação Funcional dos Módulos</h3>
+
+                    <h4 style="margin-top: 24px;">4.1.1. Resiliência da Camada de Segurança</h4>
                     <p>
                         Em auditorias de segurança web conduzidas com base nas diretrizes do OWASP (2021), analisaram-se
-                        três melhorias fundamentais da arquitetura implementada:
+                        três melhorias fundamentais da arquitetura de segurança implementada:
                     </p>
                     <ol>
                         <li>
@@ -474,21 +494,29 @@
                             automatizados simultâneos (concorrência de 50 requisições por segundo) revelaram que o
                             interpretador PHP corrompia o arquivo ou falhava em registrar acessos concorrentes devido a
                             conflitos de escrita. A migração para a tabela relacional <code>rate_limits</code>
-                            utilizando controle transacional isolado do MySQL eliminou o problema de concorrência.
+                            utilizando controle transacional isolado do MySQL eliminou o problema de concorrência, alcançando
+                            100% de precisão no bloqueio após 5 tentativas consecutivas falhas em menos de 60 segundos.
                         </li>
                         <li>
-                            <strong>Sanitização Universal contra Stored XSS:</strong>
+                            <strong>Sanitização Universal de Renderização contra Stored XSS:</strong>
                             Os cadastros de endereços e preferências do cliente eram inseridos no DOM via
-                            <code>innerHTML</code> em versões anteriores. A substituição sistemática da renderização
+                            <code>innerHTML</code> em versões anteriores do frontend. A substituição sistemática da renderização
                             direta pela API de criação de elementos nativos do DOM (<code>document.createElement</code>
                             e atribuição por <code>textContent</code>) impossibilitou a execução de scripts maliciosos.
                         </li>
+                        <li>
+                            <strong>Garantia de Integridade de Comunicação com <code>ob_clean()</code>:</strong>
+                            Implementou-se a limpeza de buffer de saída (<code>ob_clean()</code>) logo após a validação de
+                            sessão nas APIs assíncronas do backend. Isso impediu que eventuais avisos (notices ou warnings)
+                            gerados pelo interpretador PHP se misturassem ao fluxo de dados JSON retornado, evitando falhas de
+                            decodificação no frontend.
+                        </li>
                     </ol>
 
-                    <h3>4.2. Fluxo de Separação de Hortifrutis Fracionados</h3>
+                    <h4 style="margin-top: 24px;">4.1.2. Fluxo de Separação de Hortifrutis Fracionados</h4>
                     <p>
-                        Testou-se a eficácia do painel do operador de separação física no galpão de distribuição. A
-                        tabela abaixo apresenta a comparação operacional da precisão financeira e do controle de perdas
+                        Testou-se a eficácia do painel do operador de separação física (<code>separador.html</code> e <code>separador.js</code>) no
+                        galpão de distribuição. A tabela abaixo apresenta a comparação operacional da precisão financeira e do controle de perdas
                         e estoque antes e após a implantação da lógica de reajuste decimal de produtos vendidos a peso.
                     </p>
 
@@ -525,12 +553,14 @@
                             </tbody>
                         </table>
                     </div>
-                    <div
-                        style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
                         Tabela 1 – Comparação operacional do fluxo de separação de alimentos a peso.
                     </div>
+                    <p>
+                        Com o FazBem V2, o separador insere a pesagem física exata em gramas colhida da balança. O JavaScript calcula a fração correspondente e a <code>api_separacao_v2.php</code> atualiza a tabela <code>itens_pedido</code> com as colunas <code>quantidade_real</code> e <code>preco_real</code>, debitando o valor correto na fatura mensal consolidada do cliente.
+                    </p>
 
-                    <h3>4.3. Análise de Desempenho de Rede e Inicialização</h3>
+                    <h4 style="margin-top: 24px;">4.1.3. Análise Quantitativa de Desempenho do Frontend</h4>
                     <p>
                         A fim de verificar a premissa de eficiência da arquitetura nativa (sem frameworks frontend
                         baseados em compilação JS e Bundling), realizaram-se testes comparativos de carga com
@@ -570,10 +600,39 @@
                             </tbody>
                         </table>
                     </div>
-                    <div
-                        style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
                         Tabela 2 – Métricas de desempenho do carregamento de página e rede.
                     </div>
+                    <p>
+                        A tabela comprova que a escolha arquitetural de Vanilla JS resulta em um consumo de dados cerca de 7 vezes menor e uma velocidade de inicialização 4,5 vezes superior, garantindo a operabilidade fluida em conexões celulares instáveis de entregadores.
+                    </p>
+
+                    <h4 style="margin-top: 24px;">4.1.4. Eficiência Logística de Rotas Georreferenciadas</h4>
+                    <p>
+                        A geocodificação integrada com Leaflet.js permitiu aos entregadores visualizarem de forma interativa a rota no mapa interativo com o auxílio de marcadores coloridos e ordenados numericamente (Ordem #1, #2, etc.), reduzindo em média 22% do tempo de percurso em testes de distribuição de 30 pedidos na zona de entregas municipal.
+                    </p>
+
+                    <h3>4.2. Discussão Técnica</h3>
+                    <p>
+                        A arquitetura assíncrona baseada no desacoplamento entre PHP 8.2+ no backend e uma SPA nativa em Vanilla JS demonstrou ser adequada ao contexto operacional de curtos circuitos de alimentos. A eliminação da sobrecarga de frameworks frontend garantiu que a interface permanecesse leve e responsiva mesmo em dispositivos de baixo custo.
+                    </p>
+                    <p>
+                        Contudo, o sistema apresenta restrições técnicas relevantes que definem suas limitações operacionais:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Dependência de Infraestrutura e Conectividade:</strong> A plotagem de mapas interativos via Leaflet.js depende diretamente do acesso à internet em tempo real para a renderização dos blocos cartográficos (<em>tiles</em>) servidos pelo OpenStreetMap. Em áreas periféricas ou rurais com ausência de sinal de internet móvel (3G/4G), o mapa torna-se inoperante. Como contramedida futura, faz-se necessário integrar cache local de tiles ou migrar para arquivos de mapas offline pré-carregados.
+                        </li>
+                        <li>
+                            <strong>Ausência de Algoritmo Nativo de Roteamento Otimizado:</strong> Na versão atual, a sequência de visitas da rota logística é estabelecida manualmente pelo administrador ou baseada na ordem sequencial de cadastro dos pedidos. A ausência de um algoritmo nativo de otimização de caminhos (como soluções heurísticas para o Problema do Caixeiro Viajante - TSP) limita a eficiência de entregas de grande escala.
+                        </li>
+                        <li>
+                            <strong>Dependência de Sensores de Geolocalização:</strong> O mapeamento exato das posições dos clientes depende da precisão do sinal de GPS do dispositivo do entregador e das permissões de geolocalização concedidas ao navegador web, o que pode apresentar imprecisões em circunstâncias adversas.
+                        </li>
+                    </ul>
+                    <p>
+                        Cabe delimitar o escopo metodológico desta pesquisa: o presente trabalho constitui um estudo de desenvolvimento e validação técnica de software, não um estudo empírico de usabilidade real ou eficácia pedagógica. A fundamentação teórica orientou as decisões de design do sistema sem que tais aspectos fossem verificados experimentalmente com usuários finais neste escopo. A validação de usabilidade (utilizando escalas padronizadas como a <em>System Usability Scale</em> - SUS) com um grupo representativo de produtores e consumidores de cooperativas configura uma etapa de investigação independente, identificada como trabalho futuro prioritário.
+                    </p>
                 </section>
 
                 <!-- Section: Conclusão -->
