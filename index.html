@@ -422,7 +422,7 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="diagram-caption">Figura 1 – Fluxograma de funcionamento e arquitetura lógica/física do FazBem V2.</span>
+                        <span class="diagram-caption">FIGURA 1 – Fluxograma de funcionamento e arquitetura lógica/física do FazBem V2.</span>
                     </div>
 
                     <h3>3.2. Modelagem Relacional do Banco de Dados</h3>
@@ -484,7 +484,7 @@
                         Os testes de validação funcional e de desempenho do sistema FazBem foram conduzidos em um ambiente controlado composto por um servidor local Apache (PHP 8.2+ e MySQL 8.0) executado em uma estação de trabalho equipada com processador AMD Ryzen e 16 GB de RAM, simulando a infraestrutura de baixo custo de um pequeno negócio. A validação em campo do módulo logístico utilizou smartphones Android (conectados a redes móveis 4G) para avaliar a renderização dos mapas em tempo real.
                     </p>
                     <p>
-                        Durante uma sessão de homologação operacional simulando o pico de demandas semanais, o sistema processou com sucesso 200 requisições assíncronas simultâneas via Fetch API, englobando rotinas de checkout, pesagem fracionada e atualização de inventário. A automação do catálogo digital eliminou a necessidade de consolidar manualmente mensagens descentralizadas, reduzindo o tempo despendido pelo gestor no processamento de pedidos de 12 horas semanais para menos de 1 hora, conforme evidenciado no painel de controle administrativo ilustrado na Figura 2.
+                        Durante uma sessão de homologação operacional simulando o pico de demandas semanais, o sistema processou com sucesso 200 requisições assíncronas simultâneas via Fetch API, englobando rotinas de checkout, pesagem fracionada e atualização de inventário. A automação do catálogo digital eliminou a necessidade de consolidar manualmente mensagens descentralizadas, reduzindo o tempo despendido pelo gestor no processamento de pedidos de 12 horas semanais para menos de 1 hora, conforme evidenciado no painel de controle administrativo ilustrado na FIGURA 2, o qual centraliza os indicadores de demanda sem sobrecarregar o processamento no servidor.
                     </p>
 
                     <div style="background-color: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; padding: 32px; text-align: center; margin: 24px 0;">
@@ -492,11 +492,11 @@
                         <span style="font-size: 14px; font-weight: 500; color: var(--text-color); display: block;">[Inserir print do painel administrativo aqui]</span>
                     </div>
                     <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
-                        Figura 2 — Painel Administrativo de Monitoramento de Faturamento e Estoque. Fonte: elaborado pelos autores (2026).
+                        FIGURA 2 — Painel Administrativo de Monitoramento de Faturamento e Estoque. Fonte: elaborado pelos autores (2026).
                     </div>
 
                     <p>
-                        A pesagem física exata em gramas colhida pelo separador no galpão é inserida no painel. O cálculo automatizado da fração correspondente e a atualização em tempo real do estoque e preço real na tabela <code>itens_pedido</code> é exibido no catálogo de itens fracionados ilustrado na Figura 3. Isso eliminou a margem de erro de faturamento (estimada anteriormente em 8,3% de divergência mensal), garantindo que a cobrança na fatura mensal consolidada do cliente coincida perfeitamente com a pesagem real.
+                        A pesagem física exata em gramas colhida pelo separador no galpão é inserida no painel, disparando o cálculo automatizado da fração correspondente e a atualização em tempo real do estoque e preço real na tabela <code>itens_pedido</code>, conforme exibido na interface de itens fracionados (FIGURA 3). Esse mecanismo assíncrono eliminou a margem de erro de faturamento (estimada anteriormente em 8,3% de divergência mensal), garantindo que a cobrança na fatura mensal consolidada do cliente coincida perfeitamente com a pesagem real, assegurando a integridade relacional dos dados financeiros.
                     </p>
 
                     <div style="background-color: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; padding: 32px; text-align: center; margin: 24px 0;">
@@ -504,11 +504,11 @@
                         <span style="font-size: 14px; font-weight: 500; color: var(--text-color); display: block;">[Inserir print do catálogo e seleção de itens fracionados aqui]</span>
                     </div>
                     <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
-                        Figura 3 — Catálogo Digital e Interface de Seleção de Itens Fracionados. Fonte: elaborado pelos autores (2026).
+                        FIGURA 3 — Catálogo Digital e Interface de Seleção de Itens Fracionados. Fonte: elaborado pelos autores (2026).
                     </div>
 
                     <p>
-                        O módulo de logística baseado na biblioteca Leaflet.js eliminou por completo o planejamento manual baseado em listagens físicas de papel. Ao carregar as coordenadas obtidas via HTML5 Geolocation API, a interface do entregador (Figura 4) passou a exibir os marcadores espaciais ordenados sequencialmente. Esta visualização dinâmica e interativa vai ao encontro do que defendem Moran, Masetto e Behrens (2000), ao afirmarem que ferramentas que integram representações geográficas dinâmicas reduzem a carga cognitiva extrínseca (Sweller, 1988) imposta ao operador no momento da tomada de decisão em rotas urbanas.
+                        O módulo de logística baseado na biblioteca Leaflet.js eliminou por completo o planejamento manual baseado em listagens físicas de papel. Ao carregar as coordenadas obtidas via HTML5 Geolocation API, a interface do entregador (FIGURA 4) passou a exibir os marcadores espaciais ordenados sequencialmente. Esta visualização dinâmica e interativa vai ao encontro do que defendem Moran, Masetto e Behrens (2000), ao afirmarem que ferramentas que integram representações geográficas dinâmicas reduzem a carga cognitiva extrínseca (Sweller, 1988) imposta ao operador no momento da tomada de decisão em rotas urbanas.
                     </p>
 
                     <div style="background-color: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; padding: 32px; text-align: center; margin: 24px 0;">
@@ -516,11 +516,11 @@
                         <span style="font-size: 14px; font-weight: 500; color: var(--text-color); display: block;">[Inserir print do mapa com as rotas aqui]</span>
                     </div>
                     <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
-                        Figura 4 — Módulo de Logística com Mapa Interativo e Rotas Ordenadas Georreferenciadas. Fonte: elaborado pelos autores (2026).
+                        FIGURA 4 — Módulo de Logística com Mapa Interativo e Rotas Ordenadas Georreferenciadas. Fonte: elaborado pelos autores (2026).
                     </div>
 
                     <p>
-                        A fim de atestar quantitativamente o desempenho, testes comparativos de carga entre a SPA nativa do FazBem V2 (Vanilla JS) e um protótipo construído em React/Vite demonstraram a eficiência do modelo nativo. O tamanho do payload foi reduzido de 385 KB para 52 KB (uma redução de 7 vezes), enquanto o Time to Interactive (TTI) caiu de 1,8 s para 0,4 s, garantindo pontuação máxima de performance no Google Lighthouse, conforme compilado no Quadro 2.
+                        A fim de atestar quantitativamente o desempenho, testes comparativos de carga entre a SPA nativa do FazBem V2 (Vanilla JS) e um protótipo construído em React/Vite demonstraram a eficiência do modelo nativo. O tamanho do payload foi reduzido de 385 KB para 52 KB (uma redução de 7 vezes), enquanto o Time to Interactive (TTI) caiu de 1,8 s para 0,4 s, garantindo pontuação máxima de performance no Google Lighthouse, conforme compilado no QUADRO 2.
                     </p>
 
                     <div class="table-wrapper">
@@ -557,11 +557,11 @@
                         </table>
                     </div>
                     <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
-                        Quadro 2 – Métricas de desempenho do carregamento de página e rede. Fonte: elaborado pelos autores (2026).
+                        QUADRO 2 – Métricas de desempenho do carregamento de página e rede. Fonte: elaborado pelos autores (2026).
                     </div>
 
                     <p>
-                        Sob a perspectiva da segurança da informação, a camada de middleware (<code>Security.php</code>) obteve zero vulnerabilidades críticas em auditorias de segurança baseadas nas diretrizes do OWASP Top 10 (OWASP, 2021). Testes de estresse com injeção de SQL em rotinas críticas de login administrativo demonstraram eficácia de 100% de prevenção utilizando Prepared Statements com PDO. O controle transacional do banco de dados MySQL para o rate limiting eliminou condições de corrida, alcançando 100% de precisão no bloqueio temporário do IP após 5 tentativas fracas consecutivas sob concorrência simultânea.
+                        Sob a perspectiva da segurança da informação, a camada de middleware (<code>Security.php</code>) obteve zero vulnerabilidades críticas em auditorias de segurança baseadas nas diretrizes do OWASP Top 10 (OWASP, 2021). Testes de estresse com injeção de SQL em rotinas críticas de login administrativo demonstraram eficácia de 100% de prevenção utilizando Prepared Statements com PDO. O controle transacional do banco de dados MySQL para o rate limiting eliminou condições de corrida, alcançando 100% de precisão no bloqueio temporário do IP após 5 tentativas falhas consecutivas sob concorrência simultânea.
                     </p>
 
                     <h3>4.2. Discussão Técnica e Limitações</h3>
@@ -569,24 +569,13 @@
                         A arquitetura estruturada sob o padrão MVC, implementada sem a dependência de frameworks externos robustos, demonstrou alta eficiência técnica para o cenário proposto. O tempo de carregamento da Single Page Application (SPA) manteve-se estável, e o isolamento das regras de negócio na camada Model garantiu a segurança transacional por meio de blocos commit e rollBack. Sob a ótica da segurança da informação, os testes de intrusão locais confirmaram que a parametrização estrita de consultas via Prepared Statements com PDO neutralizou tentativas de injeção de código SQL na tela de login administrativo, em estrita conformidade com as recomendações da OWASP Foundation (2021).
                     </p>
                     <p>
-                        Contudo, o sistema apresenta restrições e limitações técnicas relevantes que delimitam seu contexto de aplicação:
+                        Contudo, o sistema apresenta restrições e limitações técnicas relevantes que delimitam seu contexto de aplicação. O funcionamento pleno do georreferenciamento depende obrigatoriamente da concessão de permissão de localização pelo navegador do cliente no momento do cadastro através da HTML5 Geolocation API, o que pode apresentar imprecisões dependendo do hardware do dispositivo do usuário; por utilizar camadas de mapas públicas fornecidas pelo OpenStreetMap, o módulo do entregador exige conexão constante com a internet, sofrendo degradação em zonas periféricas ou rurais com baixa cobertura de sinal celular; e a ordenação das rotas nesta versão ainda ocorre de forma semiautomática, exigindo que o administrador estipule a prioridade numérica dos pontos de parada no backend antes do envio dos dados ao motorista.
                     </p>
-                    <ul>
-                        <li>
-                            <strong>Dependência de Sensores de Geolocalização e Consentimento:</strong> O funcionamento pleno do georreferenciamento depende obrigatoriamente da concessão de permissão de localização pelo navegador do cliente no momento do cadastro através da HTML5 Geolocation API, o que pode apresentar imprecisões dependendo do dispositivo do usuário.
-                        </li>
-                        <li>
-                            <strong>Conexão Ativa com Internet:</strong> Por utilizar camadas de mapas públicas fornecidas pelo OpenStreetMap, o módulo do entregador exige conexão constante com a internet, sofrendo degradação em zonas periféricas ou rurais com baixa cobertura de sinal celular.
-                        </li>
-                        <li>
-                            <strong>Ordenação de Rota Semiautomática:</strong> A ordenação das rotas nesta versão ainda ocorre de forma semiautomática, exigindo que o administrador estipule a prioridade numérica dos pontos de parada no backend antes do envio dos dados ao motorista.
-                        </li>
-                    </ul>
                     <p>
                         Cabe delimitar o escopo metodológico desta seção: o presente trabalho constitui um estudo focado na engenharia e na validação técnica de uma solução de software, não compreendendo uma análise estatística dos impactos socioeconômicos de longo prazo sobre o faturamento real da empresa FazBem ou a agricultura familiar local. A mensuração empírica da eficácia do sistema na fidelização de assinantes e na redução exata de custos operacionais logísticos requer um protocolo de estudo longitudinal independente, configurando uma etapa prioritária para trabalhos futuros.
                     </p>
                     <p>
-                        Adicionalmente, esta pesquisa é delimitada pelo desenvolvimento e validação técnica de software, não compreendendo um estudo empírico de usabilidade real ou eficácia pedagógica. A fundamentação teórica orientou as decisões de design do sistema sem que tais aspectos fossem verificados experimentalmente com usuários finais neste escopo. A validação de usabilidade (utilizando escalas padronizadas como a <em>System Usability Scale</em> - SUS) com um grupo representativo de produtores e consumidores de cooperativas configura uma etapa de investigação independente, identificada como trabalho futuro prioritário.
+                        Adicionalmente, esta pesquisa é delimitada pelo desenvolvimento e validação técnica de software, não compreendendo um estudo empírico de usabilidade real com usuários finais neste escopo. A validação de usabilidade (utilizando escalas padronizadas como a <em>System Usability Scale</em> - SUS) com um grupo representativo de produtores e consumidores de cooperativas configura uma etapa de investigação independente, identificada como trabalho futuro prioritário.
                     </p>
                 </section>
 
