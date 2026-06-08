@@ -427,6 +427,39 @@ tr:nth-child(even) {
     background-color: rgba(27, 77, 62, 0.02);
 }
 
+/* Quadro styling (closed borders for qualitative data) */
+.quadro-wrapper {
+    overflow-x: auto;
+    margin: 24px 0;
+    border: 1px solid var(--primary-light);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+.quadro {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+    border: 1px solid var(--primary-light);
+}
+
+.quadro th, .quadro td {
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+}
+
+.quadro th {
+    background-color: var(--primary-bg);
+    color: var(--primary);
+    font-weight: 700;
+    border-bottom: 2px solid var(--primary-light);
+}
+
+.quadro tr:nth-child(even) {
+    background-color: rgba(27, 77, 62, 0.02);
+}
+
 /* Code block styles */
 pre {
     background-color: #1e293b;

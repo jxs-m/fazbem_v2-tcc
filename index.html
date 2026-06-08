@@ -47,9 +47,10 @@
                 <li class="toc-item active"><a href="#capa">Identificação</a></li>
                 <li class="toc-item"><a href="#resumo">Resumo / Abstract</a></li>
                 <li class="toc-item"><a href="#introducao">1. Introdução</a></li>
-                <li class="toc-item"><a href="#metodologia">2. Material e Métodos</a></li>
-                <li class="toc-item"><a href="#resultados">3. Resultados e Discussão</a></li>
-                <li class="toc-item"><a href="#conclusao">4. Conclusão</a></li>
+                <li class="toc-item"><a href="#referencial">2. Referencial Teórico</a></li>
+                <li class="toc-item"><a href="#metodologia">3. Material e Métodos</a></li>
+                <li class="toc-item"><a href="#resultados">4. Resultados e Discussão</a></li>
+                <li class="toc-item"><a href="#conclusao">5. Conclusão</a></li>
                 <li class="toc-item"><a href="#referencias">Referências</a></li>
             </ul>
 
@@ -129,67 +130,158 @@
                         <p style="margin-top: 8px; font-size: 13.5px; font-weight: 600; font-style: italic;">
                             Keywords: Short Food Supply Chains; Organic E-commerce; Object-Oriented PHP; Leaflet.js; Web
                             Security.
-                        </p>
-                    </div>
-                </section>
-
-                <!-- Section: Introdução -->
+                                       <!-- Section: Introdução -->
                 <section id="introducao" style="margin-bottom: 48px;">
                     <h2>1. Introdução</h2>
                     <p>
-                        Os Curtos Circuitos de Cadeias Alimentares (CCAs) caracterizam-se pela proximidade física,
-                        social e organizacional entre produtores e consumidores finais. A comercialização sem
-                        intermediários promove uma divisão de valor mais justa para a agricultura familiar e assegura ao
-                        consumidor o acesso a alimentos frescos e sustentáveis (Ploeg <em>et al</em>., 2012).
+                        Nos últimos anos, observa-se a ascensão expressiva dos chamados circuitos curtos de comercialização de alimentos, caracterizados pela venda direta de produtos do agricultor ao consumidor final, sem a participação de intermediários convencionais. Esse modelo de comercialização não apenas assegura uma divisão de valor mais justa para a agricultura familiar e urbana, mas também atende a uma demanda crescente da sociedade por alimentos frescos, de origem conhecida e produzidos de forma sustentável (Ploeg <em>et al</em>., 2012). Nesse cenário, o modelo de clubes de assinatura de produtos agrícolas, com foco na entrega recorrente de hortaliças e cestas de hortifrutis planejadas, consolida-se como uma alternativa economicamente viável e lucrativa. Ao garantir receitas previsíveis e recorrentes ao pequeno produtor, esse modelo mitiga riscos de perda na colheita e fideliza o consumidor urbano por meio da conveniência e da qualidade dos alimentos entregues diretamente em sua residência.
                     </p>
                     <p>
-                        Com a consolidação do comércio eletrônico e a digitalização de serviços urbanos, o modelo de
-                        cestas planejadas de hortifrutis por assinatura (<em>e-grocery</em>) surgiu como um canal
-                        promissor para viabilizar esses circuitos em centros urbanos. Todavia, a gestão digital de
-                        alimentos in natura difere dos e-commerces convencionais de produtos industrializados
-                        padronizados devido a fatores biológicos e geográficos específicos (Wyrzykowski, 2022).
+                        A despeito do potencial de expansão desse modelo de negócios, a sobrevivência e a competitividade dessas iniciativas no dinâmico mercado contemporâneo dependem fundamentalmente da transformação digital. Há uma necessidade latente de transformação digital e inserção de softwares especializados e plataformas integradas capazes de gerenciar os fluxos transacionais, de estoque e de logística que caracterizam o atendimento sob demanda. Sem a devida digitalização, as cooperativas de agricultura familiar e os produtores urbanos encontram barreiras intransponíveis para escalar suas operações, ficando à margem de um mercado de comércio eletrônico cada vez mais dominado por grandes corporações. Portanto, a introdução de sistemas de informação adaptados às particularidades do agronegócio de pequena escala revela-se indispensável para modernizar processos de atendimento, otimizar a distribuição de recursos e conferir competitividade aos produtores locais.
                     </p>
                     <p>
-                        Um dos principais desafios reside na pesagem de produtos. Itens como cenouras, batatas e cebolas
-                        variam de tamanho e peso a cada colheita. Se o cliente adquire 1 kg de cenoura no portal
-                        eletrônico, o empacotador físico dificilmente conseguirá separar exatamente 1.000g, gerando
-                        pequenas variações (como 1,050 kg ou 0,950 kg). Sistemas de e-commerce tradicionais não suportam
-                        essa readequação de valor e baixa de estoque proporcional em tempo real durante a expedição.
+                        A despeito de seu potencial, a gestão desses clubes de assinatura de hortaliças costuma ser feita de forma rudimentar e manual, centralizada em conversas de WhatsApp, anotações físicas ou planilhas de dados isoladas. Essa falta de automatização gera gargalos operacionais críticos, como erros frequentes na consolidação de pedidos, e severas dificuldades na precificação de itens fracionados (venda por peso ou maço), os quais variam naturalmente de peso a cada colheita. Tais inconsistências resultam em faturamento impreciso e sem previsibilidade real, além do desperdício de alimentos perecíveis em decorrência de falhas na separação física e controle do estoque. Ademais, delineia-se um complexo desafio logístico: a necessidade de planejar rotas de entrega eficientes para produtos altamente sensíveis e perecíveis, garantindo que o transporte ocorra em tempo hábil sem inflacionar o custo operacional da distribuição, o que inviabilizaria economicamente o pequeno produtor.
                     </p>
                     <p>
-                        Outro fator crítico é a logística de entrega (<em>last-mile delivery</em>). O uso de dados de
-                        localização baseados unicamente em strings textuais resulta em altas taxas de erro e atrasos em
-                        rotas devido à imprecisão de mapas municipais de subúrbios. A captura de dados geográficos
-                        exatos de latitude e longitude no cadastro, integrada a um mapa interativo móvel de rotas de
-                        entrega para o entregador, constitui-se um requisito vital para a eficiência da distribuição
-                        local.
+                        Como resposta científica e tecnológica para mitigar essas dores operacionais, apresenta-se o sistema <strong>FazBem V2</strong>, uma aplicação web planejada especificamente para integrar todo o ecossistema do clube de assinaturas em um ambiente unificado (englobando o catálogo digital de produtos, controle assíncrono de estoque e roteirização logística). A escolha do ecossistema técnico, baseado na Arquitetura MVC com PHP 8 no backend, banco de dados MySQL e a biblioteca Leaflet.js para mapas interativos no frontend, justifica-se como uma solução de baixo custo de manutenção e alta portabilidade, ideal para o cenário financeiro e operacional de pequenos agricultores. Complementarmente, o projeto incorpora uma forte preocupação com a segurança da informação, adotando as diretrizes da OWASP para mitigar vulnerabilidades críticas e proteger dados transacionais e espaciais sensíveis contra acessos não autorizados e ataques na web.
                     </p>
                     <p>
-                        Finalmente, a segurança de dados e a robustez do software em pequenas cooperativas alimentares
-                        são frequentemente negligenciadas, deixando as plataformas vulneráveis a ataques automatizados
-                        de força bruta, adulterações de requisição (CSRF) e injeções de scripts maliciosos (XSS) via
-                        cadastros de endereços.
+                        Diante desse cenário, delineia-se a seguinte questão-problema: Como integrar e automatizar os processos de catálogo, controle de estoque e roteirização logística de um clube de assinatura de hortaliças para viabilizar sua escalabilidade operacional de forma segura? Para responder a essa questão, o presente trabalho tem como objetivos: (a) desenvolver um catálogo digital adaptado para a precificação de itens fracionados; (b) implementar um módulo logístico de georreferenciamento baseado em mapas interativos com a API Leaflet.js; (c) mitigar vulnerabilidades críticas de segurança em aplicações web com base nas diretrizes da OWASP; e (d) validar o ganho operacional do sistema em um cenário real de gerenciamento de assinaturas.
                     </p>
                     <p>
-                        Este trabalho descreve o desenvolvimento e a validação do <strong>FazBem V2</strong>, um sistema
-                        web integrado de e-commerce e gestão operacional especificamente projetado para otimizar os
-                        fluxos de pesagem, geolocalização e segurança de curtos circuitos alimentares. A abordagem
-                        técnica foca em alto desempenho e manutenibilidade por meio do uso de linguagens nativas (PHP
-                        com POO no backend e Vanilla JS no frontend), reduzindo a dívida técnica comum em projetos
-                        baseados em dependências excessivas de frameworks modernos de software.
+                        O restante deste artigo está organizado da seguinte forma: a Seção 2 revisa o referencial teórico e os trabalhos correlatos sobre arquitetura de sistemas, segurança web e e-commerce aplicado ao agronegócio; a Seção 3 detalha a metodologia aplicada, descrevendo os materiais, métodos e a arquitetura lógica dos módulos do sistema; a Seção 4 apresenta e discute os resultados obtidos nos testes funcionais e as limitações técnicas encontradas; e a Seção 5 sintetiza as conclusões do estudo e propõe caminhos para trabalhos futuros.
                     </p>
+                </section>
+
+                <!-- Section: Referencial Teórico -->
+                <section id="referencial" style="margin-bottom: 48px;">
+                    <h2>2. Referencial Teórico</h2>
+                    <p>
+                        A revisão bibliográfica abrange as discussões teóricas e práticas sobre a arquitetura de sistemas web, segurança da informação aplicada ao e-commerce e as tendências de digitalização no agronegócio familiar.
+                    </p>
+
+                    <h3>2.1. Arquitetura e Tecnologias Web</h3>
+                    <p>
+                        O padrão arquitetural <em>Model-View-Controller</em> (MVC) constitui a base estrutural para o isolamento de responsabilidades no software moderno, conforme destacado por Sommerville (2011). A separação rígida entre a lógica de negócios (<em>Model</em>), a camada de apresentação (<em>View</em>) e o controle de fluxo de requisições (<em>Controller</em>) desempenha um papel crucial no desenvolvimento de aplicações para circuitos curtos de comercialização agrícola. Durante a janela semanal em que o catálogo de produtos está aberto (do domingo à terça-feira), o sistema enfrenta picos concentrados de acessos simultâneos efetuados por produtores e consumidores. A arquitetura MVC resolve o risco de sobrecarga de requisições no servidor ao garantir que o processamento de regras de negócios pesadas (como o controle decimal de estoques e o cálculo de rotas logísticas) seja tratado exclusivamente no backend pelas classes correspondentes. Isso previne que a renderização do frontend degrade a performance de execução do servidor, permitindo que a interface do usuário permaneça responsiva e leve nos dispositivos móveis dos entregadores e clientes sob conexões móveis instáveis.
+                    </p>
+
+                    <div class="quadro-wrapper">
+                        <table class="quadro">
+                            <thead>
+                                <tr>
+                                    <th>Tecnologia</th>
+                                    <th>Aplicação no FazBem V2</th>
+                                    <th>Justificativa Técnica / Impacto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>PHP 8 (Backend OOP)</strong></td>
+                                    <td>Processamento das requisições assíncronas, models e controllers isolados.</td>
+                                    <td>Fornece um ambiente rápido e seguro sem o overhead de dependências externas.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>MySQL (Banco de Dados)</strong></td>
+                                    <td>Persistência de dados transacionais, faturamento e controle de rate limiting.</td>
+                                    <td>Garante integridade referencial e controle seguro contra condições de corrida.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Vanilla JS (Frontend SPA)</strong></td>
+                                    <td>Gerenciamento dinâmico da interface, captura de coordenadas e consumo Fetch.</td>
+                                    <td>Minimiza o payload de rede e melhora a velocidade de carregamento em redes móveis.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Leaflet.js (Mapeamento)</strong></td>
+                                    <td>Plotagem dinâmica do mapa interativo e renderização poligonal da rota.</td>
+                                    <td>Biblioteca de mapas ultraleve (39 KB) integrada a tiles do OpenStreetMap.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>OWASP Guidelines (Segurança)</strong></td>
+                                    <td>Mapeamento e contramedidas ativas contra ataques web comuns.</td>
+                                    <td>Padrão global para prevenção de brechas de injeção, CSRF e vulnerabilidades de sessão.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
+                        Quadro 1 – Tecnologias utilizadas no projeto e suas respectivas justificativas técnicas.
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-20px; margin-bottom: 24px;">
+                        Fonte: elaborado pelos autores (2026).
+                    </div>
+
+                    <h3>2.2. Segurança em Aplicações Web</h3>
+                    <p>
+                        A segurança de plataformas que gerenciam transações financeiras e dados sensíveis de usuários exige a mitigação rigorosa de falhas mapeadas por consórcios globais. Conforme as diretrizes da Open Web Application Security Project (OWASP) Foundation (2021), as falhas de injeção ocorrem quando comandos hostis são interpretados pelo banco de dados como instruções legítimas. Tecnicamente, se um ataque de <em>SQL Injection</em> for bem-sucedido em uma plataforma de e-commerce como o FazBem V2, um invasor poderia forjar queries SQL no campo de login ou de busca para ignorar a validação de credenciais, extrair registros confidenciais da tabela <code>usuarios</code> (como CPFs e hashes de senhas) ou adulterar faturas na tabela <code>faturas_mensais</code>, comprometendo a integridade do controle de estoque e o sigilo dos dados dos assinantes. Para neutralizar essa ameaça, a camada de persistência foi blindada com a parametrização total de consultas via <em>Prepared Statements</em> na biblioteca PDO do PHP 8.
+                    </p>
+                    <p>
+                        Adicionalmente, as vulnerabilidades de <em>Cross-Site Scripting</em> (XSS), especificamente o <em>Stored XSS</em>, representam graves riscos de segurança operacional no modelo de negócios da FazBem. Esse tipo de falha ocorre quando a aplicação armazena dados de entrada do usuário sem sanitização prévia no banco de dados e os renderiza no navegador de outros usuários. Caso um invasor insira um script JavaScript malicioso no campo de endereço de entrega, este script será executado no navegador do operador administrativo ao renderizar a rota logística ou o painel de faturamento. A execução silenciosa desse script malicioso poderia roubar o token de sessão do administrador (<code>PHPSESSID</code>) ou forçar requisições administrativas não autorizadas. A mitigação efetiva contra o XSS no FazBem V2 foi obtida pela substituição sistemática da renderização de dados do usuário via <code>innerHTML</code> pela criação nativa de nós do DOM com <code>textContent</code> e <code>document.createElement</code>, inviabilizando qualquer interpretação de tags <code>&lt;script&gt;</code> injetadas.
+                    </p>
+
+                    <h3>2.3. Trabalhos Relacionados</h3>
+                    <p>
+                        Para a identificação de sistemas semelhantes e o mapeamento do estado da arte, realizou-se uma revisão sistemática exploratória da literatura entre março e maio de 2026. A busca foi conduzida em indexadores acadêmicos como o Google Acadêmico (Google Scholar), o portal de periódicos CAPES e a base BDTD, utilizando strings de busca combinadas: 'clube de assinatura hortaliças', 'automação e-commerce agrícola', 'roteirização logística Leaflet' e 'circuitos curtos de comercialização software'. Foram selecionados critérios de inclusão focados em artigos e patentes de ferramentas que integrassem a cadeia de ponta a ponta, desde a venda fracionada até o monitoramento de rotas de entrega.
+                    </p>
+                    <p>
+                        A partir da busca bibliográfica, observou-se que as soluções de e-commerce comerciais líderes, como o WooCommerce e o Shopify, apresentam limitações severas na gestão operacional de circuitos curtos agroecológicos. O WooCommerce, embora altamente customizável por se tratar de um plugin de código aberto para a plataforma WordPress, exige uma sobreposição excessiva de plugins de terceiros para suportar faturamento recorrente agrupado e cálculo dinâmico de fretes por geolocalização. Essa dependência de múltiplos plugins de terceiros eleva drasticamente a dívida técnica de software e amplia a superfície de ataque por vulnerabilidades cibernéticas. Por sua vez, o Shopify opera sob o modelo de software como serviço (SaaS), o que impõe mensalidades fixas e taxas transacionais recorrentes impraticáveis para a agricultura familiar local, além de não oferecer suporte nativo para a atualização decimal de pesos e recalculo proporcional de valores de pedidos na etapa física de expedição.
+                    </p>
+
+                    <div class="quadro-wrapper">
+                        <table class="quadro">
+                            <thead>
+                                <tr>
+                                    <th>Critério de Comparação</th>
+                                    <th>WooCommerce (WordPress)</th>
+                                    <th>Shopify (SaaS)</th>
+                                    <th>FazBem V2 (Proposto)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Ajuste Decimal de Peso (Balança)</strong></td>
+                                    <td>Inexistente (requer plugins complexos e não integrados à expedição)</td>
+                                    <td>Inexistente (valores de pedidos e estoques são inteiros e fixos)</td>
+                                    <td><strong>Nativo</strong> (reajuste proporcional na fatura mensal do cliente)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Roteirização Logística no Mapa</strong></td>
+                                    <td>Depende de integrações pagas de APIs de geocodificação externas</td>
+                                    <td>Depende de soluções externas caras de roteirização logística</td>
+                                    <td><strong>Nativo</strong> (integração móvel e visualização de rotas com Leaflet.js)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Custo Operacional e Dependências</strong></td>
+                                    <td>Gratuito, mas com alto custo de manutenção e risco de quebras de plugins</td>
+                                    <td>Mensalidades fixas e taxas sobre transações financeiras locais</td>
+                                    <td><strong>Gratuito</strong> (código aberto nativo e sem dependências de frameworks)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Mitigação Nativa OWASP</strong></td>
+                                    <td>Vulnerável à qualidade e atualizações de plugins de terceiros</td>
+                                    <td>Fechado (segurança gerenciada pela plataforma proprietária)</td>
+                                    <td><strong>Nativo</strong> (Prepared Statements, CSRF tokens e Rate Limit em DB)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-16px; margin-bottom: 24px; font-style:italic;">
+                        Quadro 2 – Análise comparativa entre o FazBem V2 e as plataformas líderes de comércio eletrônico.
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); text-align:center; margin-top:-20px; margin-bottom: 24px;">
+                        Fonte: elaborado pelos autores (2026).
+                    </div>
                 </section>
 
                 <!-- Section: Material e Métodos -->
                 <section id="metodologia" style="margin-bottom: 48px;">
-                    <h2>2. Material e Métodos</h2>
+                    <h2>3. Material e Métodos</h2>
                     <p>
                         O desenvolvimento do sistema FazBem V2 seguiu a metodologia de ciclo de vida incremental de
                         software proposta por Pressman e Maxim (2021). A arquitetura do sistema foi estruturada em três
                         frentes de atuação fundamentais descritas a seguir.
                     </p>
 
-                    <h3>2.1. Arquitetura da Aplicação e Endpoints Assíncronos</h3>
+                    <h3>3.1. Arquitetura da Aplicação e Endpoints Assíncronos</h3>
                     <p>
                         O backend do sistema foi implementado utilizando PHP 8.x de forma nativa sob o paradigma de
                         Programação Orientada a Objetos (POO). A persistência dos dados foi estruturada no banco de
@@ -228,7 +320,7 @@
                             V2.</span>
                     </div>
 
-                    <h3>2.2. Modelagem Relacional do Banco de Dados</h3>
+                    <h3>3.2. Modelagem Relacional do Banco de Dados</h3>
                     <p>
                         O esquema do banco de dados relacional foi planejado para suportar o fluxo operacional
                         integrado. A modelagem inclui tabelas principais descritas abaixo:
@@ -251,7 +343,7 @@
                             extras da semana em uma fatura única emitida mensalmente.</li>
                     </ul>
 
-                    <h3>2.3. Roteirização Logística e Leaflet.js</h3>
+                    <h3>3.3. Roteirização Logística e Leaflet.js</h3>
                     <p>
                         Para o módulo de mapas interativos, integrou-se a biblioteca JavaScript de código aberto
                         <strong>Leaflet.js</strong> em conjunto com as bases geográficas gratuitas do
@@ -264,13 +356,13 @@
 
                 <!-- Section: Resultados e Discussão -->
                 <section id="resultados" style="margin-bottom: 48px;">
-                    <h2>3. Resultados e Discussão</h2>
+                    <h2>4. Resultados e Discussão</h2>
                     <p>
                         A validação experimental do FazBem V2 foi realizada em cenários de testes controlados no
                         ambiente de homologação local.
                     </p>
 
-                    <h3>3.1. Resiliência da Camada de Segurança</h3>
+                    <h3>4.1. Resiliência da Camada de Segurança</h3>
                     <p>
                         Em auditorias de segurança web conduzidas com base nas diretrizes do OWASP (2021), analisaram-se
                         três melhorias fundamentais da arquitetura implementada:
@@ -294,7 +386,7 @@
                         </li>
                     </ol>
 
-                    <h3>3.2. Fluxo de Separação de Hortifrutis Fracionados</h3>
+                    <h3>4.2. Fluxo de Separação de Hortifrutis Fracionados</h3>
                     <p>
                         Testou-se a eficácia do painel do operador de separação física no galpão de distribuição. A
                         tabela abaixo apresenta a comparação operacional da precisão financeira e do controle de perdas
@@ -339,7 +431,7 @@
                         Tabela 1 – Comparação operacional do fluxo de separação de alimentos a peso.
                     </div>
 
-                    <h3>3.3. Análise de Desempenho de Rede e Inicialização</h3>
+                    <h3>4.3. Análise de Desempenho de Rede e Inicialização</h3>
                     <p>
                         A fim de verificar a premissa de eficiência da arquitetura nativa (sem frameworks frontend
                         baseados em compilação JS e Bundling), realizaram-se testes comparativos de carga com
@@ -387,7 +479,7 @@
 
                 <!-- Section: Conclusão -->
                 <section id="conclusao" style="margin-bottom: 48px;">
-                    <h2>4. Conclusão</h2>
+                    <h2>5. Conclusão</h2>
                     <p>
                         O desenvolvimento da plataforma FazBem V2 demonstrou a viabilidade técnica e a alta eficiência
                         operacional de sistemas web dedicados a curtos circuitos de distribuição agrícola criados com
@@ -416,6 +508,11 @@
                             Bookman, 2021.
                         </li>
                         <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
+                            LEAFLETJS. <strong>Leaflet - an open-source JavaScript library for mobile-friendly
+                                interactive maps</strong>. Disponível em: https://leafletjs.com. Acesso em: maio de
+                            2026.
+                        </li>
+                        <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
                             PLOEG, Jan Douwe van der et al. <strong>Short Food Supply Chains and Local Food Systems in
                                 the EU. A State-of-the-Art</strong>. European Commission, Joint Research Centre, 2012.
                         </li>
@@ -424,9 +521,7 @@
                                 profissional</strong>. 9. ed. Porto Alegre: AMGH Editora, 2021.
                         </li>
                         <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
-                            LEAFLETJS. <strong>Leaflet - an open-source JavaScript library for mobile-friendly
-                                interactive maps</strong>. Disponível em: https://leafletjs.com. Acesso em: maio de
-                            2026.
+                            SOMMERVILLE, Ian. <strong>Engenharia de Software</strong>. 9. ed. São Paulo: Pearson Prentice Hall, 2011.
                         </li>
                         <li style="margin-bottom: 16px; text-indent: -20px; padding-left: 20px;">
                             WYRZYKOWSKI, Jakub. <strong>PHP 8 Programming 101: A step-by-step guide to Object-Oriented
