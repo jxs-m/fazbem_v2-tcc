@@ -40,34 +40,37 @@ try {
     $stmtPedidos = $pdo->query($sqlPedidosSemana);
     $pedidosExistentes = $stmtPedidos->fetchAll(PDO::FETCH_ASSOC);
 
-    // Passo 2: Para cada pedido, devolver o estoque dos itens
-    $sqlItens = "SELECT produto_id, quantidade FROM itens_pedido WHERE pedido_id = ?";
-    $stmtItens = $pdo->prepare($sqlItens);
+    // Passo 2: Devolver o estoque dos itens e deletar os pedidos antigos de forma otimizada (evitando N+1)
+    if (!empty($pedidosExistentes)) {
+        $pedidoIds = array_column($pedidosExistentes, 'id');
+        $placeholders = implode(',', array_fill(0, count($pedidoIds), '?'));
 
-    $sqlDevolverEstoque = "UPDATE produtos SET estoque_atual = estoque_atual + ? WHERE id = ?";
-    $stmtDevolverEstoque = $pdo->prepare($sqlDevolverEstoque);
+        // Buscar todos os itens acumulados por produto para os pedidos encontrados
+        $sqlAcumulado = "SELECT ip.produto_id, SUM(ip.quantidade) AS total_quantidade
+                         FROM itens_pedido ip
+                         WHERE ip.pedido_id IN ($placeholders)
+                         GROUP BY ip.produto_id";
+        $stmtAcumulado = $pdo->prepare($sqlAcumulado);
+        $stmtAcumulado->execute($pedidoIds);
+        $itensAcumulados = $stmtAcumulado->fetchAll(PDO::FETCH_ASSOC);
 
-    $sqlDeleteItens = "DELETE FROM itens_pedido WHERE pedido_id = ?";
-    $stmtDeleteItens = $pdo->prepare($sqlDeleteItens);
+        // Devolver o estoque acumulado por produto
+        $sqlDevolverEstoque = "UPDATE produtos SET estoque_atual = estoque_atual + ? WHERE id = ?";
+        $stmtDevolverEstoque = $pdo->prepare($sqlDevolverEstoque);
 
-    $sqlDeletePedido = "DELETE FROM pedidos WHERE id = ?";
-    $stmtDeletePedido = $pdo->prepare($sqlDeletePedido);
-
-    foreach ($pedidosExistentes as $ped) {
-        $pedidoId = $ped['id'];
-        
-        // Devolver estoque
-        $stmtItens->execute([$pedidoId]);
-        $itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
-        
-        foreach ($itens as $item) {
-            $estoqueIncremento = floatval($item['quantidade']);
-            $stmtDevolverEstoque->execute([$estoqueIncremento, $item['produto_id']]);
+        foreach ($itensAcumulados as $item) {
+            $stmtDevolverEstoque->execute([floatval($item['total_quantidade']), $item['produto_id']]);
         }
-        
-        // Deletar os itens e o pedido original
-        $stmtDeleteItens->execute([$pedidoId]);
-        $stmtDeletePedido->execute([$pedidoId]);
+
+        // Deletar os itens de todos os pedidos originais em lote
+        $sqlDeleteItens = "DELETE FROM itens_pedido WHERE pedido_id IN ($placeholders)";
+        $stmtDeleteItens = $pdo->prepare($sqlDeleteItens);
+        $stmtDeleteItens->execute($pedidoIds);
+
+        // Deletar os pedidos originais em lote
+        $sqlDeletePedidos = "DELETE FROM pedidos WHERE id IN ($placeholders)";
+        $stmtDeletePedidos = $pdo->prepare($sqlDeletePedidos);
+        $stmtDeletePedidos->execute($pedidoIds);
     }
 
     // Passo 3: Agora recriar com base nos novos selecionados para todos os assinantes ATIVOS
