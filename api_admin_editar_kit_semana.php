@@ -75,6 +75,19 @@ try {
 
     $qtdGerados = 0;
 
+    // Pre-fetch product info to avoid N+1 queries
+    $infoProdutosCache = [];
+    $idsProdKit = array_map(function($p) { return intval($p['id']); }, $produtosKit);
+    if (!empty($idsProdKit)) {
+        $placeholdersProds = implode(',', array_fill(0, count($idsProdKit), '?'));
+        $sqlProds = "SELECT id, unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id IN ($placeholdersProds)";
+        $stmtProds = $pdo->prepare($sqlProds);
+        $stmtProds->execute($idsProdKit);
+        while ($row = $stmtProds->fetch(PDO::FETCH_ASSOC)) {
+            $infoProdutosCache[$row['id']] = $row;
+        }
+    }
+
     $sqlPedidoNovo = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, obs_pontual) 
                   VALUES (?, ?, 'Pendente', 'Em separação', 'Assinatura', ?)";
     $stmtPedidoNovo = $pdo->prepare($sqlPedidoNovo);
@@ -121,10 +134,7 @@ try {
         foreach ($itensDoPedido as $item) {
             $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
             
-            $sqlInfoProd = "SELECT unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id = ?";
-            $stmtInfoProd = $pdo->prepare($sqlInfoProd);
-            $stmtInfoProd->execute([$item['id']]);
-            $prodInfo = $stmtInfoProd->fetch();
+            $prodInfo = $infoProdutosCache[$item['id']] ?? null;
             
             $estoqueDecremento = $qtd;
             $unidade_escolhida = $item['unidade_escolhida'] ?? null;

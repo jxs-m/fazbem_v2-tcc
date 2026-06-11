@@ -38,6 +38,19 @@ try {
 
     $qtdGerados = 0;
 
+    // Pre-fetch product info to avoid N+1 queries
+    $infoProdutosCache = [];
+    $idsProdKit = array_map(function($p) { return intval($p['id']); }, $produtosKit);
+    if (!empty($idsProdKit)) {
+        $placeholdersProds = implode(',', array_fill(0, count($idsProdKit), '?'));
+        $sqlProds = "SELECT id, unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id IN ($placeholdersProds)";
+        $stmtProds = $pdo->prepare($sqlProds);
+        $stmtProds->execute($idsProdKit);
+        while ($row = $stmtProds->fetch(PDO::FETCH_ASSOC)) {
+            $infoProdutosCache[$row['id']] = $row;
+        }
+    }
+
     foreach ($assinantes as $assinante) {
         $usuarioId = $assinante['usuario_id'];
 
@@ -92,11 +105,7 @@ try {
         foreach ($itensDoPedido as $item) {
             $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
             
-            // Buscar informações do produto para saber se é fracionado ou tem conversão
-            $sqlProd = "SELECT unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id = ?";
-            $stmtProd = $pdo->prepare($sqlProd);
-            $stmtProd->execute([$item['id']]);
-            $prodInfo = $stmtProd->fetch();
+            $prodInfo = $infoProdutosCache[$item['id']] ?? null;
             
             $estoqueDecremento = $qtd;
             $unidade_escolhida = $item['unidade_escolhida'] ?? null;
