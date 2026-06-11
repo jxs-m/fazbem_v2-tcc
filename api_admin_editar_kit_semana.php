@@ -47,9 +47,6 @@ try {
     $sqlDevolverEstoque = "UPDATE produtos SET estoque_atual = estoque_atual + ? WHERE id = ?";
     $stmtDevolverEstoque = $pdo->prepare($sqlDevolverEstoque);
 
-    $sqlInfoProd = "SELECT unidade, tipo_venda FROM produtos WHERE id = ?";
-    $stmtInfoProd = $pdo->prepare($sqlInfoProd);
-
     $sqlDeleteItens = "DELETE FROM itens_pedido WHERE pedido_id = ?";
     $stmtDeleteItens = $pdo->prepare($sqlDeleteItens);
 
@@ -64,26 +61,7 @@ try {
         $itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($itens as $item) {
-            $stmtInfoProd->execute([$item['produto_id']]);
-            $prodInfo = $stmtInfoProd->fetch(PDO::FETCH_ASSOC);
-            
             $estoqueIncremento = floatval($item['quantidade']);
-            
-            if ($prodInfo && $prodInfo['tipo_venda'] === 'Fracionado') {
-                $unidade = strtolower($prodInfo['unidade']);
-                $baseGrams = null;
-                if (strpos($unidade, 'kg') !== false) {
-                    $baseGrams = 1000;
-                } elseif (strpos($unidade, 'g') !== false) {
-                    $num = intval($unidade);
-                    if ($num > 0) $baseGrams = $num;
-                }
-                
-                if ($baseGrams !== null) {
-                    $estoqueIncremento = $item['quantidade'] * $baseGrams;
-                }
-            }
-            
             $stmtDevolverEstoque->execute([$estoqueIncremento, $item['produto_id']]);
         }
         
