@@ -13,41 +13,51 @@ try {
 
     $senhaAdmin = password_hash('admin123', PASSWORD_DEFAULT);
     $senhaCliente = password_hash('cliente123', PASSWORD_DEFAULT);
+    $senhaEquipe = password_hash('equipe123', PASSWORD_DEFAULT);
 
     $sqlUser = "INSERT INTO usuarios (nome, email, telefone, endereco, ponto_referencia, senha, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmtUser = $pdo->prepare($sqlUser);
 
+    $sqlEndereco = "INSERT INTO enderecos (usuario_id, logradouro, ponto_referencia, is_principal, latitude, longitude) VALUES (?, ?, ?, 1, ?, ?)";
+    $stmtEndereco = $pdo->prepare($sqlEndereco);
+
+    // [Nome, Email, Telefone, Endereco, Ref, Senha, Tipo, Lat, Lng]
     $usuarios = [
-        ['Admin Faz Bem', 'admin2@fazbem.com', '(55) 99999-0000', 'Sede Faz Bem', '', $senhaAdmin, 'admin'],
-        ['Carlos Silva', 'carlos@email.com', '(55) 98888-1111', 'Rua das Flores, 123', 'Casa verde', $senhaCliente, 'cliente'],
-        ['Ana Pereira', 'ana@email.com', '(55) 97777-2222', 'Av. Principal, 45', 'Apto 302', $senhaCliente, 'cliente'],
-        ['Marcos Souza', 'marcos@email.com', '(55) 96666-3333', 'Bairro Novo, 90', 'Perto da padaria', $senhaCliente, 'cliente']
+        ['Admin Faz Bem', 'admin2@fazbem.com', '(55) 99999-0000', 'Sede Faz Bem', '', $senhaAdmin, 'admin', null, null],
+        ['João Entregador', 'entregador@fazbem.com', '(55) 99999-8888', 'Base', '', $senhaEquipe, 'entregador', null, null],
+        ['Maria Separadora', 'separador@fazbem.com', '(55) 99999-7777', 'Base', '', $senhaEquipe, 'separador', null, null],
+        ['Carlos Silva', 'carlos@email.com', '(55) 98888-1111', 'Rua General Vitorino, 1853', 'Casa verde', $senhaCliente, 'cliente', -29.76883070, -57.09110890],
+        ['Ana Pereira', 'ana@email.com', '(55) 97777-2222', 'Rua Dr. Maia, 2040', 'Apto 302', $senhaCliente, 'cliente', -29.75963120, -57.07201870],
+        ['Marcos Souza', 'marcos@email.com', '(55) 96666-3333', 'Av. Presidente Vargas, 100', 'Perto da padaria', $senhaCliente, 'cliente', -29.76512345, -57.08512345]
     ];
 
     $idsClientes = []; // Array para guardar os IDs reais gerados pelo banco
 
     foreach ($usuarios as $u) {
-        $stmtUser->execute($u);
-        // Se for um cliente, guardamos o ID recém-criado
+        $stmtUser->execute([$u[0], $u[1], $u[2], $u[3], $u[4], $u[5], $u[6]]);
+        $userId = $pdo->lastInsertId();
+        
         if ($u[6] === 'cliente') {
-            $idsClientes[] = $pdo->lastInsertId();
+            $idsClientes[] = $userId;
+            // Insere as coordenadas na tabela enderecos
+            $stmtEndereco->execute([$userId, $u[3], $u[4], $u[7], $u[8]]);
         }
     }
-    echo "<p>✅ Usuários criados (Senhas: admin123 e cliente123).</p>";
+    echo "<p>✅ Usuários criados com as coordenadas geográficas para roteirização.</p>";
 
     
-    $sqlProduto = "INSERT INTO produtos (nome, categoria, preco, unidade, estoque_atual, imagem_url) VALUES (?, ?, ?, ?, ?, ?)";
+    $sqlProduto = "INSERT INTO produtos (nome, categoria, preco, unidade, estoque_atual, tipo_venda, peso_estimado_g, imagem_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtProduto = $pdo->prepare($sqlProduto);
 
     $produtos = [
-        ['Maçã Gala', 'Frutas', 8.50, 'kg', 50, null],
-        ['Banana Prata', 'Frutas', 6.00, 'kg', 40, null],
-        ['Alface Crespa', 'Verduras', 3.50, 'un', 30, null],
-        ['Rúcula Fresca', 'Verduras', 4.00, 'maço', 25, null],
-        ['Cenoura', 'Legumes', 5.50, 'kg', 60, null],
-        ['Batata Inglesa', 'Legumes', 7.00, 'kg', 100, null],
-        ['Cebola Picada', 'Processados', 12.00, '500g', 15, null],
-        ['Ovos Caipira', 'Outros', 18.00, 'dúzia', 20, null]
+        ['Maçã Gala', 'Frutas', 8.50, 'kg', 50, 'Fracionado', 150, null],
+        ['Banana Prata', 'Frutas', 6.00, 'kg', 40, 'Fracionado', 120, null],
+        ['Alface Crespa', 'Verduras', 3.50, 'un', 30, 'Inteiro', 0, null],
+        ['Rúcula Fresca', 'Verduras', 4.00, 'maço', 25, 'Inteiro', 0, null],
+        ['Cenoura', 'Legumes', 5.50, 'kg', 60, 'Fracionado', 80, null],
+        ['Batata Inglesa', 'Legumes', 7.00, 'kg', 100, 'Fracionado', 200, null],
+        ['Cebola Picada', 'Processados', 12.00, 'un', 15, 'Inteiro', 500, null],
+        ['Ovos Caipira', 'Outros', 18.00, 'un', 20, 'Inteiro', 600, null]
     ];
 
     foreach ($produtos as $p) {
