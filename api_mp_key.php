@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/cors.php';
+
 // Caminho: faz_bem_v2/api_mp_key.php
 require_once __DIR__ . '/app/Env.php';
 Env::load(__DIR__ . '/.env');

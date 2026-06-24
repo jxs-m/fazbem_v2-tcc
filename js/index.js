@@ -41,7 +41,7 @@ async function verificarSessao() {
                     Olá, <strong style="color: var(--primary);">${primeNome}</strong>!
                 </span>
                 <a href="${dashboardUrl}" class="btn btn-dashboard" id="nav-dashboard-btn" style="padding: 8px 16px; font-size:13.5px;">${labelDashboard}</a>
-                <a href="logout.php" class="btn-login" id="nav-logout-btn" style="color: #dc2626; font-size:14px; font-weight:600; padding: 8px 12px;">Sair</a>
+                <a href="#" onclick="window.executarLogout(event)" class="btn-login" id="nav-logout-btn" style="color: #dc2626; font-size:14px; font-weight:600; padding: 8px 12px;">Sair</a>
             `;
         }
     } catch (err) {
@@ -118,7 +118,7 @@ function renderizarProdutos(lista) {
     limite.forEach(p => {
         const precoFormatado = parseFloat(p.preco).toFixed(2).replace('.', ',');
         const displayImagem = p.imagem_url 
-            ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="product-image">`
+            ? `<img src="${escapeHTML(window.getAbsoluteUrl(p.imagem_url))}" alt="${escapeHTML(p.nome)}" class="product-image">`
             : `<div class="product-no-image">📦</div>`;
 
         const tagCategoria = (parseInt(p.temporario) === 1) ? 'Temporários' : p.categoria;

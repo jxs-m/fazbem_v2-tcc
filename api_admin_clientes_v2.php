@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/cors.php';
+
 // Caminho: faz_bem_v2/api_admin_clientes_v2.php
 session_start();
 if (ob_get_length()) ob_clean();

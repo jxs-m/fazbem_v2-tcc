@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/cors.php';
+
 session_start();
 if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');

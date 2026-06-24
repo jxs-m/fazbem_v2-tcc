@@ -80,7 +80,7 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
 
 
         const imagemDisplay = p.imagem_url
-          ? `<img src="${escapeHTML(p.imagem_url)}" alt="${escapeHTML(p.nome)}" class="imagem-produto">`
+          ? `<img src="${escapeHTML(window.getAbsoluteUrl(p.imagem_url))}" alt="${escapeHTML(p.nome)}" class="imagem-produto">`
           : `<span class="prod-icon">${iconeCat}</span>`;
         const durationDisplay = p.dias_restantes 
           ? `<div style="margin-top: 4px; margin-bottom: 4px;"><span class="prod-duration" style="background: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #fde68a; display: inline-block;">⏳ Restam ${p.dias_restantes} ${p.dias_restantes === 1 ? 'dia' : 'dias'}</span></div>`

@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let tagClass = p.status_entrega === 'Entregue' ? 'tag-green' : 'tag-yellow';
             let statusPagamento = escapeHTML(p.status_pagamento);
             if (p.status_pagamento === 'Pago') {
-                statusPagamento = `<span style="color:#16a34a; font-weight:bold;">Pago</span> <a href="comprovante.php?tipo=pedido&id=${p.id}" target="_blank" style="font-size:11px; text-decoration:underline; color:#1d4ed8; display:block; margin-top:2px;">Recibo</a>`;
+                statusPagamento = `<span style="color:#16a34a; font-weight:bold;">Pago</span> <a href="${window.getAbsoluteUrl('comprovante.php')}?tipo=pedido&id=${p.id}" target="_blank" style="font-size:11px; text-decoration:underline; color:#1d4ed8; display:block; margin-top:2px;">Recibo</a>`;
             }
             tbody.innerHTML += `<tr><td><div style="font-weight:bold">${new Date(p.data_pedido).toLocaleDateString('pt-BR')}</div><span class="tag ${tagClass}">${escapeHTML(p.status_entrega)}</span></td><td style="text-align:right"><div style="font-weight:bold; color:#2b8a3e">R$ ${parseFloat(p.valor_total).toFixed(2).replace('.', ',')}</div><div style="font-size:12px">${statusPagamento}</div></td></tr>`;
           });
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
           json.faturas.forEach(f => {
             let totalF = parseFloat(f.valor_total).toFixed(2).replace('.', ',');
             let btnAction = f.status === 'Pago' 
-                ? `<span style="color:#16a34a; font-weight:bold; display:block; margin-bottom:2px;">Pago</span><a href="comprovante.php?tipo=fatura&id=${f.id}" class="btn" style="background:#1d4ed8; color:white; padding:2px 6px; font-size:11px; text-decoration:none; border-radius:4px; display:inline-block;" target="_blank">Ver Recibo</a>` 
+                ? `<span style="color:#16a34a; font-weight:bold; display:block; margin-bottom:2px;">Pago</span><a href="${window.getAbsoluteUrl('comprovante.php')}?tipo=fatura&id=${f.id}" class="btn" style="background:#1d4ed8; color:white; padding:2px 6px; font-size:11px; text-decoration:none; border-radius:4px; display:inline-block;" target="_blank">Ver Recibo</a>` 
                 : `<button class="btn btn-edit" style="background:#166534; color:white; padding:4px 8px;" onclick="abrirModalPagamento(${f.id}, ${f.valor_total})">Pagar Agora</button>`;
             
             tbody.innerHTML += `<tr>

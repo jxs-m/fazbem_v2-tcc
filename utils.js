@@ -21,6 +21,26 @@ if (window.location.protocol === 'http:' && window.location.hostname !== 'localh
     window.location.href = window.location.href.replace('http:', 'https:');
 }
 
+// Configuração do servidor backend (ex: 'https://seu-backend-oracle.com' ou 'http://129.151.x.x')
+// Deixe como string vazia '' se o backend estiver no mesmo servidor que o frontend.
+window.API_BASE_URL = '';
+
+/**
+ * Converte um caminho relativo de recurso ou API em um URL absoluto para o backend.
+ * @param {string} path Caminho relativo
+ * @returns {string} URL absoluto ou original
+ */
+window.getAbsoluteUrl = function (path) {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+    if (window.API_BASE_URL) {
+        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+        return `${window.API_BASE_URL}/${cleanPath}`;
+    }
+    return path;
+};
 
 let csrfToken = null;
 let csrfPromise = null;
@@ -30,7 +50,12 @@ async function fetchCSRFToken() {
     if (csrfToken) return csrfToken;
     if (csrfPromise) return csrfPromise;
 
-    csrfPromise = originalFetch('api_csrf.php')
+    const csrfUrl = window.getAbsoluteUrl('api_csrf.php');
+    const fetchOptions = {
+        credentials: window.API_BASE_URL ? 'include' : 'same-origin'
+    };
+
+    csrfPromise = originalFetch(csrfUrl, fetchOptions)
         .then(r => r.json())
         .then(data => {
             if (data.success) {
@@ -49,8 +74,10 @@ window.fetch = async function (url, options = {}) {
     const requiresCsrf = ['POST', 'PUT', 'DELETE'].includes(method);
 
     if (!options.credentials) {
-        options.credentials = 'same-origin';
+        options.credentials = window.API_BASE_URL ? 'include' : 'same-origin';
     }
+
+    const finalUrl = window.getAbsoluteUrl(url);
 
     if (requiresCsrf && url !== 'api_csrf.php') {
         const token = await fetchCSRFToken();
@@ -66,7 +93,7 @@ window.fetch = async function (url, options = {}) {
         }
     }
 
-    return originalFetch.call(this, url, options);
+    return originalFetch.call(this, finalUrl, options);
 };
 
 /**
@@ -103,3 +130,17 @@ function mascaraCPF(input) {
         input.value = v;
     }
 }
+
+/**
+ * Realiza o logout chamando a API do backend de forma assíncrona
+ * e redireciona o usuário para a página inicial estática.
+ */
+window.executarLogout = async function(event) {
+    if (event) event.preventDefault();
+    try {
+        await fetch('logout.php');
+    } catch (err) {
+        console.error("Erro ao realizar logout:", err);
+    }
+    window.location.href = 'index.html';
+};

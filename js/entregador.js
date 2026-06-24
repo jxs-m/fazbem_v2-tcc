@@ -201,13 +201,27 @@ function initGPS() {
                     },
                     (error) => {
                         console.error("Erro no GPS: ", error);
-                        alert("Não foi possível obter sua localização. Verifique as permissões de GPS.");
-                        desativarGPS();
+                        let msg = "Não foi possível obter sua localização. Verifique as permissões de GPS.";
+                        if (error.code === error.PERMISSION_DENIED) {
+                            msg = "Permissão de GPS negada. Por favor, autorize o acesso à localização.";
+                            alert(msg);
+                            desativarGPS();
+                        } else if (error.code === error.POSITION_UNAVAILABLE) {
+                            msg = "Sinal de GPS indisponível. Tente ir para um local aberto.";
+                            alert(msg);
+                            desativarGPS();
+                        } else if (error.code === error.TIMEOUT) {
+                            console.warn("Timeout ao buscar GPS. O dispositivo pode estar demorando a responder.");
+                            // Não desativa o GPS no timeout, pois o watchPosition continuará tentando
+                        } else {
+                            alert(msg);
+                            desativarGPS();
+                        }
                     },
                     {
                         enableHighAccuracy: true,
-                        maximumAge: 5000,
-                        timeout: 10000
+                        maximumAge: 0,
+                        timeout: 30000
                     }
                 );
             } else {
