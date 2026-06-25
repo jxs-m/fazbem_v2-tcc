@@ -4,8 +4,6 @@
 
 // Adicione as URLs do seu frontend aqui (ex: seu GitHub Pages e localhost)
 $origensPermitidas = [
-    'https://www.clubefazbem.com',
-    'https://clubefazbem.com',
     'https://seu-usuario.github.io', // Substitua pelo seu endereço do GitHub Pages
     'http://localhost',
     'http://127.0.0.1',
