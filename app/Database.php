@@ -30,7 +30,12 @@ class Database {
                 self::$conexao->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 
             } catch (PDOException $e) {
-                die("Erro de conexão com o banco de dados: " . $e->getMessage());
+                $isLocal = (defined('AMBIENTE') && AMBIENTE === 'local') || (isset($_ENV['AMBIENTE']) && $_ENV['AMBIENTE'] === 'local');
+                if ($isLocal) {
+                    die("Erro de conexão com o banco de dados: " . $e->getMessage());
+                } else {
+                    die("Erro temporário de conexão. Por favor, tente mais tarde.");
+                }
             }
         }
         return self::$conexao;

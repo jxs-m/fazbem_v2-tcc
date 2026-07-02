@@ -163,17 +163,13 @@ class Pedido {
             
             $pedido_id = $this->pdo->lastInsertId();
 
-            // Inserir itens do pedido e atualizar estoque
+            // Inserir itens do pedido
             $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) 
                         VALUES (?, ?, ?, ?)";
             $stmtItem = $this->pdo->prepare($sqlItem);
 
-            $sqlEstoque = "UPDATE produtos SET estoque_atual = estoque_atual - ? WHERE id = ?";
-            $stmtEstoque = $this->pdo->prepare($sqlEstoque);
-
             foreach ($itens_processados as $ip) {
                 $stmtItem->execute([$pedido_id, $ip['produto_id'], $ip['quantidade'], $ip['preco_unitario']]);
-                $stmtEstoque->execute([$ip['estoque_decremento'], $ip['produto_id']]);
             }
 
             $this->pdo->commit();

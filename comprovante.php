@@ -1,5 +1,6 @@
 <?php
 // Caminho: faz_bem_v2/comprovante.php
+require_once __DIR__ . '/cors.php';
 session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -13,6 +14,19 @@ $tipo = $_GET['tipo'] ?? 'pedido';
 $id = intval($_GET['id'] ?? 0);
 $usuario_id = $_SESSION['usuario_id'];
 $tipo_usuario = $_SESSION['tipo_usuario'];
+
+$voltar_url = 'perfil.html';
+$voltar_label = 'Voltar ao Perfil';
+if ($tipo_usuario === 'admin') {
+    $voltar_url = 'admin.html';
+    $voltar_label = 'Voltar ao Painel';
+} elseif ($tipo_usuario === 'entregador') {
+    $voltar_url = 'entregador.html';
+    $voltar_label = 'Voltar às Entregas';
+} elseif ($tipo_usuario === 'separador') {
+    $voltar_url = 'separador.html';
+    $voltar_label = 'Voltar à Separação';
+}
 
 if ($id <= 0) {
     die("ID inválido.");
@@ -339,7 +353,7 @@ function clean($str) {
     </div>
 
     <div class="actions">
-        <a href="perfil.html" class="btn-back">Voltar ao Perfil</a>
+        <a href="<?php echo clean($voltar_url); ?>" class="btn-back" onclick="if(window.opener) { window.close(); return false; }"><?php echo clean($voltar_label); ?></a>
         <button onclick="window.print()" class="btn-print">Imprimir / Salvar PDF</button>
     </div>
 </div>

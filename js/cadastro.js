@@ -41,6 +41,8 @@ function initMap() {
   });
 }
 
+let searchResults = [];
+
 async function buscarEnderecoNoMapa() {
   const endereco = document.getElementById('endereco').value;
   if (!endereco) return alert("Por favor, digite o endereço primeiro.");
@@ -49,22 +51,46 @@ async function buscarEnderecoNoMapa() {
   btn.innerText = "⏳...";
   btn.disabled = true;
 
+  const inputEl = document.getElementById('endereco');
+  let resDiv = document.getElementById('endereco-resultados');
+  if (!resDiv) {
+      resDiv = document.createElement('div');
+      resDiv.id = 'endereco-resultados';
+      resDiv.style.cssText = "display: none; margin-top: 8px; border: 1px solid #d1d5db; border-radius: 8px; background: white; max-height: 180px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 1000; position: relative;";
+      inputEl.parentNode.parentNode.insertBefore(resDiv, inputEl.parentNode.nextSibling);
+  }
+  resDiv.style.display = 'none';
+  resDiv.innerHTML = '';
+
   try {
     const query = endereco.toLowerCase().includes('uruguaiana') ? endereco : endereco + ', Uruguaiana, RS, Brasil';
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
     const data = await res.json();
 
     if (data && data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lng = parseFloat(data[0].lon);
+      searchResults = data;
 
-      // Move o mapa e o pino para as coordenadas
-      map.setView([lat, lng], 16);
-      marker.setLatLng([lat, lng]);
-
-      // Atualiza inputs ocultos
-      document.getElementById('latitude').value = lat;
-      document.getElementById('longitude').value = lng;
+      if (data.length === 1) {
+        selecionarResultado(0);
+      } else {
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = `<div style="padding: 6px 12px; background: #f3f4f6; font-size: 11px; font-weight: bold; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Múltiplos locais encontrados. Escolha o correto:</div>` + 
+        data.map((item, idx) => {
+            const displayName = item.display_name;
+            return `
+              <div class="resultado-item" onclick="selecionarResultado(${idx})" style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='transparent'">
+                📍 ${escapeHTML(displayName)}
+              </div>
+            `;
+        }).join('');
+        
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        map.setView([lat, lng], 16);
+        marker.setLatLng([lat, lng]);
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+      }
     } else {
       alert("Endereço não localizado no mapa. Por favor, seja mais específico ou arraste o pino manualmente.");
     }
@@ -76,6 +102,28 @@ async function buscarEnderecoNoMapa() {
     btn.disabled = false;
   }
 }
+
+window.selecionarResultado = function(idx) {
+    const item = searchResults[idx];
+    if (!item) return;
+
+    const lat = parseFloat(item.lat);
+    const lng = parseFloat(item.lon);
+
+    map.setView([lat, lng], 17);
+    marker.setLatLng([lat, lng]);
+
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+
+    document.getElementById('endereco').value = item.name || item.display_name.split(',')[0];
+    
+    const resDiv = document.getElementById('endereco-resultados');
+    if (resDiv) {
+        resDiv.style.display = 'none';
+        resDiv.innerHTML = '';
+    }
+};
 
 document.getElementById('formCadastro').addEventListener('submit', async function (e) {
   e.preventDefault();

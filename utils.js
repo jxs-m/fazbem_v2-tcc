@@ -23,7 +23,9 @@ if (window.location.protocol === 'http:' && window.location.hostname !== 'localh
 
 // Configuração do servidor backend (ex: 'https://seu-backend-oracle.com' ou 'http://129.151.x.x')
 // Deixe como string vazia '' se o backend estiver no mesmo servidor que o frontend.
-window.API_BASE_URL = '';
+window.API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.'))
+    ? ''
+    : 'https://clubefazbem.duckdns.org';
 
 /**
  * Converte um caminho relativo de recurso ou API em um URL absoluto para o backend.
@@ -73,8 +75,9 @@ window.fetch = async function (url, options = {}) {
     const method = options.method ? options.method.toUpperCase() : 'GET';
     const requiresCsrf = ['POST', 'PUT', 'DELETE'].includes(method);
 
+    const isInternal = !url.startsWith('http://') && !url.startsWith('https://') || (window.API_BASE_URL && url.startsWith(window.API_BASE_URL));
     if (!options.credentials) {
-        options.credentials = window.API_BASE_URL ? 'include' : 'same-origin';
+        options.credentials = (window.API_BASE_URL && isInternal) ? 'include' : 'same-origin';
     }
 
     const finalUrl = window.getAbsoluteUrl(url);

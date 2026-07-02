@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const settings = {
             initialization: { amount: parseFloat(valor) },
             customization: {
-                paymentMethods: { creditCard: "all", debitCard: "all", pix: "all" }
+                paymentMethods: { creditCard: "all", debitCard: "all", bankTransfer: "all" }
             },
             callbacks: {
                 onReady: () => { console.log('Brick is ready'); },
@@ -432,9 +432,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const json = await res.json();
             if (json.success) {
-                alert('✅ Fatura paga com sucesso!');
-                fecharModalMP();
-                carregarFaturas();
+                if (json.status === 'Pendente' && json.pix_data) {
+                    const container = document.getElementById('paymentBrick_container');
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 20px; font-family: sans-serif;">
+                            <h3 style="color: #166534; margin-top: 0;">Escaneie o QR Code para Pagar</h3>
+                            <img src="data:image/jpeg;base64,${json.pix_data.qr_code_base64}" style="max-width: 250px; margin: 15px 0; border: 1px solid #e5e7eb; padding: 8px; border-radius: 8px; background: white;" />
+                            <p style="font-size: 13px; color: #4b5563; margin-bottom: 5px;">Ou copie o código Pix abaixo:</p>
+                            <textarea readonly style="width: 100%; height: 60px; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 11px; font-family: monospace; resize: none; background: #f9fafb;" onclick="this.select()">${json.pix_data.qr_code}</textarea>
+                            <button onclick="navigator.clipboard.writeText('${json.pix_data.qr_code}'); alert('Código Pix copiado com sucesso!')" style="margin-top: 12px; background: #166534; color: white; padding: 10px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s;" class="btn">Copiar Código Pix</button>
+                        </div>
+                    `;
+                } else {
+                    alert('✅ Fatura paga com sucesso!');
+                    fecharModalMP();
+                    carregarFaturas();
+                }
             } else {
                 alert('❌ Erro: ' + json.message);
                 throw new Error(json.message);

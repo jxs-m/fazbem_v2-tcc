@@ -46,6 +46,14 @@ try {
     $carrinho = $data['itens']; 
     $pedidoModel = new Pedido();
 
+    // Verificar se o usuário possui uma assinatura ativa
+    require_once __DIR__ . '/app/Models/Assinatura.php';
+    $assinaturaModel = new Assinatura();
+    $assinatura = $assinaturaModel->buscarPorUsuario($usuario_id);
+    if (!$assinatura || $assinatura['status'] !== 'Ativa') {
+        throw new Exception("Você precisa ativar a sua assinatura realizando o pagamento pendente antes de fazer pedidos adicionais.");
+    }
+
     // Validações locais críticas antes de efetuar a cobrança
     if ($pedidoModel->verificarPedidoExistenteSemana($usuario_id)) {
         throw new Exception("Você já realizou um pedido esta semana. O limite é de apenas um pedido por pessoa.");

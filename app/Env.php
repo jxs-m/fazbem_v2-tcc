@@ -4,7 +4,15 @@
 class Env {
     public static function load($path) {
         if (!file_exists($path)) {
-            return false;
+            $dir = dirname($path);
+            $filename = basename($path);
+            $alternative = (strtolower($filename) === '.env') ? '.ENV' : '.env';
+            $altPath = $dir . DIRECTORY_SEPARATOR . $alternative;
+            if (file_exists($altPath)) {
+                $path = $altPath;
+            } else {
+                return false;
+            }
         }
 
         $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);

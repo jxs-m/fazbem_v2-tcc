@@ -42,29 +42,17 @@ try {
     $stmtPedidos = $pdo->query($sqlPedidosSemana);
     $pedidosExistentes = $stmtPedidos->fetchAll(PDO::FETCH_ASSOC);
 
-    // Passo 2: Para cada pedido, devolver o estoque dos itens de forma unificada (Bulk Update)
+    // Passo 2: Para cada pedido, deletar itens e pedidos antigos de forma unificada
     if (!empty($pedidosExistentes)) {
         $ids = array_column($pedidosExistentes, 'id');
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
-        // 1. Devolver estoque usando JOIN
-        $sqlDevolver = "UPDATE produtos p
-                        JOIN (
-                            SELECT produto_id, SUM(quantidade) as total_qty
-                            FROM itens_pedido
-                            WHERE pedido_id IN ($placeholders)
-                            GROUP BY produto_id
-                        ) i ON p.id = i.produto_id
-                        SET p.estoque_atual = p.estoque_atual + i.total_qty";
-        $stmtDevolver = $pdo->prepare($sqlDevolver);
-        $stmtDevolver->execute($ids);
-
-        // 2. Deletar todos os itens_pedido relacionados
+        // 1. Deletar todos os itens_pedido relacionados
         $sqlDeleteItens = "DELETE FROM itens_pedido WHERE pedido_id IN ($placeholders)";
         $stmtDelItens = $pdo->prepare($sqlDeleteItens);
         $stmtDelItens->execute($ids);
 
-        // 3. Deletar os pedidos
+        // 2. Deletar os pedidos
         $sqlDeletePedido = "DELETE FROM pedidos WHERE id IN ($placeholders)";
         $stmtDelPedido = $pdo->prepare($sqlDeletePedido);
         $stmtDelPedido->execute($ids);
@@ -96,9 +84,6 @@ try {
 
     $sqlItemNovo = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, 0)";
     $stmtItemNovo = $pdo->prepare($sqlItemNovo);
-
-    $sqlEstoqueNovo = "UPDATE produtos SET estoque_atual = estoque_atual - ? WHERE id = ?";
-    $stmtEstoqueNovo = $pdo->prepare($sqlEstoqueNovo);
 
     foreach ($assinantes as $assinante) {
         $usuarioId = $assinante['usuario_id'];
@@ -180,7 +165,6 @@ try {
             }
 
             $stmtItemNovo->execute([$pedidoNovoId, $item['id'], $estoqueDecremento]);
-            $stmtEstoqueNovo->execute([$estoqueDecremento, $item['id']]);
         }
 
         $qtdGerados++;

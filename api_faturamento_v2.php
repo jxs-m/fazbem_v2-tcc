@@ -143,6 +143,7 @@ try {
                 $paymentPayload = [
                     "transaction_amount" => (float) $valor_total,
                     "description" => "Pagamento de Fatura Mensal #" . $f_id,
+                    "external_reference" => (string) $f_id,
                     "payment_method_id" => $mpData['payment_method_id'] ?? null,
                     "payer" => [
                         "email" => $mpData['payer']['email'] ?? ''
@@ -167,27 +168,80 @@ try {
                     $errorMsg = $mpResult['response']['message'] ?? ($mpResult['response']['error'] ?? 'Erro no Mercado Pago.');
                     throw new Exception("Falha ao processar pagamento: " . $errorMsg);
                 }
+
+                $response = $mpResult['response'] ?? [];
+                $paymentStatus = $response['status'] ?? 'rejected';
+
+                if ($paymentStatus === 'rejected') {
+                    $statusDetail = $response['status_detail'] ?? '';
+                    $rejectionMessages = [
+                        'cc_rejected_insufficient_amount' => 'Saldo/limite insuficiente no cartão.',
+                        'cc_rejected_bad_filled_security_code' => 'Código de segurança (CVV) incorreto.',
+                        'cc_rejected_bad_filled_date' => 'Data de vencimento do cartão incorreta.',
+                        'cc_rejected_bad_filled_card_number' => 'Número do cartão inválido.',
+                        'cc_rejected_call_for_authorize' => 'Pagamento recusado. Entre em contato com a operadora do cartão para autorizar.',
+                        'cc_rejected_card_disabled' => 'O cartão informado está desativado.',
+                        'cc_rejected_duplicated_payment' => 'Pagamento duplicado. Aguarde alguns instantes antes de tentar novamente.',
+                        'cc_rejected_high_risk' => 'Pagamento recusado pela análise de segurança do Mercado Pago.',
+                        'cc_rejected_blacklist' => 'O cartão está bloqueado para esta transação.',
+                    ];
+                    $msg = $rejectionMessages[$statusDetail] ?? 'Transação recusada pela operadora do cartão.';
+                    throw new Exception($msg);
+                } elseif ($paymentStatus !== 'approved' && $paymentStatus !== 'pending' && $paymentStatus !== 'in_process') {
+                    throw new Exception("Pagamento não aprovado. Status: " . $paymentStatus);
+                }
             }
 
             $mpPaymentId = null;
             $formaPagamento = 'Saldo/Crédito';
+            $pixData = null;
+            $statusFatura = 'Pago';
+
             if (isset($mpResult) && isset($mpResult['response'])) {
                 $mpPaymentId = $mpResult['response']['id'] ?? null;
                 $formaPagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
+                
+                $response = $mpResult['response'];
+                $paymentStatus = $response['status'] ?? 'approved';
+                if ($paymentStatus === 'pending' || $paymentStatus === 'in_process') {
+                    $statusFatura = 'Pendente';
+                    if (isset($mpData['payment_method_id']) && $mpData['payment_method_id'] === 'pix') {
+                        $pixData = [
+                            'qr_code' => $response['point_of_interaction']['transaction_data']['qr_code'] ?? '',
+                            'qr_code_base64' => $response['point_of_interaction']['transaction_data']['qr_code_base64'] ?? ''
+                        ];
+                    }
+                }
             }
 
             $pdo->beginTransaction();
             try {
-                $pdo->prepare("UPDATE faturas_mensais SET status = 'Pago', pago_em = NOW(), transacao_id = ?, forma_pagamento = ? WHERE id = ? AND usuario_id = ?")
-                    ->execute([$mpPaymentId, $formaPagamento, $f_id, $_SESSION['usuario_id']]);
+                $pdo->prepare("UPDATE faturas_mensais SET status = ?, pago_em = IF(? = 'Pago', NOW(), NULL), transacao_id = ?, forma_pagamento = ? WHERE id = ? AND usuario_id = ?")
+                    ->execute([$statusFatura, $statusFatura, $mpPaymentId, $formaPagamento, $f_id, $_SESSION['usuario_id']]);
+
+                if ($statusFatura === 'Pago') {
+                    $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ?");
+                    $stmtSub->execute([$_SESSION['usuario_id']]);
+                    $subStatus = $stmtSub->fetchColumn();
+                    if ($subStatus === 'Cancelada') {
+                        $pdo->prepare("UPDATE assinaturas SET status = 'Ativa' WHERE usuario_id = ?")
+                            ->execute([$_SESSION['usuario_id']]);
+                    }
+                }
+
                 $pdo->commit();
             } catch (Exception $dbEx) {
                 $pdo->rollBack();
-                error_log("CRITICAL ERROR: Fatura paga no MP mas falhou ao atualizar localmente. ID Fatura: " . $f_id . " | Erro: " . $dbEx->getMessage());
-                throw new Exception("Pagamento aprovado, mas ocorreu um erro ao registrar localmente. Entre em contato com o suporte informando a Fatura #" . $f_id);
+                error_log("CRITICAL ERROR: Fatura processada no MP mas falhou ao atualizar localmente. ID Fatura: " . $f_id . " | Erro: " . $dbEx->getMessage());
+                throw new Exception("Ocorreu um erro ao registrar localmente. Entre em contato com o suporte informando a Fatura #" . $f_id);
             }
             
-            echo json_encode(['success' => true, 'message' => 'Fatura paga com sucesso!']);
+            echo json_encode([
+                'success' => true,
+                'status' => $statusFatura,
+                'pix_data' => $pixData,
+                'message' => $statusFatura === 'Pago' ? 'Fatura paga com sucesso!' : 'Aguardando pagamento do Pix.'
+            ]);
             break;
 
         default:

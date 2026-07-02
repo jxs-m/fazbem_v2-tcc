@@ -101,9 +101,6 @@ try {
         $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, 0)";
         $stmtItem = $pdo->prepare($sqlItem);
 
-        $sqlEstoque = "UPDATE produtos SET estoque_atual = estoque_atual - ? WHERE id = ?";
-        $stmtEstoque = $pdo->prepare($sqlEstoque);
-
         foreach ($itensDoPedido as $item) {
             $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
             
@@ -151,7 +148,6 @@ try {
             }
 
             $stmtItem->execute([$pedidoId, $item['id'], $estoqueDecremento]);
-            $stmtEstoque->execute([$estoqueDecremento, $item['id']]);
         }
 
         $pdo->commit();

@@ -473,31 +473,108 @@ function initMapAdmin() {
     });
 }
 
+let adminSearchResults = [];
+
 async function buscarEnderecoAdmin() {
     const endereco = document.getElementById('cliEndereco').value;
     if (!endereco) return alert("Por favor, digite o endereço.");
+
+    const btn = document.querySelector('button[onclick="buscarEnderecoAdmin()"]');
+    const originalText = btn ? btn.innerText : '🔍 Ajustar Pino';
+    if (btn) {
+        btn.innerText = "⏳...";
+        btn.disabled = true;
+    }
+
+    const inputEl = document.getElementById('cliEndereco');
+    let resDiv = document.getElementById('admin-endereco-resultados');
+    if (!resDiv) {
+        resDiv = document.createElement('div');
+        resDiv.id = 'admin-endereco-resultados';
+        resDiv.style.cssText = "display: none; margin-top: 8px; border: 1px solid #d1d5db; border-radius: 8px; background: white; max-height: 150px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 1000; position: relative;";
+        inputEl.parentNode.parentNode.insertBefore(resDiv, inputEl.parentNode.nextSibling);
+    }
+    resDiv.style.display = 'none';
+    resDiv.innerHTML = '';
 
     try {
         const query = endereco.toLowerCase().includes('uruguaiana') ? endereco : endereco + ', Uruguaiana, RS, Brasil';
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
         const data = await res.json();
         if (data && data.length > 0) {
-            const lat = parseFloat(data[0].lat);
-            const lng = parseFloat(data[0].lon);
-            mapAdmin.setView([lat, lng], 16);
-            markerAdmin.setLatLng([lat, lng]);
-            document.getElementById('cliLatitude').value = lat;
-            document.getElementById('cliLongitude').value = lng;
+            adminSearchResults = data;
+            
+            if (data.length === 1) {
+                selecionarResultadoAdmin(0);
+            } else {
+                resDiv.style.display = 'block';
+                resDiv.innerHTML = `<div style="padding: 6px 12px; background: #f3f4f6; font-size: 11px; font-weight: bold; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Múltiplos locais encontrados. Escolha o correto:</div>` + 
+                data.map((item, idx) => {
+                    const displayName = item.display_name;
+                    return `
+                      <div class="resultado-item" onclick="selecionarResultadoAdmin(${idx})" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='transparent'">
+                        📍 ${escapeHTML(displayName)}
+                      </div>
+                    `;
+                }).join('');
+                
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                mapAdmin.setView([lat, lng], 16);
+                markerAdmin.setLatLng([lat, lng]);
+                document.getElementById('cliLatitude').value = lat;
+                document.getElementById('cliLongitude').value = lng;
+            }
         } else {
             alert("Endereço não localizado no mapa. Mova o pino.");
         }
-    } catch (err) { alert("Erro na busca."); }
+    } catch (err) { 
+        alert("Erro na busca."); 
+    } finally {
+        if (btn) {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
 }
+
+window.selecionarResultadoAdmin = function(idx) {
+    const item = adminSearchResults[idx];
+    if (!item) return;
+
+    const lat = parseFloat(item.lat);
+    const lng = parseFloat(item.lon);
+
+    mapAdmin.setView([lat, lng], 17);
+    markerAdmin.setLatLng([lat, lng]);
+
+    document.getElementById('cliLatitude').value = lat;
+    document.getElementById('cliLongitude').value = lng;
+
+    document.getElementById('cliEndereco').value = item.name || item.display_name.split(',')[0];
+    
+    const resDiv = document.getElementById('admin-endereco-resultados');
+    if (resDiv) {
+        resDiv.style.display = 'none';
+        resDiv.innerHTML = '';
+    }
+};
 
 function editarCliente(c) {
     document.getElementById('modalCliente').style.display = 'flex';
-    document.getElementById('cliId').value = c.id; document.getElementById('cliNome').value = c.nome; document.getElementById('cliEmail').value = c.email; document.getElementById('cliTelefone').value = c.telefone; document.getElementById('cliEndereco').value = c.endereco;
-    document.getElementById('cliFrequencia').value = c.frequencia || 'Semanal'; document.getElementById('cliStatus').value = c.status || 'Ativa';
+    document.getElementById('cliId').value = c.id; 
+    document.getElementById('cliNome').value = c.nome; 
+    document.getElementById('cliEmail').value = c.email; 
+    document.getElementById('cliTelefone').value = c.telefone; 
+    document.getElementById('cliEndereco').value = c.endereco;
+    document.getElementById('cliFrequencia').value = c.frequencia || 'Semanal'; 
+    document.getElementById('cliStatus').value = c.status || 'Ativa';
+
+    const resDiv = document.getElementById('admin-endereco-resultados');
+    if (resDiv) {
+        resDiv.style.display = 'none';
+        resDiv.innerHTML = '';
+    }
 
     document.getElementById('containerMapaCli').style.display = 'block';
     if (!mapAdmin) initMapAdmin();
@@ -843,30 +920,28 @@ async function abrirModalGerarPedidos(modo = 'gerar') {
         if (json.success) {
             container.innerHTML = '';
             json.data.forEach(p => {
-                if(p.estoque_atual > 0) {
-                    let estoqueFloat = parseFloat(p.estoque_atual);
-                    let unit = p.tipo_venda === 'Fracionado' ? 'g' : p.unidade;
-                    let isUnSelected = p.unidade === 'un' || p.unidade === 'unidade' || p.tipo_venda === 'Inteiro';
-                    let isGSelected = p.tipo_venda === 'Fracionado';
-                    container.innerHTML += `
-                        <div style="display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:0.9em; margin-bottom:5px;">
-                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; flex:1;">
-                                <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}" data-unidade="${escapeHTML(p.unidade)}" data-tipovenda="${escapeHTML(p.tipo_venda)}">
-                                <span>${escapeHTML(p.nome)} (Estoque: ${estoqueFloat} ${unit})</span>
-                            </label>
-                            <div style="display:flex; gap: 5px;">
-                                <input type="number" id="qtd-prod-${p.id}" value="1" min="1" max="9999" style="width:60px; padding:2px 5px; font-size:0.9em;" title="Quantidade">
-                                <select id="uni-prod-${p.id}" style="padding:2px 5px; font-size:0.9em; width: 80px;">
-                                    <option value="un" ${isUnSelected && !isGSelected ? 'selected' : ''}>unidade(s)</option>
-                                    <option value="g" ${isGSelected ? 'selected' : ''}>g</option>
-                                    <option value="kg">kg</option>
-                                    <option value="maço">maço(s)</option>
-                                    <option value="pé">pé(s)</option>
-                                </select>
-                            </div>
+                let estoqueFloat = parseFloat(p.estoque_atual || 0);
+                let unit = p.tipo_venda === 'Fracionado' ? 'g' : p.unidade;
+                let isUnSelected = p.unidade === 'un' || p.unidade === 'unidade' || p.tipo_venda === 'Inteiro';
+                let isGSelected = p.tipo_venda === 'Fracionado';
+                container.innerHTML += `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:0.9em; margin-bottom:5px;">
+                        <label style="display:flex; align-items:center; gap:5px; cursor:pointer; flex:1;">
+                            <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}" data-unidade="${escapeHTML(p.unidade)}" data-tipovenda="${escapeHTML(p.tipo_venda)}">
+                            <span>${escapeHTML(p.nome)} (Estoque: ${estoqueFloat} ${unit})</span>
+                        </label>
+                        <div style="display:flex; gap: 5px;">
+                            <input type="number" id="qtd-prod-${p.id}" value="1" min="1" max="9999" style="width:60px; padding:2px 5px; font-size:0.9em;" title="Quantidade">
+                            <select id="uni-prod-${p.id}" style="padding:2px 5px; font-size:0.9em; width: 80px;">
+                                <option value="un" ${isUnSelected && !isGSelected ? 'selected' : ''}>unidade(s)</option>
+                                <option value="g" ${isGSelected ? 'selected' : ''}>g</option>
+                                <option value="kg">kg</option>
+                                <option value="maço">maço(s)</option>
+                                <option value="pé">pé(s)</option>
+                            </select>
                         </div>
-                    `;
-                }
+                    </div>
+                `;
             });
         }
     } catch(e) {

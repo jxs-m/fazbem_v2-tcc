@@ -108,5 +108,40 @@ class MercadoPagoService {
             'response' => $decoded
         ];
     }
+
+    /**
+     * Consulta os detalhes de um pagamento pelo ID
+     * @param string $paymentId ID do pagamento no Mercado Pago
+     * @return array Resposta da API com HTTP status e o corpo decodificado
+     */
+    public function getPayment($paymentId) {
+        $url = "https://api.mercadopago.com/v1/payments/" . $paymentId;
+
+        $headers = [
+            "Authorization: Bearer " . $this->accessToken
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($error) {
+            return [
+                'status' => 500,
+                'response' => ['error' => 'cURL Error: ' . $error]
+            ];
+        }
+
+        return [
+            'status' => $httpCode,
+            'response' => json_decode($response, true)
+        ];
+    }
 }
 ?>

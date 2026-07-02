@@ -118,8 +118,10 @@ async function carregarEntregas() {
 
             if (!activeRouteDest) {
                 limparRota();
-            } else if (driverLatLng) {
-                tracaRota(driverLatLng.lat, driverLatLng.lng, activeRouteDest.lat, activeRouteDest.lng);
+            } else {
+                const startLat = driverLatLng ? driverLatLng.lat : MAPA_DEFAULT_LAT;
+                const startLng = driverLatLng ? driverLatLng.lng : MAPA_DEFAULT_LNG;
+                tracaRota(startLat, startLng, activeRouteDest.lat, activeRouteDest.lng);
             }
 
         } else {
@@ -161,74 +163,60 @@ function initGPS() {
     const gpsBtn = document.getElementById('gps-btn');
     if (!gpsBtn) return;
 
+    function ativarRastreamento() {
+        if ("geolocation" in navigator) {
+            gpsBtn.classList.add('tracking');
+            gpsBtn.textContent = '📡';
+            map.setMaxBounds(null);
+
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    driverLatLng = { lat, lng };
+
+                    if (gpsMarker) {
+                        gpsMarker.setLatLng([lat, lng]);
+                    } else {
+                        const pulseIcon = L.divIcon({
+                            className: 'gps-marker-icon',
+                            html: '<div class="gps-marker-pulse"></div>',
+                            iconSize: [14, 14],
+                            iconAnchor: [7, 7]
+                        });
+                        gpsMarker = L.marker([lat, lng], { icon: pulseIcon }).addTo(map)
+                            .bindPopup("Você está aqui");
+                    }
+
+                    if (activeRouteDest) {
+                        tracaRota(lat, lng, activeRouteDest.lat, activeRouteDest.lng);
+                    } else {
+                        map.setView([lat, lng], 16);
+                    }
+                },
+                (error) => {
+                    console.warn("Aviso no GPS/Geolocalização: ", error);
+                    // Em caso de falha na obtenção do GPS, a rota continua desenhada a partir do ponto central padrão
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 15000
+                }
+            );
+        } else {
+            console.warn("Geolocalização não suportada neste navegador.");
+        }
+    }
+
+    // Inicia o rastreamento automaticamente ao carregar
+    ativarRastreamento();
+
+    // Permite que o motorista clique para ligar/desligar manualmente
     gpsBtn.addEventListener('click', () => {
         if (gpsWatchId === null) {
-            // Ativa o rastreamento do GPS
-            if ("geolocation" in navigator) {
-                gpsBtn.classList.add('tracking');
-                gpsBtn.textContent = '📡';
-
-                // Remove restrições de limite do mapa para fins de teste
-                map.setMaxBounds(null);
-
-                gpsWatchId = navigator.geolocation.watchPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        driverLatLng = { lat, lng };
-
-                        // Adiciona ou move o marcador do entregador no mapa
-                        if (gpsMarker) {
-                            gpsMarker.setLatLng([lat, lng]);
-                        } else {
-                            const pulseIcon = L.divIcon({
-                                className: 'gps-marker-icon',
-                                html: '<div class="gps-marker-pulse"></div>',
-                                iconSize: [14, 14],
-                                iconAnchor: [7, 7]
-                            });
-                            gpsMarker = L.marker([lat, lng], { icon: pulseIcon }).addTo(map)
-                                .bindPopup("Você está aqui");
-                        }
-
-                        // Se houver uma rota ativa, traça
-                        if (activeRouteDest) {
-                            tracaRota(lat, lng, activeRouteDest.lat, activeRouteDest.lng);
-                        } else {
-                            // Centraliza o mapa na posição do entregador se não houver rota ativa
-                            map.setView([lat, lng], 16);
-                        }
-                    },
-                    (error) => {
-                        console.error("Erro no GPS: ", error);
-                        let msg = "Não foi possível obter sua localização. Verifique as permissões de GPS.";
-                        if (error.code === error.PERMISSION_DENIED) {
-                            msg = "Permissão de GPS negada. Por favor, autorize o acesso à localização.";
-                            alert(msg);
-                            desativarGPS();
-                        } else if (error.code === error.POSITION_UNAVAILABLE) {
-                            msg = "Sinal de GPS indisponível. Tente ir para um local aberto.";
-                            alert(msg);
-                            desativarGPS();
-                        } else if (error.code === error.TIMEOUT) {
-                            console.warn("Timeout ao buscar GPS. O dispositivo pode estar demorando a responder.");
-                            // Não desativa o GPS no timeout, pois o watchPosition continuará tentando
-                        } else {
-                            alert(msg);
-                            desativarGPS();
-                        }
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 0,
-                        timeout: 30000
-                    }
-                );
-            } else {
-                alert("Seu navegador não suporta Geolocalização.");
-            }
+            ativarRastreamento();
         } else {
-            // Desativa o rastreamento
             desativarGPS();
         }
     });
@@ -251,7 +239,10 @@ function desativarGPS() {
     driverLatLng = null;
     limparRota();
 
-    // Restaura maxBounds originais de Uruguaiana
+    if (activeRouteDest) {
+        tracaRota(MAPA_DEFAULT_LAT, MAPA_DEFAULT_LNG, activeRouteDest.lat, activeRouteDest.lng);
+    }
+
     map.setMaxBounds([
         [-30.05, -57.45],
         [-29.45, -56.85]

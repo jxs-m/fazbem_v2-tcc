@@ -1,6 +1,27 @@
 <?php
 // Caminho: faz_bem_v2/app/Security.php
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/Env.php';
+    Env::load(__DIR__ . '/../.env');
+    $ambiente = $_ENV['AMBIENTE'] ?? 'producao';
+    
+    // Detecção de ambiente local com base no host
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $isLocalhost = (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false || strpos($host, '192.168.') !== false || strpos($host, '10.') !== false);
+    
+    $secureCookie = (($ambiente === 'producao') && !$isLocalhost) || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+    $samesiteCookie = (($ambiente === 'producao') && !$isLocalhost) ? 'None' : 'Lax';
+    
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $secureCookie,
+        'httponly' => true,
+        'samesite' => $samesiteCookie
+    ]);
+    session_start();
+}
 
 class Security {
     /**

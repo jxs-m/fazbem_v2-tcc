@@ -43,9 +43,16 @@ class Usuario {
 
             
             if (!empty($frequencia)) {
-                $sqlAssinatura = "INSERT INTO assinaturas (usuario_id, frequencia, status) VALUES (?, ?, 'Ativa')";
+                $valor_mensal = ($frequencia === 'Quinzenal') ? 50.00 : 100.00;
+                $sqlAssinatura = "INSERT INTO assinaturas (usuario_id, frequencia, valor_mensal, status) VALUES (?, ?, ?, 'Cancelada')";
                 $stmtAssinatura = $this->pdo->prepare($sqlAssinatura);
-                $stmtAssinatura->execute([$usuarioId, $frequencia]);
+                $stmtAssinatura->execute([$usuarioId, $frequencia, $valor_mensal]);
+
+                $mes_referencia = date('Y-m');
+                $sqlFatura = "INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_desconto_creditos, valor_total, status) 
+                              VALUES (?, ?, ?, 0.00, 0.00, ?, 'Pendente')";
+                $stmtFatura = $this->pdo->prepare($sqlFatura);
+                $stmtFatura->execute([$usuarioId, $mes_referencia, $valor_mensal, $valor_mensal]);
             }
 
             

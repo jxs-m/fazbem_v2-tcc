@@ -29,9 +29,14 @@ try {
                        e.latitude, e.longitude
                 FROM pedidos p
                 JOIN usuarios u ON p.usuario_id = u.id
-                LEFT JOIN enderecos e ON e.usuario_id = u.id
+                LEFT JOIN (
+                    SELECT usuario_id, MIN(id) as principal_id
+                    FROM enderecos
+                    WHERE is_principal = 1
+                    GROUP BY usuario_id
+                ) e_id ON e_id.usuario_id = u.id
+                LEFT JOIN enderecos e ON e.id = e_id.principal_id
                 WHERE p.status_entrega IN ('Aguardando Entrega', 'Saiu para entrega')
-                GROUP BY p.id
                 ORDER BY p.ordem_entrega ASC, p.id ASC";
                 
         $stmt = $pdo->query($sql);

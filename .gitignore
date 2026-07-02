@@ -11,3 +11,8 @@ config.php
 Cópia de Artigo_NetLab_Perfeito.docx (1).pdf
 popular_real.php
 popular_banco.php
+
+# Keys and secrets
+*.key
+*.pem
+*.pub

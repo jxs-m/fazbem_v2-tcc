@@ -63,8 +63,27 @@ try {
             $mensagem = "Entregas pausadas com sucesso. R$ {$valor_formatado} foram adicionados à sua carteira (Compensação).";
             break;
         case 'reativar':
-            if (!$assinaturaAtual || $assinaturaAtual['status'] !== 'Pausada') {
-                throw new Exception("Apenas assinaturas pausadas podem ser reativadas.");
+            if (!$assinaturaAtual) {
+                throw new Exception("Assinatura não encontrada.");
+            }
+            if ($assinaturaAtual['status'] === 'Cancelada') {
+                $mes_referencia = date('Y-m');
+                $pdo = Database::getConexao();
+                
+                $checkFatura = $pdo->prepare("SELECT id FROM faturas_mensais WHERE usuario_id = ? AND mes_referencia = ? AND status = 'Pendente'");
+                $checkFatura->execute([$usuario_id, $mes_referencia]);
+                if ($checkFatura->rowCount() === 0) {
+                    $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
+                    $sqlInsertFatura = "INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_desconto_creditos, valor_total, status) 
+                                        VALUES (?, ?, ?, 0.00, 0.00, ?, 'Pendente')";
+                    $stmtInsert = $pdo->prepare($sqlInsertFatura);
+                    $stmtInsert->execute([$usuario_id, $mes_referencia, $valor_mensal, $valor_mensal]);
+                }
+                throw new Exception("Sua assinatura está inativa. Para ativá-la, por favor efetue o pagamento da fatura de assinatura pendente na seção 'Minhas Faturas' abaixo.");
+            }
+            
+            if ($assinaturaAtual['status'] !== 'Pausada') {
+                throw new Exception("Apenas assinaturas pausadas ou inativas podem ser reativadas.");
             }
             $status = 'Ativa';
             
