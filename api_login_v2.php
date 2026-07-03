@@ -56,7 +56,8 @@ try {
     }
 
 } catch (Throwable $e) {
+    error_log("Erro no login: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro interno no servidor: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erro interno no servidor. Por favor, tente novamente mais tarde.']);
 }
 ?>
