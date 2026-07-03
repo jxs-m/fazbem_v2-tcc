@@ -24,14 +24,72 @@ class Producao {
     }
 
     public function gerarRelatorioHortalicas() {
-        $sql = "SELECT p.id, p.nome, p.unidade, IFNULL(SUM(ip.quantidade), 0) as total_necessario
+        $sql = "SELECT p.id, p.nome, p.unidade, p.tipo_venda, IFNULL(SUM(ip.quantidade), 0) as total_necessario
                 FROM produtos p
                 LEFT JOIN itens_pedido ip ON p.id = ip.produto_id
-                LEFT JOIN pedidos ped ON ip.pedido_id = ped.id AND YEARWEEK(ped.data_pedido, 0) = YEARWEEK(NOW(), 0)
-                GROUP BY p.id, p.nome, p.unidade
+                LEFT JOIN pedidos ped ON ip.pedido_id = ped.id AND YEARWEEK(ped.data_pedido, 0) = YEARWEEK(NOW(), 0) AND ped.status_entrega IN ('Em separação', 'Aguardando Entrega')
+                GROUP BY p.id, p.nome, p.unidade, p.tipo_venda
+                HAVING total_necessario > 0
                 ORDER BY p.nome ASC";
         $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll();
+        $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($itens as &$item) {
+            $item['quantidade_formatada'] = self::formatarExibicao($item['nome'], $item['unidade'], $item['tipo_venda'], $item['total_necessario']);
+        }
+        return $itens;
+    }
+
+    public static function formatarExibicao($nome, $unidade, $tipoVenda, $quantidade) {
+        $qtd = floatval($quantidade);
+        if ($qtd <= 0) return '0';
+
+        $u = strtolower(trim($unidade));
+        $n = strtolower(trim($nome));
+
+        if ($tipoVenda === 'Fracionado' || $u === 'kg' || $u === 'g') {
+            if ($u === 'g') {
+                return round($qtd) . ' g';
+            }
+            $formatted = number_format($qtd, 3, ',', '.');
+            $formatted = preg_replace('/,000$/', '', $formatted);
+            $formatted = preg_replace('/,([0-9]*[1-9])0+$/', ',$1', $formatted);
+            return $formatted . ' kg';
+        } else {
+            $numInt = (int)round($qtd);
+            $unitStr = '';
+
+            if (empty($u) || $u === 'un' || $u === 'unidade') {
+                $unitStr = ($numInt === 1) ? 'unidade' : 'unidades';
+            } elseif ($u === 'maço' || $u === 'maco') {
+                $unitStr = ($numInt === 1) ? 'maço' : 'maços';
+            } elseif ($u === 'pé' || $u === 'pe') {
+                $unitStr = ($numInt === 1) ? 'pé' : 'pés';
+            } elseif ($u === $n) {
+                if ($numInt === 1) {
+                    $unitStr = $nome;
+                } else {
+                    $ultLetra = mb_substr($n, -1);
+                    if (in_array($ultLetra, ['a', 'e', 'i', 'o', 'u'])) {
+                        $unitStr = $nome . 's';
+                    } else {
+                        $unitStr = $nome . 'es';
+                    }
+                }
+            } else {
+                if ($numInt === 1) {
+                    $unitStr = $unidade;
+                } else {
+                    $ultLetra = mb_substr($u, -1);
+                    if (in_array($ultLetra, ['a', 'e', 'i', 'o', 'u'])) {
+                        $unitStr = $unidade . 's';
+                    } else {
+                        $unitStr = $unidade . 'es';
+                    }
+                }
+            }
+            return $numInt . ' ' . $unitStr;
+        }
     }
 
     public function catalogoAberto() {

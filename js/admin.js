@@ -354,9 +354,50 @@ async function deletarProd(id) {
     carregarProdutos();
 }
 
+function formatarQuantidadeExibicao(nome, unidade, tipoVenda, totalNecessario) {
+    let qtd = parseFloat(totalNecessario || 0);
+    if (qtd <= 0) return '0';
+
+    let u = (unidade || '').toLowerCase().trim();
+    let n = (nome || '').toLowerCase().trim();
+
+    if (tipoVenda === 'Fracionado' || u === 'kg' || u === 'g') {
+        if (u === 'g') return Math.round(qtd) + ' g';
+        let numStr = qtd.toFixed(3).replace('.', ',');
+        numStr = numStr.replace(/,000$/, '');
+        numStr = numStr.replace(/,([0-9]*[1-9])0+$/, ',$1');
+        return numStr + ' kg';
+    } else {
+        let numInt = Math.round(qtd);
+        let unitStr = '';
+        if (!u || u === 'un' || u === 'unidade') {
+            unitStr = numInt === 1 ? 'unidade' : 'unidades';
+        } else if (u === 'maço' || u === 'maco') {
+            unitStr = numInt === 1 ? 'maço' : 'maços';
+        } else if (u === 'pé' || u === 'pe') {
+            unitStr = numInt === 1 ? 'pé' : 'pés';
+        } else if (u === n) {
+            if (numInt === 1) {
+                unitStr = nome;
+            } else {
+                let ult = n.slice(-1);
+                unitStr = ['a','e','i','o','u'].includes(ult) ? (nome + 's') : (nome + 'es');
+            }
+        } else {
+            if (numInt === 1) {
+                unitStr = unidade;
+            } else {
+                let ult = u.slice(-1);
+                unitStr = ['a','e','i','o','u'].includes(ult) ? (unidade + 's') : (unidade + 'es');
+            }
+        }
+        return numInt + ' ' + unitStr;
+    }
+}
+
 async function carregarProducao() {
     const tbody = document.getElementById('lista-producao');
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Calculando necessidades...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Calculando necessidades...</td></tr>';
     try {
         const res = await fetch('api_producao_v2.php');
         const json = await res.json();
@@ -383,25 +424,25 @@ async function carregarProducao() {
             }
 
             if (json.hortalicasNecessarias.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum pedido engatilhado para a semana.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Nenhum pedido engatilhado para a semana.</td></tr>';
                 return;
             }
 
             json.hortalicasNecessarias.forEach(h => {
+                let qtdFormatada = h.quantidade_formatada || formatarQuantidadeExibicao(h.nome, h.unidade, h.tipo_venda, h.total_necessario);
                 tbody.innerHTML += `
-                            <tr>
-                                <td>#${h.id}</td>
-                                <td><strong>${escapeHTML(h.nome)}</strong></td>
-                                <td>${escapeHTML(h.unidade)}</td>
-                                <td style="font-size: 18px; font-weight: bold; color: var(--green-primary);">${h.total_necessario}</td>
-                            </tr>
-                        `;
+                    <tr>
+                        <td>#${h.id}</td>
+                        <td><strong>${escapeHTML(h.nome)}</strong></td>
+                        <td style="text-align:right; font-size: 18px; font-weight: bold; color: var(--green-primary); padding-right:20px;">${escapeHTML(qtdFormatada)}</td>
+                    </tr>
+                `;
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="4">Erro ao processar relatório</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3">Erro ao processar relatório</td></tr>';
         }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="4">Erro: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3">Erro: ${e.message}</td></tr>`;
     }
 }
 

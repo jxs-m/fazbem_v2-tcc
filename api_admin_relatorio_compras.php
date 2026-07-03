@@ -13,6 +13,7 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') 
 }
 
 require_once __DIR__ . '/app/Database.php';
+require_once __DIR__ . '/app/Models/Producao.php';
 
 try {
     $pdo = Database::getConexao();
@@ -39,15 +40,7 @@ try {
     $relatorio = [];
     foreach ($itensDemandados as $item) {
         $qtd = floatval($item['quantidade_total']);
-        $exibicao = '';
-
-        if ($item['tipo_venda'] === 'Fracionado') {
-            // Exibir em Kg com 3 casas decimais
-            $exibicao = number_format($qtd, 3, ',', '.') . ' Kg';
-        } else {
-            // Exibir em unidades inteiras com a respectiva unidade padrão do banco
-            $exibicao = $qtd . ' ' . $item['unidade_padrao'];
-        }
+        $exibicao = Producao::formatarExibicao($item['produto_nome'], $item['unidade_padrao'], $item['tipo_venda'], $qtd);
 
         $relatorio[] = [
             'produto_id' => $item['produto_id'],
