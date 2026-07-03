@@ -70,7 +70,6 @@ async function carregarDashboardV2() {
             if (document.getElementById('dash-faturamento-esperado')) document.getElementById('dash-faturamento-esperado').innerText = 'R$ ' + fatEsperado;
             if (document.getElementById('dash-faturamento-mes')) document.getElementById('dash-faturamento-mes').innerText = 'R$ ' + fatMes;
 
-            document.getElementById('dash-estoque').innerText = json.data.estoque_critico;
             document.getElementById('dash-clientes').innerText = json.data.total_clientes;
             document.getElementById('dash-creditos').innerText = 'R$ ' + creditos;
 
@@ -287,16 +286,12 @@ async function carregarProdutos() {
     try {
         const res = await fetch('api_admin_produtos_v2.php'); const json = await res.json();
         if (json.success) {
-            tbody.innerHTML = ''; let critico = 0;
+            tbody.innerHTML = '';
             json.data.forEach(p => {
-                if (p.estoque_atual < 10) critico++;
-                let estoqueFloat = parseFloat(p.estoque_atual);
-                let estoqueDisplay = `${estoqueFloat} ${p.unidade}`;
-                tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td class="${p.estoque_atual < 10 ? 'low-stock' : ''}">${estoqueDisplay}</td><td><div class="table-actions"><button class="btn btn-edit" title="Ajustar Estoque" onclick='abrirModalEstoque(${JSON.stringify(p).replace(/'/g, "&#39;")})'>📦</button> <button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p).replace(/'/g, "&#39;")})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></div></td></tr>`;
+                tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td><div class="table-actions"><button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p).replace(/'/g, "&#39;")})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></div></td></tr>`;
             });
-            document.getElementById('dash-estoque').innerText = critico;
         }
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="5">Erro</td></tr>'; }
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="4">Erro</td></tr>'; }
 }
 
 async function salvarProduto() {
@@ -307,7 +302,7 @@ async function salvarProduto() {
     formData.append('categoria', document.getElementById('prodCategoria').value);
     formData.append('preco', document.getElementById('prodPreco').value);
     formData.append('unidade', document.getElementById('prodUnidade').value);
-    formData.append('estoque', document.getElementById('prodEstoque').value);
+    formData.append('estoque', '0');
     formData.append('peso_estimado_g', document.getElementById('prodPesoG').value || 0);
     formData.append('tipo_venda', document.getElementById('prodTipoVenda').value);
     formData.append('temporario', document.getElementById('prodTemporario').checked ? 1 : 0);
@@ -602,62 +597,9 @@ async function salvarCliente() {
 }
 
 function carregarDashboardCounts() { carregarDashboardV2(); carregarPedidos(); carregarProdutos(); carregarClientes(); }
-function abrirModalProd() { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('prodId').value = ''; document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; document.getElementById('prodUnidade').value = ''; document.getElementById('prodEstoque').value = ''; document.getElementById('prodPesoG').value = '0'; document.getElementById('prodTipoVenda').value = 'Inteiro'; document.getElementById('prodFotoInput').value = ''; document.getElementById('prodFotoBase64').value = ''; document.getElementById('prodTemporario').checked = false; document.getElementById('groupDuracao').style.display = 'none'; document.getElementById('prodDuracaoDias').value = ''; document.getElementById('previewImg').style.display = 'none'; document.getElementById('modalTitle').innerText = 'Novo Produto'; }
+function abrirModalProd() { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('prodId').value = ''; document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; document.getElementById('prodUnidade').value = ''; document.getElementById('prodPesoG').value = '0'; document.getElementById('prodTipoVenda').value = 'Inteiro'; document.getElementById('prodFotoInput').value = ''; document.getElementById('prodFotoBase64').value = ''; document.getElementById('prodTemporario').checked = false; document.getElementById('groupDuracao').style.display = 'none'; document.getElementById('prodDuracaoDias').value = ''; document.getElementById('previewImg').style.display = 'none'; document.getElementById('modalTitle').innerText = 'Novo Produto'; }
 
-function abrirModalEstoque(p) {
-    document.getElementById('modalEstoque').style.display = 'flex';
-    document.getElementById('estProdId').value = p.id;
-    document.getElementById('estProdNome').innerText = p.nome;
-    
-    const selectUni = document.getElementById('estUni');
-    let isUnSelected = p.unidade === 'un' || p.unidade === 'unidade' || p.tipo_venda === 'Inteiro';
-    let isGSelected = p.tipo_venda === 'Fracionado';
-    selectUni.innerHTML = `
-        <option value="un" ${isUnSelected && !isGSelected ? 'selected' : ''}>unidade(s)</option>
-        <option value="g" ${isGSelected ? 'selected' : ''}>g</option>
-        <option value="kg" ${p.unidade === 'kg' && !isUnSelected ? 'selected' : ''}>kg</option>
-        <option value="maço" ${p.unidade === 'maço' ? 'selected' : ''}>maço(s)</option>
-        <option value="pé" ${p.unidade === 'pé' ? 'selected' : ''}>pé(s)</option>
-        <option value="${escapeHTML(p.unidade)}" ${!['un','kg','g','maço','pé'].includes(p.unidade) ? 'selected' : ''}>${escapeHTML(p.unidade)}</option>
-    `;
-    
-    document.getElementById('estQtde').value = '';
-    document.getElementById('estDesc').value = '';
-    document.getElementById('estTipo').value = 'Entrada';
-}
-
-async function salvarMovimentacao() {
-    const data = {
-        produto_id: document.getElementById('estProdId').value,
-        tipo: document.getElementById('estTipo').value,
-        quantidade: document.getElementById('estQtde').value,
-        unidade_escolhida: document.getElementById('estUni').value,
-        descricao: document.getElementById('estDesc').value
-    };
-
-    if (!data.quantidade || data.quantidade <= 0) return alert('Insira uma quantidade válida!');
-
-    const btn = document.getElementById('btnSalvarEstoque');
-    btn.innerText = "Registrando..."; btn.disabled = true;
-
-    try {
-        const res = await fetch('api_estoque_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        const json = await res.json();
-        if (json.success) {
-            fecharModal('modalEstoque');
-            carregarProdutos();
-            carregarDashboardV2();
-        } else {
-            alert('Erro: ' + json.message);
-        }
-    } catch (e) {
-        alert('Erro na conexão');
-    } finally {
-        btn.innerText = "Registrar"; btn.disabled = false;
-    }
-}
-
-function editarProd(p) { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('modalTitle').innerText = 'Editar Produto'; document.getElementById('prodId').value = p.id; document.getElementById('prodNome').value = p.nome; document.getElementById('prodCategoria').value = p.categoria; document.getElementById('prodPreco').value = p.preco; document.getElementById('prodUnidade').value = p.unidade; document.getElementById('prodEstoque').value = parseFloat(p.estoque_atual); document.getElementById('prodPesoG').value = p.peso_estimado_g || 0; document.getElementById('prodTipoVenda').value = p.tipo_venda || 'Inteiro'; document.getElementById('prodTemporario').checked = (parseInt(p.temporario) === 1); document.getElementById('groupDuracao').style.display = (parseInt(p.temporario) === 1) ? 'block' : 'none'; document.getElementById('prodDuracaoDias').value = p.duracao_dias || ''; const preview = document.getElementById('previewImg'); const hidden = document.getElementById('prodFotoBase64'); if (p.imagem_url) { preview.src = window.getAbsoluteUrl(p.imagem_url); preview.style.display = 'block'; hidden.value = p.imagem_url; } else { preview.style.display = 'none'; hidden.value = ''; } }
+function editarProd(p) { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('modalTitle').innerText = 'Editar Produto'; document.getElementById('prodId').value = p.id; document.getElementById('prodNome').value = p.nome; document.getElementById('prodCategoria').value = p.categoria; document.getElementById('prodPreco').value = p.preco; document.getElementById('prodUnidade').value = p.unidade; document.getElementById('prodPesoG').value = p.peso_estimado_g || 0; document.getElementById('prodTipoVenda').value = p.tipo_venda || 'Inteiro'; document.getElementById('prodTemporario').checked = (parseInt(p.temporario) === 1); document.getElementById('groupDuracao').style.display = (parseInt(p.temporario) === 1) ? 'block' : 'none'; document.getElementById('prodDuracaoDias').value = p.duracao_dias || ''; const preview = document.getElementById('previewImg'); const hidden = document.getElementById('prodFotoBase64'); if (p.imagem_url) { preview.src = window.getAbsoluteUrl(p.imagem_url); preview.style.display = 'block'; hidden.value = p.imagem_url; } else { preview.style.display = 'none'; hidden.value = ''; } }
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 window.onclick = function (e) { if (e.target.className === 'modal') e.target.style.display = 'none'; }
 
@@ -920,15 +862,13 @@ async function abrirModalGerarPedidos(modo = 'gerar') {
         if (json.success) {
             container.innerHTML = '';
             json.data.forEach(p => {
-                let estoqueFloat = parseFloat(p.estoque_atual || 0);
-                let unit = p.tipo_venda === 'Fracionado' ? 'g' : p.unidade;
                 let isUnSelected = p.unidade === 'un' || p.unidade === 'unidade' || p.tipo_venda === 'Inteiro';
                 let isGSelected = p.tipo_venda === 'Fracionado';
                 container.innerHTML += `
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:0.9em; margin-bottom:5px;">
                         <label style="display:flex; align-items:center; gap:5px; cursor:pointer; flex:1;">
                             <input type="checkbox" class="chk-prod-gerar" value="${p.id}" data-nome="${escapeHTML(p.nome)}" data-unidade="${escapeHTML(p.unidade)}" data-tipovenda="${escapeHTML(p.tipo_venda)}">
-                            <span>${escapeHTML(p.nome)} (Estoque: ${estoqueFloat} ${unit})</span>
+                            <span>${escapeHTML(p.nome)}</span>
                         </label>
                         <div style="display:flex; gap: 5px;">
                             <input type="number" id="qtd-prod-${p.id}" value="1" min="1" max="9999" style="width:60px; padding:2px 5px; font-size:0.9em;" title="Quantidade">

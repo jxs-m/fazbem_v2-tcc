@@ -57,10 +57,7 @@
                     <h3>Valor Total do Mês</h3>
                     <div class="val" id="dash-faturamento-mes" style="color:#7c3aed">R$ 0,00</div>
                 </div>
-                <div class="card">
-                    <h3>Estoque Crítico</h3>
-                    <div class="val" id="dash-estoque" style="color:var(--danger)">--</div>
-                </div>
+
                 <div class="card">
                     <h3>Clientes Ativos</h3>
                     <div class="val" id="dash-clientes">--</div>
@@ -173,7 +170,7 @@
                 <textarea id="config-kit-semana" style="width:100%; height:80px; padding:10px; border:1px solid #ccc; border-radius:5px; resize:vertical; font-family: inherit;" placeholder="Ex: 1 pé de Alface Crespa, 1 maço de Couve, 500g de Cenoura..."></textarea>
             </div>
 
-            <h3 style="margin-bottom:12px; color:var(--green-primary)">Consolidado de Hortaliças Necessárias</h3>
+            <h3 style="margin-bottom:12px; color:var(--green-primary)">📋 Relatório de Necessidades / Lista de Compras da Semana</h3>
             <div class="table-container">
                 <table id="tabela-producao">
                     <thead>
@@ -201,8 +198,7 @@
                             <th>Produto</th>
                             <th>Categoria</th>
                             <th>Preço</th>
-                            <th>Estoque</th>
-                            <th style="text-align:right; width: 140px;">Ações</th>
+                            <th style="text-align:right; width: 100px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="lista-produtos"></tbody>
@@ -401,15 +397,9 @@
                     <input type="text" id="prodUnidade">
                 </div>
             </div>
-            <div style="display:flex; gap:12px;">
-                <div class="form-group" style="flex:1">
-                    <label>Estoque</label>
-                    <input type="number" id="prodEstoque">
-                </div>
-                <div class="form-group" style="flex:1">
-                    <label>Peso Estimado (g)</label>
-                    <input type="number" id="prodPesoG" placeholder="Ex: 500" value="0">
-                </div>
+            <div class="form-group">
+                <label>Peso Estimado (g)</label>
+                <input type="number" id="prodPesoG" placeholder="Ex: 500" value="0">
             </div>
             <div style="display:flex; gap:12px; align-items:center; margin-top:10px; margin-bottom:10px;">
                 <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
@@ -467,40 +457,6 @@
         </div>
     </div>
 
-
-    <div id="modalEstoque" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top:0; color:var(--green-primary)">Movimentar Estoque</h3>
-            <div style="font-weight:bold; margin-bottom:15px; color:#4b5563" id="estProdNome">Produto...</div>
-            <input type="hidden" id="estProdId">
-            <div class="form-group">
-                <label>Tipo de Movimentação</label>
-                <select id="estTipo">
-                    <option value="Entrada">📥 Entrada (Compra / Fornecedor)</option>
-                    <option value="Saída">📤 Saída (Ajuste / Venda Manual)</option>
-                    <option value="Descarte">🗑️ Descarte (Perda / Estragado)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Quantidade</label>
-                <div style="display:flex; gap: 10px;">
-                    <input type="number" id="estQtde" placeholder="Ex: 50" min="0.01" step="0.01" style="flex: 1;">
-                    <select id="estUni" style="width: 120px; padding: 6px; border: 1px solid #ccc; border-radius: 5px;">
-                        <!-- Options generated dynamically -->
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Descrição / Motivo (Opcional)</label>
-                <input type="text" id="estDesc" placeholder="Ex: Compra CEASA CEAGESP">
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
-                <button class="btn" style="background:#e5e7eb" onclick="fecharModal('modalEstoque')">Cancelar</button>
-                <button class="btn btn-primary" id="btnSalvarEstoque" onclick="salvarMovimentacao()">Registrar</button>
-            </div>
-        </div>
-    </div>
-
     <div id="modalFuncionario" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color:var(--green-primary)">Novo Funcionário</h3>
@@ -545,7 +501,7 @@
             </div>
 
             <div style="background:#fef3c7; color:#b45309; padding:10px; border-radius:5px; font-size:0.85em; border:1px solid #fde68a;">
-                <strong>Aviso:</strong> Esta ação criará pedidos e debitará o estoque imediatamente. Tenha certeza de que as quantidades em estoque estão corretas. O valor de cada pedido gerado será R$ 25,00 (referente à parcela semanal).
+                <strong>Aviso:</strong> Esta ação gerará os pedidos da semana para todos os assinantes ativos e atualizará o relatório consolidado de compras. O valor de cada pedido gerado será R$ 25,00 (referente à parcela semanal).
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
