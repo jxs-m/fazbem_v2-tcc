@@ -46,7 +46,7 @@ async function carregarPedidosSeparacao() {
                 `;
             });
         } else {
-            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">${json.message}</div>`;
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">${escapeHTML(json.message)}</div>`;
         }
     } catch (e) {
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">Erro ao carregar fila.</div>`;

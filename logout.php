@@ -2,8 +2,10 @@
 // Caminho: faz_bem_v2/logout.php
 require_once __DIR__ . '/cors.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'OPTIONS') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Método não permitido']);
+    exit;
 }
 
 $_SESSION = array();

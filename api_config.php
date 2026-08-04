@@ -2,11 +2,10 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_config.php
-session_start();
+
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Database.php';
-require_once __DIR__ . '/app/Security.php';
 
 try {
     $pdo = Database::getConexao();

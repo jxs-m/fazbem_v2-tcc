@@ -2,8 +2,7 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: api_admin_relatorio_compras.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {

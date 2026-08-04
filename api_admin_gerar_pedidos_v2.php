@@ -2,10 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_admin_gerar_pedidos_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
-require_once __DIR__ . '/app/Security.php';
+
 Security::checkCSRF();
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'admin') {
@@ -106,46 +105,7 @@ try {
             
             $prodInfo = $infoProdutosCache[$item['id']] ?? null;
             
-            $estoqueDecremento = $qtd;
-            $unidade_escolhida = $item['unidade_escolhida'] ?? null;
-
-            if ($prodInfo) {
-                $unidade_banco = strtolower($prodInfo['unidade']);
-                if ($prodInfo['tipo_venda'] === 'Fracionado') {
-                    $baseGrams = null;
-                    if (strpos($unidade_banco, 'kg') !== false) {
-                        $baseGrams = 1000;
-                    } elseif ($unidade_banco === 'g') {
-                        $baseGrams = 1;
-                    } elseif (strpos($unidade_banco, 'g') !== false) {
-                        $num = intval($unidade_banco);
-                        if ($num > 0) $baseGrams = $num;
-                    }
-                    
-                    if ($baseGrams !== null) {
-                        if ($unidade_escolhida === 'g') {
-                            $estoqueDecremento = $qtd / $baseGrams;
-                        } elseif ($unidade_escolhida === 'kg') {
-                            $estoqueDecremento = ($qtd * 1000) / $baseGrams;
-                        } else {
-                            $estoqueDecremento = $qtd * $baseGrams;
-                        }
-                    } elseif ($unidade_escolhida === 'g' && strpos($unidade_banco, 'kg') !== false) {
-                        $estoqueDecremento = $qtd / 1000;
-                    } elseif ($unidade_escolhida === 'kg' && strpos($unidade_banco, 'g') !== false) {
-                        $estoqueDecremento = $qtd * 1000;
-                    }
-                } else {
-                    // Inteiro
-                    if ($unidade_escolhida === 'un' || $unidade_escolhida === 'unidade') {
-                        if (strpos($unidade_banco, 'kg') !== false && !empty($prodInfo['peso_estimado_g'])) {
-                            $estoqueDecremento = ($qtd * $prodInfo['peso_estimado_g']) / 1000;
-                        } elseif (strpos($unidade_banco, 'g') !== false && !empty($prodInfo['peso_estimado_g'])) {
-                            $estoqueDecremento = $qtd * $prodInfo['peso_estimado_g'];
-                        }
-                    }
-                }
-            }
+            $estoqueDecremento = Producao::calcularEstoqueDecremento($qtd, $prodInfo, $item['unidade_escolhida'] ?? null);
 
             $stmtItem->execute([$pedidoId, $item['id'], $estoqueDecremento]);
         }

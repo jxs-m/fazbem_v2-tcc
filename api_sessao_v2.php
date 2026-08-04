@@ -2,8 +2,7 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_sessao_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
 if (isset($_SESSION['usuario_id'])) {

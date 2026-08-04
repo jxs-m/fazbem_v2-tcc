@@ -1,0 +1,10 @@
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# Security headers
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+Header set X-Frame-Options "DENY"
+Header set X-Content-Type-Options "nosniff"
+Header set Referrer-Policy "strict-origin-when-cross-origin"
+Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://sdk.mercadopago.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; img-src 'self' data: https://unpkg.com https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.openstreetmap.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://nominatim.openstreetmap.org https://router.project-osrm.org https://api.mercadopago.com https://*.mercadopago.com; frame-src 'self' https://*.mercadopago.com https://www.mercadopago.com;"

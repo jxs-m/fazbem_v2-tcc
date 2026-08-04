@@ -1,7 +1,6 @@
 <?php
 // Caminho: faz_bem_v2/comprovante.php
 require_once __DIR__ . '/cors.php';
-session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
     die("Acesso negado. Por favor, faça login.");

@@ -105,9 +105,10 @@ class Security {
                 }
             }
         } catch (Throwable $e) {
-            // Em caso de erro com a tabela rate_limits ou banco de dados,
-            // registramos o erro no log do servidor e permitimos a requisição continuar.
             error_log("Erro no rate limiting: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Serviço temporariamente indisponível.']);
+            exit;
         }
     }
 }

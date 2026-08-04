@@ -2,10 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_admin_produtos_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
-require_once __DIR__ . '/app/Security.php';
+
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Produto.php';
@@ -50,11 +49,22 @@ try {
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
             $imagem = $_FILES['imagem'];
             
-            $extensao = strtolower(pathinfo($imagem['name'], PATHINFO_EXTENSION));
-            $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
+            if ($imagem['size'] > 5 * 1024 * 1024) {
+                throw new Exception("A imagem excede o tamanho máximo de 5MB.");
+            }
+
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($imagem['tmp_name']);
             
-            if (!in_array($extensao, $permitidas)) {
+            $mimePermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!in_array($mime, $mimePermitidos)) {
                 throw new Exception("Formato de imagem inválido. Use JPG, PNG ou WEBP.");
+            }
+            
+            $extensao = strtolower(pathinfo($imagem['name'], PATHINFO_EXTENSION));
+            $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
+            if (!in_array($extensao, $extensoesPermitidas)) {
+                throw new Exception("Extensão de arquivo inválida.");
             }
 
             $novoNome = uniqid() . '.' . $extensao;
@@ -64,6 +74,8 @@ try {
             if (!move_uploaded_file($imagem['tmp_name'], $caminhoFisico)) {
                 throw new Exception("Falha ao guardar a imagem no servidor.");
             }
+        } else if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
+             throw new Exception("Erro no upload da imagem: código " . $_FILES['imagem']['error']);
         } else if (empty($id)) {
             // Se for um produto novo (sem ID), a imagem é estritamente obrigatória
             throw new Exception("A imagem é obrigatória para novos produtos.");

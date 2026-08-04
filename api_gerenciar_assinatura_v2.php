@@ -2,10 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_gerenciar_assinatura_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
-require_once __DIR__ . '/app/Security.php';
+
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Assinatura.php';
@@ -33,13 +32,23 @@ try {
     
     $frequencia = $assinaturaAtual['frequencia'] ?? 'Semanal';
     $status = $assinaturaAtual['status'] ?? 'Pausada';
+    $update_pausa = false;
 
-         switch ($data['acao']) {
+    switch ($data['acao']) {
         case 'pausar':
             if (!$assinaturaAtual || $assinaturaAtual['status'] !== 'Ativa') {
                 throw new Exception("Apenas assinaturas ativas podem ser pausadas.");
             }
+            
+            if (!empty($assinaturaAtual['ultima_pausa'])) {
+                $lastPause = strtotime($assinaturaAtual['ultima_pausa']);
+                if (time() - $lastPause < 86400) {
+                    throw new Exception("Você só pode realizar uma pausa ou reativação a cada 24 horas.");
+                }
+            }
+
             $status = 'Pausada';
+            $update_pausa = true;
             
             $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
             $entregas_por_mes = ($frequencia === 'Quinzenal') ? 2 : 4;
@@ -85,7 +94,16 @@ try {
             if ($assinaturaAtual['status'] !== 'Pausada') {
                 throw new Exception("Apenas assinaturas pausadas ou inativas podem ser reativadas.");
             }
+
+            if (!empty($assinaturaAtual['ultima_pausa'])) {
+                $lastPause = strtotime($assinaturaAtual['ultima_pausa']);
+                if (time() - $lastPause < 86400) {
+                    throw new Exception("Você precisa aguardar pelo menos 24 horas após a última pausa para reativar.");
+                }
+            }
+
             $status = 'Ativa';
+            $update_pausa = true;
             
             $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
             $entregas_por_mes = ($frequencia === 'Quinzenal') ? 2 : 4;
@@ -123,6 +141,9 @@ try {
         case 'alterar_plano':
             if (empty($data['nova_frequencia'])) throw new Exception("Novo plano não informado.");
             $frequencia = $data['nova_frequencia'];
+            if (!in_array($frequencia, ['Semanal', 'Quinzenal'])) {
+                throw new Exception("Frequência inválida. Use 'Semanal' ou 'Quinzenal'.");
+            }
             $mensagem = 'Plano alterado para ' . $frequencia . ' com sucesso.';
             break;
         case 'nova_preferencia':
@@ -132,6 +153,9 @@ try {
             require_once __DIR__ . '/app/Models/Preferencia.php';
             $prefModel = new Preferencia();
             $tipo = $data['tipo'] ?? 'Troca Fixa';
+            if (!in_array($tipo, ['Troca Fixa', 'Observação'])) {
+                throw new Exception("Tipo de preferência inválido.");
+            }
             $prefModel->adicionar($usuario_id, $tipo, $data['descricao']);
             echo json_encode(['success' => true, 'message' => 'Preferência salva com sucesso.']);
             exit;
@@ -146,7 +170,7 @@ try {
             throw new Exception("Ação desconhecida.");
     }
 
-    $assinaturaModel->atualizar($usuario_id, $frequencia, $status);
+    $assinaturaModel->atualizar($usuario_id, $frequencia, $status, $update_pausa);
 
     echo json_encode(['success' => true, 'message' => $mensagem]);
 

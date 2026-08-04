@@ -2,10 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_checkout_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
-require_once __DIR__ . '/app/Security.php';
+
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Pedido.php';
@@ -41,10 +40,14 @@ try {
     }
 
     $usuario_id = $_SESSION['usuario_id'];
-    $valor_total = $data['total'];
     $forma_pagamento = $data['pagamento'];
     $carrinho = $data['itens']; 
     $pedidoModel = new Pedido();
+    
+    // Calcula o total real baseado no banco de dados, ignorando o client
+    $processamento = $pedidoModel->processarCarrinho($carrinho);
+    $valor_total_real = $processamento['total_calculado'];
+    $itens_processados = $processamento['itens_processados'];
 
     // Verificar se o usuário possui uma assinatura ativa
     require_once __DIR__ . '/app/Models/Assinatura.php';
@@ -67,7 +70,7 @@ try {
         $mpData = $data['mercado_pago_data'];
         
         $paymentPayload = [
-            "transaction_amount" => (float) $valor_total,
+            "transaction_amount" => (float) $valor_total_real,
             "description" => "Pedido Cesta Faz Bem",
             "payment_method_id" => $mpData['payment_method_id'] ?? null,
             "payer" => [
@@ -110,7 +113,7 @@ try {
         }
     }
 
-    $numero_pedido = $pedidoModel->criarPedido($usuario_id, $valor_total, $forma_pagamento, $carrinho, $mpPaymentId, $status_pagamento);
+    $numero_pedido = $pedidoModel->criarPedido($usuario_id, $valor_total_real, $forma_pagamento, $itens_processados, $mpPaymentId, $status_pagamento);
 
     echo json_encode([
         'success' => true, 

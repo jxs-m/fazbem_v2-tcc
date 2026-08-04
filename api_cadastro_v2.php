@@ -2,11 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_cadastro_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Usuario.php';
-require_once __DIR__ . '/app/Security.php';
 
 Security::checkCSRF();
 Security::checkRateLimit(5, 120);
@@ -16,6 +14,18 @@ $data = json_decode(file_get_contents('php://input'), true);
 if (!$data || empty($data['nome']) || empty($data['email']) || empty($data['senha'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Dados incompletos.']);
+    exit;
+}
+
+if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Formato de e-mail inválido.']);
+    exit;
+}
+
+if (strlen($data['senha']) < 8) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'A senha deve ter no mínimo 8 caracteres.']);
     exit;
 }
 

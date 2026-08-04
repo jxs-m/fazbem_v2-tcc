@@ -287,8 +287,10 @@ async function carregarProdutos() {
         const res = await fetch('api_admin_produtos_v2.php'); const json = await res.json();
         if (json.success) {
             tbody.innerHTML = '';
+            window.produtosData = {};
             json.data.forEach(p => {
-                tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td><div class="table-actions"><button class="btn btn-edit" title="Editar Informações" onclick='editarProd(${JSON.stringify(p).replace(/'/g, "&#39;")})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></div></td></tr>`;
+                window.produtosData[p.id] = p;
+                tbody.innerHTML += `<tr><td><strong>${escapeHTML(p.nome)}</strong></td><td>${escapeHTML(p.categoria)}</td><td>R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')} / ${escapeHTML(p.unidade)}</td><td><div class="table-actions"><button class="btn btn-edit" title="Editar Informações" onclick='editarProdPorId(${p.id})'>✏️</button> <button class="btn btn-danger" onclick="deletarProd(${p.id})">🗑️</button></div></td></tr>`;
             });
         }
     } catch (e) { tbody.innerHTML = '<tr><td colspan="4">Erro</td></tr>'; }
@@ -442,7 +444,7 @@ async function carregarProducao() {
             tbody.innerHTML = '<tr><td colspan="3">Erro ao processar relatório</td></tr>';
         }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="3">Erro: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3">Erro: ${escapeHTML(e.message)}</td></tr>`;
     }
 }
 
@@ -481,7 +483,7 @@ function renderizarClientes(lista) {
         let freqBadge = c.frequencia === 'Semanal' ? '📅 Semanal' : '🗓 Quinzenal';
         let totalGasto = parseFloat(c.total_gasto || 0).toFixed(2).replace('.', ',');
         let pref = c.preferencias ? escapeHTML(c.preferencias) : '-';
-        tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><small>${pref}</small></td><td><div class="table-actions"><button class="btn btn-edit" onclick='editarCliente(${JSON.stringify(c)})'>✏️ Editar</button></div></td></tr>`;
+        tbody.innerHTML += `<tr><td><strong>${escapeHTML(c.nome)}</strong><br><small>${escapeHTML(c.email)}</small></td><td>${escapeHTML(c.telefone)}</td><td><small>${escapeHTML(c.endereco)}</small></td><td><strong>${freqBadge}</strong></td><td style="color:#2b8a3e;font-weight:bold">R$ ${totalGasto}</td><td><span style="background:${bgSt}; color:${corSt}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold">${c.status || 'Inativo'}</span></td><td><small>${pref}</small></td><td><div class="table-actions"><button class="btn btn-edit" onclick='editarClientePorId(${c.id})'>✏️ Editar</button></div></td></tr>`;
     });
 }
 
@@ -640,6 +642,9 @@ async function salvarCliente() {
 function carregarDashboardCounts() { carregarDashboardV2(); carregarPedidos(); carregarProdutos(); carregarClientes(); }
 function abrirModalProd() { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('prodId').value = ''; document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; document.getElementById('prodUnidade').value = ''; document.getElementById('prodPesoG').value = '0'; document.getElementById('prodTipoVenda').value = 'Inteiro'; document.getElementById('prodFotoInput').value = ''; document.getElementById('prodFotoBase64').value = ''; document.getElementById('prodTemporario').checked = false; document.getElementById('groupDuracao').style.display = 'none'; document.getElementById('prodDuracaoDias').value = ''; document.getElementById('previewImg').style.display = 'none'; document.getElementById('modalTitle').innerText = 'Novo Produto'; }
 
+window.editarClientePorId = function(id) { const c = todosClientes.find(x => x.id == id); if (c) editarCliente(c); };
+window.editarProdPorId = function(id) { const p = window.produtosData[id]; if (p) editarProd(p); };
+
 function editarProd(p) { document.getElementById('modalProduto').style.display = 'flex'; document.getElementById('modalTitle').innerText = 'Editar Produto'; document.getElementById('prodId').value = p.id; document.getElementById('prodNome').value = p.nome; document.getElementById('prodCategoria').value = p.categoria; document.getElementById('prodPreco').value = p.preco; document.getElementById('prodUnidade').value = p.unidade; document.getElementById('prodPesoG').value = p.peso_estimado_g || 0; document.getElementById('prodTipoVenda').value = p.tipo_venda || 'Inteiro'; document.getElementById('prodTemporario').checked = (parseInt(p.temporario) === 1); document.getElementById('groupDuracao').style.display = (parseInt(p.temporario) === 1) ? 'block' : 'none'; document.getElementById('prodDuracaoDias').value = p.duracao_dias || ''; const preview = document.getElementById('previewImg'); const hidden = document.getElementById('prodFotoBase64'); if (p.imagem_url) { preview.src = window.getAbsoluteUrl(p.imagem_url); preview.style.display = 'block'; hidden.value = p.imagem_url; } else { preview.style.display = 'none'; hidden.value = ''; } }
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 window.onclick = function (e) { if (e.target.className === 'modal') e.target.style.display = 'none'; }
@@ -776,7 +781,7 @@ async function carregarRotas() {
                     <td>#${p.pedido_id}</td>
                     <td><strong>${escapeHTML(p.nome)}</strong></td>
                     <td><small>${escapeHTML(p.logradouro)}</small></td>
-                    <td><span style="background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:10px; font-size:11px;">${p.status_entrega}</span></td>
+                    <td><span style="background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:10px; font-size:11px;">${escapeHTML(p.status_entrega)}</span></td>
                 </tr>`;
             });
 
@@ -1026,8 +1031,8 @@ async function notificarAssinantes() {
             wnd.document.write('<h2>Links Rápidos - Disparo WhatsApp</h2><p>Clique em cada link para enviar a notificação no WhatsApp Web/App:</p><ul>');
             ativos.forEach(c => {
                 let msg = encodeURIComponent(`Olá ${c.nome}, a Faz Bem já selecionou os produtos básicos do seu kit dessa semana! As opções para pedidos extras também já estão liberadas. Confira no site!`);
-                let num = c.telefone.replace(/\\D/g, '');
-                wnd.document.write(`<li><a href="https://wa.me/55${num}?text=${msg}" target="_blank">${c.nome} - Enviar Mensagem</a></li>`);
+                let num = c.telefone.replace(/\D/g, '');
+                wnd.document.write(`<li><a href="https://wa.me/55${num}?text=${msg}" target="_blank">${escapeHTML(c.nome)} - Enviar Mensagem</a></li>`);
             });
             wnd.document.write('</ul>');
         }
@@ -1072,7 +1077,7 @@ async function carregarFaturasAdmin() {
                 </tr>`;
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">Erro ao carregar faturas: ' + json.message + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">Erro ao carregar faturas: ' + escapeHTML(json.message) + '</td></tr>';
         }
     } catch(e) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">Erro de conexão.</td></tr>';

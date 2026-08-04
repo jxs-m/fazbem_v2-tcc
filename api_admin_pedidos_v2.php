@@ -2,10 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_admin_pedidos_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
-require_once __DIR__ . '/app/Security.php';
+
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Models/Pedido.php';

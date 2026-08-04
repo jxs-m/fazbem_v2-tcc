@@ -141,7 +141,7 @@ function mascaraCPF(input) {
 window.executarLogout = async function(event) {
     if (event) event.preventDefault();
     try {
-        await fetch('logout.php');
+        await fetch('logout.php', { method: 'POST' });
     } catch (err) {
         console.error("Erro ao realizar logout:", err);
     }

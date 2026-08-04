@@ -2,7 +2,7 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_catalogo_v2.php
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Models/Produto.php';
@@ -34,6 +34,9 @@ try {
             }
             $p['dias_restantes'] = $dias_restantes;
         }
+        // MED-01: Remove sensitive columns
+        unset($p['estoque']);
+        
         $produtosFiltrados[] = $p;
     }
 

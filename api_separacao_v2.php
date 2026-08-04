@@ -2,11 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_separacao_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
 require_once __DIR__ . '/app/Database.php';
@@ -85,8 +83,13 @@ try {
             }
         }
 
-        $sqlPedUpdate = "UPDATE pedidos SET valor_total = ?, status_entrega = 'Aguardando Entrega', obs_pontual = CONCAT(IFNULL(obs_pontual,''), ' [Pesado]') WHERE id = ?";
-        $pdo->prepare($sqlPedUpdate)->execute([$novoTotalPedido, $pedido_id]);
+        $sqlPedUpdate = "UPDATE pedidos SET valor_total = ?, status_entrega = 'Aguardando Entrega', obs_pontual = CONCAT(IFNULL(obs_pontual,''), ' [Pesado]') WHERE id = ? AND status_entrega = 'Em separação'";
+        $stmtUpdatePed = $pdo->prepare($sqlPedUpdate);
+        $stmtUpdatePed->execute([$novoTotalPedido, $pedido_id]);
+        
+        if ($stmtUpdatePed->rowCount() === 0) {
+            throw new Exception("Pedido não encontrado ou não está em separação.");
+        }
 
         $pdo->commit();
 
@@ -101,7 +104,8 @@ try {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
+    error_log("Erro na separação: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
 }
 ?>

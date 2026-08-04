@@ -33,11 +33,46 @@ if (!$paymentId) {
     }
 }
 
+$paymentId = filter_var($paymentId, FILTER_VALIDATE_INT);
+
 if (!$paymentId) {
-    error_log("Webhook MP: ID de pagamento não encontrado na notificação.");
+    error_log("Webhook MP: ID de pagamento não encontrado ou inválido na notificação.");
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'ID de pagamento não fornecido.']);
+    echo json_encode(['success' => false, 'message' => 'ID de pagamento inválido ou não fornecido.']);
     exit;
+}
+
+// 3. Verificar Assinatura do Webhook (x-signature)
+require_once __DIR__ . '/app/Env.php';
+$webhookSecret = Env::get('MP_WEBHOOK_SECRET');
+
+if (!empty($webhookSecret)) {
+    $xSignature = $_SERVER['HTTP_X_SIGNATURE'] ?? '';
+    $xRequestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? '';
+
+    $ts = '';
+    $v1 = '';
+    
+    if ($xSignature) {
+        $parts = explode(',', $xSignature);
+        foreach ($parts as $part) {
+            $kv = explode('=', trim($part), 2);
+            if (count($kv) === 2) {
+                if ($kv[0] === 'ts') $ts = $kv[1];
+                if ($kv[0] === 'v1') $v1 = $kv[1];
+            }
+        }
+    }
+
+    $manifest = "id:{$paymentId};request-id:{$xRequestId};ts:{$ts};";
+    $hmac = hash_hmac('sha256', $manifest, $webhookSecret);
+
+    if (!hash_equals($hmac, $v1)) {
+        error_log("Webhook MP: Assinatura inválida! Manifest: $manifest");
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Assinatura do webhook inválida.']);
+        exit;
+    }
 }
 
 error_log("Webhook MP: Processando pagamento ID $paymentId");

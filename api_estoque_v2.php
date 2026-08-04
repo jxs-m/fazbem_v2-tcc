@@ -2,11 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_estoque_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
@@ -45,6 +43,13 @@ try {
             exit;
         }
 
+        // SEC-02: Whitelist explícita para prevenir SQL Injection via interpolação de operador
+        $tiposPermitidos = ['Entrada', 'Saída', 'Descarte'];
+        if (!in_array($tipo, $tiposPermitidos, true)) {
+            echo json_encode(['success' => false, 'message' => 'Tipo de movimentação inválido.']);
+            exit;
+        }
+
         $pdo->beginTransaction();
 
         $sqlProd = "SELECT unidade, peso_estimado_g FROM produtos WHERE id = ?";
@@ -76,7 +81,7 @@ try {
         $stmtMov->execute([$produto_id, $tipo, $estoqueIncremento, $descCompleta]);
 
         $operador = ($tipo === 'Entrada') ? '+' : '-';
-        $sqlUpd = "UPDATE produtos SET estoque_atual = estoque_atual $operador ? WHERE id = ?";
+        $sqlUpd = "UPDATE produtos SET estoque_atual = estoque_atual {$operador} ? WHERE id = ?";
         $stmtUpd = $pdo->prepare($sqlUpd);
         $stmtUpd->execute([$estoqueIncremento, $produto_id]);
 
@@ -87,7 +92,8 @@ try {
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    error_log("Erro no estoque: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
 }
 ?>

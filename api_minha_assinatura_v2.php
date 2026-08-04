@@ -2,8 +2,7 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_minha_assinatura_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Assinatura.php';
 

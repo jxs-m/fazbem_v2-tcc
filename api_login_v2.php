@@ -2,11 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_login_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Usuario.php';
-require_once __DIR__ . '/app/Security.php';
 
 Security::checkCSRF();
 Security::checkRateLimit(10, 60);
@@ -34,6 +32,7 @@ try {
     
     if ($user && password_verify($data['senha'], $user['senha'])) {
         session_regenerate_id(true);
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['nome'] = $user['nome'];

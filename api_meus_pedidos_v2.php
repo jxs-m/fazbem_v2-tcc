@@ -2,8 +2,7 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_meus_pedidos_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Pedido.php';
 
@@ -27,13 +26,7 @@ try {
     }
 
     if ($acao === 'ultimo_pedido') {
-        $sql = "SELECT id FROM pedidos 
-                WHERE usuario_id = ? 
-                AND YEARWEEK(data_pedido, 0) < YEARWEEK(NOW(), 0)
-                ORDER BY data_pedido DESC LIMIT 1";
-        $stmt = $pedidoModel->pdo->prepare($sql);
-        $stmt->execute([$_SESSION['usuario_id']]);
-        $ultimo = $stmt->fetch();
+        $ultimo = $pedidoModel->buscarUltimoPedidoAnterior($_SESSION['usuario_id']);
         if ($ultimo) {
             $itens = $pedidoModel->buscarItens($ultimo['id']);
             echo json_encode(['success' => true, 'itens' => $itens]);

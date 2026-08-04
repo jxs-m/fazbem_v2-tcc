@@ -45,6 +45,9 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
              container.appendChild(banner);
           }
 
+          window.catalogoProdutosData = {};
+          json.data.forEach(p => { window.catalogoProdutosData[p.id] = p; });
+
           ordem.forEach(cat => {
             if (grupos[cat] && grupos[cat].length > 0) {
               renderizarSecao(container, cat, grupos[cat], json.isOpen);
@@ -92,10 +95,10 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
             ${durationDisplay}
             <div class="prod-price">R$ ${precoFormatado} <span class="prod-unit">/ ${escapeHTML(p.unidade)}</span></div>
             <div class="actions">
-              ${isOpen === false ? '<p style="color: #991b1b; font-weight: bold; width: 100%; text-align: center; margin: 0;">Esgotado / Fechado</p>' : `<button class="btn-add" onclick='prepararAdicaoModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+              ${isOpen === false ? '<p style="color: #991b1b; font-weight: bold; width: 100%; text-align: center; margin: 0;">Esgotado / Fechado</p>' : `<button class="btn-add" onclick='prepararAdicaoModalPorId(${p.id})'>
                 + Adicionar
               </button>
-              <button class="btn-swap" onclick="abrirTroca('${escapeHTML(p.nome.replace(/'/g, "\\'"))}')">
+              <button class="btn-swap" onclick="abrirTroca('${escapeHTML(p.nome)}')">
                 ⇄ Trocar Item
               </button>`}
             </div>
@@ -275,6 +278,11 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
       }
       return null;
     }
+
+    window.prepararAdicaoModalPorId = function(id) {
+        const p = window.catalogoProdutosData[id];
+        if (p) prepararAdicaoModal(p);
+    };
 
     function prepararAdicaoModal(p) {
         prodAdicaoAtual = p;

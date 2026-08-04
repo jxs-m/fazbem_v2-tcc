@@ -17,15 +17,23 @@ class Assinatura {
         return $stmt->fetch();
     }
 
-    public function atualizar($usuario_id, $frequencia, $status) {
+    public function atualizar($usuario_id, $frequencia, $status, $update_pausa = false) {
         $assinaturaExistente = $this->buscarPorUsuario($usuario_id);
 
         if ($assinaturaExistente) {
-            $sql = "UPDATE assinaturas SET frequencia = ?, status = ? WHERE usuario_id = ?";
+            if ($update_pausa) {
+                $sql = "UPDATE assinaturas SET frequencia = ?, status = ?, ultima_pausa = NOW() WHERE usuario_id = ?";
+            } else {
+                $sql = "UPDATE assinaturas SET frequencia = ?, status = ? WHERE usuario_id = ?";
+            }
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([$frequencia, $status, $usuario_id]);
         } else {
-            $sql = "INSERT INTO assinaturas (usuario_id, frequencia, status) VALUES (?, ?, ?)";
+            if ($update_pausa) {
+                $sql = "INSERT INTO assinaturas (usuario_id, frequencia, status, ultima_pausa) VALUES (?, ?, ?, NOW())";
+            } else {
+                $sql = "INSERT INTO assinaturas (usuario_id, frequencia, status) VALUES (?, ?, ?)";
+            }
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([$usuario_id, $frequencia, $status]);
         }

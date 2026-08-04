@@ -70,44 +70,6 @@ class MercadoPagoService {
         ];
     }
 
-    /**
-     * Cria um pedido na API de Orders (opcional dependendo do fluxo exato)
-     */
-    public function createOrder($orderData) {
-        $url = "https://api.mercadopago.com/merchant_orders";
-
-        $headers = [
-            "Content-Type: application/json",
-            "Authorization: Bearer " . $this->accessToken
-        ];
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($orderData));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $result = curl_exec($ch);
-        $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        $decoded = json_decode($result, true);
-
-        // Se der erro, retornar o body cru para debug
-        if ($http_status >= 400 && isset($decoded['cause']) && count($decoded['cause']) > 0) {
-            $msg = $decoded['message'] ?? 'internal_error';
-            $cause = $decoded['cause'][0]['description'] ?? json_encode($decoded['cause']);
-            $decoded['message'] = $msg . ' - ' . $cause;
-        } else if ($http_status >= 400 && !isset($decoded['message'])) {
-            $decoded['message'] = $result; 
-        }
-
-        return [
-            'status' => $http_status,
-            'response' => $decoded
-        ];
-    }
 
     /**
      * Consulta os detalhes de um pagamento pelo ID

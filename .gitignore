@@ -1,5 +1,6 @@
 app/rate_limit.json
 .env
+.env.php
 popular_banco.php
 setup_admin_v2.php
 ARTIGO_TCC_FAZBEM.md
@@ -11,7 +12,7 @@ config.php
 Cópia de Artigo_NetLab_Perfeito.docx (1).pdf
 popular_real.php
 popular_banco.php
-
+docs
 # Keys and secrets
 *.key
 *.pem

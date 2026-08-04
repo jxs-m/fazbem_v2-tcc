@@ -2,11 +2,9 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_logistica_v2.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/app/Security.php';
 Security::checkCSRF();
 
 if (!isset($_SESSION['tipo_usuario']) || !in_array($_SESSION['tipo_usuario'], ['admin', 'entregador'])) {
@@ -57,20 +55,29 @@ try {
             exit;
         }
 
-        if ($input['status'] === 'Entregue') {
+        $status = $input['status'];
+        $allowedStatuses = ['Em separação', 'Aguardando Entrega', 'Saiu para entrega', 'Entregue'];
+        
+        if (!in_array($status, $allowedStatuses)) {
+            echo json_encode(['success' => false, 'message' => 'Status inválido']);
+            exit;
+        }
+
+        if ($status === 'Entregue') {
             $sql = "UPDATE pedidos SET status_entrega = ?, entregue_em = NOW() WHERE id = ?";
         } else {
             $sql = "UPDATE pedidos SET status_entrega = ? WHERE id = ?";
         }
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$input['status'], $input['pedido_id']]);
+        $stmt->execute([$status, $input['pedido_id']]);
 
         echo json_encode(['success' => true]);
         exit;
     }
 
 } catch (Exception $e) {
+    error_log("Erro na logística: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro de sistema: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
 }
 ?>

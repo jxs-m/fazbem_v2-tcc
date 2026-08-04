@@ -20,8 +20,13 @@ async function handleLogin() {
         const result = await response.json();
 
         if (result.success) {
-          
-          window.location.href = result.redirect; 
+          const redirect = result.redirect || 'index.html';
+          // Previne open redirect validando se a URL é relativa ou do próprio domínio
+          if ((redirect.startsWith('/') && !redirect.startsWith('//')) || redirect.startsWith(window.location.origin)) {
+              window.location.href = redirect;
+          } else {
+              window.location.href = 'index.html';
+          }
         } else {
           alert(result.message); 
         }
@@ -34,15 +39,16 @@ async function handleLogin() {
     async function recuperarSenha() {
       const email = document.getElementById('recEmail').value.trim();
       const telefone = document.getElementById('recTelefone').value.trim().replace(/\D/g, '');
+      const cpf = document.getElementById('recCpf').value.trim().replace(/\D/g, '');
       const novaSenha = document.getElementById('recNovaSenha').value.trim();
 
-      if (!email || !telefone || !novaSenha) {
+      if (!email || !telefone || !cpf || !novaSenha) {
         alert('Por favor, preencha todos os campos.');
         return;
       }
 
-      if (novaSenha.length < 6) {
-        alert('A nova senha deve ter pelo menos 6 caracteres.');
+      if (novaSenha.length < 8) {
+        alert('A nova senha deve ter pelo menos 8 caracteres.');
         return;
       }
 
@@ -50,7 +56,7 @@ async function handleLogin() {
         const response = await fetch('api_recuperar_senha.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, telefone, nova_senha: novaSenha })
+          body: JSON.stringify({ email, telefone, cpf, nova_senha: novaSenha })
         });
 
         const result = await response.json();
@@ -61,6 +67,7 @@ async function handleLogin() {
           document.getElementById('senha').value = '';
           document.getElementById('recEmail').value = '';
           document.getElementById('recTelefone').value = '';
+          document.getElementById('recCpf').value = '';
           document.getElementById('recNovaSenha').value = '';
         } else {
           alert('Erro: ' + result.message);

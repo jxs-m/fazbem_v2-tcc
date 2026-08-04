@@ -2,12 +2,10 @@
 require_once __DIR__ . '/cors.php';
 
 // Caminho: faz_bem_v2/api_admin_ordem_rotas.php
-session_start();
-if (ob_get_length()) ob_clean();
+
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/app/Database.php';
-require_once __DIR__ . '/app/Security.php';
 
 Security::checkCSRF();
 
@@ -46,8 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($pdo) && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
+        error_log("Erro na ordem de rotas: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Erro de sistema: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
     }
 } else {
     http_response_code(405);
