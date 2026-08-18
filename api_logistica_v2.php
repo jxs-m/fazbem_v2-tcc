@@ -6,6 +6,7 @@ require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
 
 Security::checkCSRF();
+Security::checkRateLimit(60, 60);
 
 if (!isset($_SESSION['tipo_usuario']) || !in_array($_SESSION['tipo_usuario'], ['admin', 'entregador'])) {
     http_response_code(403);

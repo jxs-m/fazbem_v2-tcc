@@ -14,6 +14,8 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+Security::checkRateLimit(30, 60);
+
 $acao = $_GET['acao'] ?? '';
 $pdo = Database::getConexao();
 
@@ -117,7 +119,7 @@ try {
             error_log("PAGAR_FATURA - METHOD: " . $_SERVER['REQUEST_METHOD'] . " | BODY: " . $rawData);
             
             $data = json_decode($rawData, true);
-            $f_id = $data['fatura_id'] ?? null;
+            $f_id = filter_var($data['fatura_id'] ?? null, FILTER_VALIDATE_INT);
             if (!$f_id) throw new Exception("ID da fatura inválido.");
 
             $stmtF = $pdo->prepare("SELECT valor_total FROM faturas_mensais WHERE id = ? AND usuario_id = ? AND status != 'Pago'");
@@ -131,15 +133,39 @@ try {
                 $mpService = new MercadoPagoService();
                 $mpData = $data['mercado_pago_data'];
                 
+                // Busca dados cadastrais do cliente no banco
+                $stmtUser = $pdo->prepare("SELECT nome, email, cpf, telefone FROM usuarios WHERE id = ?");
+                $stmtUser->execute([$_SESSION['usuario_id']]);
+                $usuario = $stmtUser->fetch();
+
+                $nomeCompleto = trim($usuario['nome'] ?? '');
+                $partesNome = explode(' ', $nomeCompleto, 2);
+                $firstName = !empty($partesNome[0]) ? $partesNome[0] : 'Cliente';
+                $lastName = !empty($partesNome[1]) ? $partesNome[1] : 'FazBem';
+                $cpfLimpo = preg_replace('/\D/', '', $usuario['cpf'] ?? '');
+
+                $payerEmail = !empty($mpData['payer']['email']) ? $mpData['payer']['email'] : ($usuario['email'] ?? '');
+
                 $paymentPayload = [
                     "transaction_amount" => (float) $valor_total,
                     "description" => "Pagamento de Fatura Mensal #" . $f_id,
                     "external_reference" => (string) $f_id,
                     "payment_method_id" => $mpData['payment_method_id'] ?? null,
                     "payer" => [
-                        "email" => $mpData['payer']['email'] ?? ''
+                        "email" => $payerEmail,
+                        "first_name" => $firstName,
+                        "last_name" => $lastName
                     ]
                 ];
+
+                if (!empty($mpData['payer']['identification']['number'])) {
+                    $paymentPayload['payer']['identification'] = $mpData['payer']['identification'];
+                } elseif (!empty($cpfLimpo) && strlen($cpfLimpo) === 11) {
+                    $paymentPayload['payer']['identification'] = [
+                        "type" => "CPF",
+                        "number" => $cpfLimpo
+                    ];
+                }
 
                 if (isset($mpData['token'])) {
                     $paymentPayload["token"] = $mpData['token'];
@@ -147,10 +173,6 @@ try {
                     if (isset($mpData['issuer_id'])) {
                         $paymentPayload["issuer_id"] = $mpData['issuer_id'];
                     }
-                }
-
-                if (isset($mpData['payer']['identification'])) {
-                    $paymentPayload['payer']['identification'] = $mpData['payer']['identification'];
                 }
 
                 $mpResult = $mpService->createPayment($paymentPayload);

@@ -361,48 +361,76 @@ document.addEventListener('DOMContentLoaded', () => {
     let faturaAtualId = null;
 
     async function initMercadoPagoPerfil() {
+      if (bricksBuilderPerfil) return bricksBuilderPerfil;
       try {
         const res = await fetch('api_mp_key.php');
         const json = await res.json();
-        if (json.public_key) {
+        if (json.public_key && typeof MercadoPago !== 'undefined') {
             mpPerfil = new MercadoPago(json.public_key, { locale: 'pt-BR' });
             bricksBuilderPerfil = mpPerfil.bricks();
+            return bricksBuilderPerfil;
         }
       } catch (e) { console.error('Erro ao carregar MP Key no Perfil', e); }
+      return null;
     }
     
     // Inicializar MP ao carregar a página
     initMercadoPagoPerfil();
 
     function fecharModalMP() {
-        document.getElementById('mp-modal').style.display = 'none';
+        const modal = document.getElementById('mp-modal');
+        if (modal) modal.style.display = 'none';
         if (paymentBrickControllerPerfil) {
-            paymentBrickControllerPerfil.unmount();
+            try { paymentBrickControllerPerfil.unmount(); } catch(e) {}
             paymentBrickControllerPerfil = null;
         }
+        const container = document.getElementById('paymentBrick_container');
+        if (container) container.innerHTML = '';
     }
 
     async function abrirModalPagamento(id, valor) {
         faturaAtualId = id;
         const modal = document.getElementById('mp-modal');
-        if (!modal) {
+        const container = document.getElementById('paymentBrick_container');
+        if (!modal || !container) {
             alert('Por favor, atualize a página completamente (Ctrl + F5 ou Limpar Cache do navegador). A nova janela de pagamento ainda não foi carregada no seu navegador!');
             return;
         }
         modal.style.display = 'flex';
+        container.innerHTML = `
+            <div style="text-align:center; padding:30px; color:#4b5563;">
+                <div style="display:inline-block; width:32px; height:32px; border:3px solid #e5e7eb; border-top-color:#166534; border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:12px;"></div>
+                <div style="font-size:14px; font-weight:500;">Carregando opções de pagamento...</div>
+            </div>
+        `;
 
         if (!bricksBuilderPerfil) {
-            alert('Mercado Pago não inicializado corretamente.');
+            await initMercadoPagoPerfil();
+        }
+
+        if (!bricksBuilderPerfil) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px; color:#dc2626;">
+                    <p style="font-weight:bold; margin-bottom:8px;">Não foi possível carregar o sistema de pagamentos.</p>
+                    <p style="font-size:13px; color:#6b7280; margin-bottom:15px;">Verifique sua conexão ou tente recarregar a página.</p>
+                    <button class="btn" style="background:#166534; color:white; padding:8px 16px; border-radius:6px;" onclick="abrirModalPagamento(${id}, ${valor})">Tentar Novamente</button>
+                </div>
+            `;
             return;
         }
 
         const settings = {
             initialization: { amount: parseFloat(valor) },
             customization: {
-                paymentMethods: { creditCard: "all", debitCard: "all", bankTransfer: "all" }
+                paymentMethods: {
+                    ticket: "all",
+                    bankTransfer: "all",
+                    creditCard: "all",
+                    debitCard: "all"
+                },
             },
             callbacks: {
-                onReady: () => { console.log('Brick is ready'); },
+                onReady: () => { console.log('Payment Brick pronto para uso.'); },
                 onSubmit: ({ selectedPaymentMethod, formData }) => {
                     return new Promise((resolve, reject) => {
                         processarFaturaBackend(formData)
@@ -410,14 +438,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             .catch(reject);
                     });
                 },
-                onError: (error) => { console.error(error); alert('Erro na interface de pagamento.'); }
+                onError: (error) => { console.error('Erro no Brick:', error); }
             }
         };
 
-        if (paymentBrickControllerPerfil) {
-            paymentBrickControllerPerfil.unmount();
+        try {
+            if (paymentBrickControllerPerfil) {
+                try { paymentBrickControllerPerfil.unmount(); } catch(e) {}
+                paymentBrickControllerPerfil = null;
+            }
+            container.innerHTML = '';
+            paymentBrickControllerPerfil = await bricksBuilderPerfil.create('payment', 'paymentBrick_container', settings);
+        } catch (err) {
+            console.error('Erro ao renderizar Brick:', err);
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px; color:#dc2626;">
+                    <p style="font-weight:bold; margin-bottom:8px;">Erro ao carregar o menu de pagamento.</p>
+                    <p style="font-size:13px; color:#6b7280; margin-bottom:15px;">${escapeHTML(err.message || 'Falha ao inicializar o Mercado Pago.')}</p>
+                    <button class="btn" style="background:#166534; color:white; padding:8px 16px; border-radius:6px;" onclick="abrirModalPagamento(${id}, ${valor})">Tentar Novamente</button>
+                </div>
+            `;
         }
-        paymentBrickControllerPerfil = await bricksBuilderPerfil.create('payment', 'paymentBrick_container', settings);
     }
 
     async function processarFaturaBackend(formData) {

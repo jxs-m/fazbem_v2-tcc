@@ -6,6 +6,7 @@ require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
 
 Security::checkCSRF();
+Security::checkRateLimit(30, 60);
 
 require_once __DIR__ . '/app/Models/Usuario.php';
 require_once __DIR__ . '/app/Models/Pedido.php';
@@ -44,17 +45,28 @@ try {
     if ($method === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (empty($data['nome']) || empty($data['telefone']) || empty($data['endereco'])) {
+        $nome = trim($data['nome'] ?? '');
+        $telefone = trim($data['telefone'] ?? '');
+        $endereco = trim($data['endereco'] ?? '');
+
+        if (empty($nome) || empty($telefone) || empty($endereco)) {
             throw new Exception("Nome, telefone e endereço são obrigatórios.");
+        }
+
+        if (mb_strlen($nome) > 100 || mb_strlen($telefone) > 20 || mb_strlen($endereco) > 255) {
+            throw new Exception("Campos com tamanho inválido.");
         }
 
         $novaSenhaHash = null;
         if (!empty($data['senha'])) {
+            if (strlen($data['senha']) < 8) {
+                throw new Exception("A nova senha deve ter no mínimo 8 caracteres.");
+            }
             $novaSenhaHash = password_hash($data['senha'], PASSWORD_DEFAULT);
         }
 
-        $referencia = $data['referencia'] ?? '';
-        $cpf = $data['cpf'] ?? null;
+        $referencia = trim($data['referencia'] ?? '');
+        $cpf = !empty($data['cpf']) ? trim($data['cpf']) : null;
 
         require_once __DIR__ . '/app/Validator.php';
         if (!empty($cpf) && !Validator::validarCPF($cpf)) {

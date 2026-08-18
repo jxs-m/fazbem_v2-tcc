@@ -10,7 +10,7 @@ class MercadoPagoService {
         
         Env::load(__DIR__ . '/../.env');
         
-        $this->accessToken = getenv('MERCADO_PAGO_ACCESS_TOKEN');
+        $this->accessToken = Env::get('MERCADO_PAGO_ACCESS_TOKEN');
         
         if (!$this->accessToken) {
             error_log("Mercado Pago Access Token não encontrado no ambiente.");

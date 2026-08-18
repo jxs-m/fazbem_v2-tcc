@@ -7,12 +7,23 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Pedido.php';
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'cliente') {
-    echo json_encode(['success' => false, 'message' => 'Acesso negado.']); exit;
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Acesso negado.']); 
+    exit;
 }
+
+Security::checkRateLimit(60, 60);
 
 try {
     $pedidoModel = new Pedido();
     $acao = $_GET['acao'] ?? '';
+    
+    $acoesPermitidas = ['', 'pedido_semana', 'ultimo_pedido'];
+    if (!in_array($acao, $acoesPermitidas, true)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Ação inválida.']);
+        exit;
+    }
 
     if ($acao === 'pedido_semana') {
         $pedido = $pedidoModel->buscarPedidoSemana($_SESSION['usuario_id']);

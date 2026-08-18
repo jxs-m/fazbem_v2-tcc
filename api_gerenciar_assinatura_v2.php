@@ -6,6 +6,7 @@ require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
 
 Security::checkCSRF();
+Security::checkRateLimit(30, 60);
 
 require_once __DIR__ . '/app/Models/Assinatura.php';
 
@@ -147,23 +148,28 @@ try {
             $mensagem = 'Plano alterado para ' . $frequencia . ' com sucesso.';
             break;
         case 'nova_preferencia':
-            if (empty($data['descricao'])) {
+            $desc = trim($data['descricao'] ?? '');
+            if (empty($desc)) {
                 throw new Exception("Descrição da preferência é obrigatória.");
+            }
+            if (mb_strlen($desc) > 500) {
+                throw new Exception("Descrição muito longa (máximo de 500 caracteres).");
             }
             require_once __DIR__ . '/app/Models/Preferencia.php';
             $prefModel = new Preferencia();
-            $tipo = $data['tipo'] ?? 'Troca Fixa';
-            if (!in_array($tipo, ['Troca Fixa', 'Observação'])) {
+            $tipo = trim($data['tipo'] ?? 'Troca Fixa');
+            if (!in_array($tipo, ['Troca Fixa', 'Observação', 'Troca Pontual'], true)) {
                 throw new Exception("Tipo de preferência inválido.");
             }
-            $prefModel->adicionar($usuario_id, $tipo, $data['descricao']);
+            $prefModel->adicionar($usuario_id, $tipo, $desc);
             echo json_encode(['success' => true, 'message' => 'Preferência salva com sucesso.']);
             exit;
         case 'remover_preferencia':
-            if (empty($data['pref_id'])) throw new Exception("ID da preferência não informado.");
+            $pref_id = filter_var($data['pref_id'] ?? null, FILTER_VALIDATE_INT);
+            if (!$pref_id) throw new Exception("ID da preferência inválido.");
             require_once __DIR__ . '/app/Models/Preferencia.php';
             $prefModel = new Preferencia();
-            $prefModel->remover($data['pref_id'], $usuario_id);
+            $prefModel->remover($pref_id, $usuario_id);
             echo json_encode(['success' => true, 'message' => 'Preferência removida.']);
             exit;
         default:

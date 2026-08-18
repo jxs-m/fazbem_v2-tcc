@@ -71,32 +71,40 @@ async function fetchCSRFToken() {
 }
 
 
-window.fetch = async function (url, options = {}) {
-    const method = options.method ? options.method.toUpperCase() : 'GET';
-    const requiresCsrf = ['POST', 'PUT', 'DELETE'].includes(method);
+window.fetch = async function (input, init = {}) {
+    let url = typeof input === 'string' ? input : (input && input.url ? input.url : String(input));
+    const method = (init && init.method ? init.method : (input && input.method ? input.method : 'GET')).toUpperCase();
 
-    const isInternal = !url.startsWith('http://') && !url.startsWith('https://') || (window.API_BASE_URL && url.startsWith(window.API_BASE_URL));
-    if (!options.credentials) {
-        options.credentials = (window.API_BASE_URL && isInternal) ? 'include' : 'same-origin';
-    }
+    const isExternal = url.startsWith('http://') || url.startsWith('https://');
+    const isInternal = !isExternal || (window.API_BASE_URL && url.startsWith(window.API_BASE_URL));
 
-    const finalUrl = window.getAbsoluteUrl(url);
-
-    if (requiresCsrf && url !== 'api_csrf.php') {
-        const token = await fetchCSRFToken();
-
-        if (!options.headers) {
-            options.headers = {};
+    if (isInternal) {
+        if (!init.credentials) {
+            init.credentials = (window.API_BASE_URL && isInternal) ? 'include' : 'same-origin';
         }
 
-        if (options.headers instanceof Headers) {
-            options.headers.append('X-CSRF-Token', token);
-        } else {
-            options.headers['X-CSRF-Token'] = token;
+        const finalUrl = window.getAbsoluteUrl(url);
+        const requiresCsrf = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
+
+        if (requiresCsrf && !url.includes('api_csrf.php')) {
+            const token = await fetchCSRFToken();
+            if (token) {
+                if (!init.headers) {
+                    init.headers = {};
+                }
+                if (init.headers instanceof Headers) {
+                    init.headers.set('X-CSRF-Token', token);
+                } else if (Array.isArray(init.headers)) {
+                    init.headers.push(['X-CSRF-Token', token]);
+                } else {
+                    init.headers['X-CSRF-Token'] = token;
+                }
+            }
         }
+        return originalFetch.call(this, finalUrl, init);
     }
 
-    return originalFetch.call(this, finalUrl, options);
+    return originalFetch.apply(this, arguments);
 };
 
 /**

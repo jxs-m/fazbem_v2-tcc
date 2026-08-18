@@ -6,6 +6,7 @@ require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
 
 Security::checkCSRF();
+Security::checkRateLimit(15, 60);
 
 require_once __DIR__ . '/app/Models/Pedido.php';
 require_once __DIR__ . '/app/Models/Producao.php';
