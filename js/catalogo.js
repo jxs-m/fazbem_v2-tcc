@@ -53,6 +53,33 @@ let carrinhoDados = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
               renderizarSecao(container, cat, grupos[cat], json.isOpen);
             }
           });
+
+          // Verificar se o cliente possui fatura de assinatura pendente
+          try {
+            const resAss = await fetch('api_minha_assinatura_v2.php');
+            const jsonAss = await resAss.json();
+            if (jsonAss.success && jsonAss.possui_fatura_pendente) {
+                const bannerAss = document.createElement('div');
+                bannerAss.style.backgroundColor = '#fef3c7';
+                bannerAss.style.color = '#92400e';
+                bannerAss.style.border = '1px solid #fde68a';
+                bannerAss.style.padding = '12px 16px';
+                bannerAss.style.borderRadius = '8px';
+                bannerAss.style.marginBottom = '20px';
+                bannerAss.style.display = 'flex';
+                bannerAss.style.justifyContent = 'space-between';
+                bannerAss.style.alignItems = 'center';
+                bannerAss.style.flexWrap = 'wrap';
+                bannerAss.style.gap = '10px';
+                bannerAss.innerHTML = `
+                    <div>
+                        <strong>⚠️ Fatura de Assinatura em Aberto:</strong> Você possui a fatura de <strong>${escapeHTML(jsonAss.fatura_pendente.mes_referencia)}</strong> pendente. Para liberar novos pedidos adicionais, quite sua fatura no seu perfil.
+                    </div>
+                    <a href="perfil.html" style="background:#b45309; color:white; padding:6px 14px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:13px; white-space:nowrap;">Ir para Minhas Faturas</a>
+                `;
+                container.insertBefore(bannerAss, container.firstChild);
+            }
+          } catch(e) {}
         } else {
           container.innerHTML = '<p style="text-align:center; color:#dc2626">Erro ao carregar o catálogo.</p>';
         }

@@ -271,13 +271,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function alterarStatus(acao) {
-      if (!confirm('Confirmar ação?')) return;
+      let confirmMsg = 'Confirmar ação?';
+      if (acao === 'cancelar') {
+        confirmMsg = 'Deseja realmente cancelar sua assinatura?\n\n- As cobranças de mensalidades futuras e da mensalidade em aberto serão canceladas.\n- Se você tiver itens adicionais consumidos/pendentes, poderá pagar apenas os itens.';
+      } else if (acao === 'pausar') {
+        confirmMsg = 'Deseja pausar as entregas da sua assinatura? O valor proporcional será creditado na sua carteira.';
+      } else if (acao === 'reativar') {
+        confirmMsg = 'Deseja reativar sua assinatura e retomar as entregas?';
+      }
+
+      if (!confirm(confirmMsg)) return;
       try {
         const res = await fetch('api_gerenciar_assinatura_v2.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: acao }) });
         const json = await res.json();
         if (json.success) {
             if (json.message) alert(json.message);
             carregarPerfil();
+            carregarFaturas();
         } else {
             alert('Erro: ' + json.message);
         }
@@ -341,12 +351,22 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           json.faturas.forEach(f => {
             let totalF = parseFloat(f.valor_total).toFixed(2).replace('.', ',');
+            let vMens = parseFloat(f.valor_mensalidade || 0);
+            let vExt = parseFloat(f.valor_extras || 0);
+
+            let descTipo = 'Mensalidade de Assinatura';
+            if (vMens === 0 && vExt > 0) {
+                descTipo = '<span style="color:#b45309; font-weight:600;">Itens Adicionais (Sem Mensalidade)</span>';
+            } else if (vExt > 0) {
+                descTipo = `<span style="color:#4b5563;">Mensalidade + Adicionais (R$ ${vExt.toFixed(2).replace('.', ',')})</span>`;
+            }
+
             let btnAction = f.status === 'Pago' 
                 ? `<span style="color:#16a34a; font-weight:bold; display:block; margin-bottom:2px;">Pago</span><a href="${window.getAbsoluteUrl('comprovante.php')}?tipo=fatura&id=${f.id}" class="btn" style="background:#1d4ed8; color:white; padding:2px 6px; font-size:11px; text-decoration:none; border-radius:4px; display:inline-block;" target="_blank">Ver Recibo</a>` 
                 : `<button class="btn btn-edit" style="background:#166534; color:white; padding:4px 8px;" onclick="abrirModalPagamento(${f.id}, ${f.valor_total})">Pagar Agora</button>`;
             
             tbody.innerHTML += `<tr>
-                <td><strong>${escapeHTML(f.mes_referencia)}</strong><br><small>Vcto: Mensal</small></td>
+                <td><strong>${escapeHTML(f.mes_referencia)}</strong><br><small>${descTipo}</small></td>
                 <td style="text-align:right; font-weight:bold; color:#2b8a3e">R$ ${totalF}</td>
                 <td style="text-align:right">${btnAction}</td>
             </tr>`;

@@ -55,7 +55,19 @@ try {
     $assinaturaModel = new Assinatura();
     $assinatura = $assinaturaModel->buscarPorUsuario($usuario_id);
     if (!$assinatura || $assinatura['status'] !== 'Ativa') {
-        throw new Exception("Você precisa ativar a sua assinatura realizando o pagamento pendente antes de fazer pedidos adicionais.");
+        throw new Exception("Você precisa ter uma assinatura ativa para fazer pedidos adicionais. Por favor, ative sua assinatura na seção 'Meu Perfil'.");
+    }
+
+    // Verificar se o usuário possui alguma fatura de assinatura pendente
+    require_once __DIR__ . '/app/Database.php';
+    $pdo = Database::getConexao();
+    $stmtFatPend = $pdo->prepare("SELECT id, mes_referencia, valor_total FROM faturas_mensais WHERE usuario_id = ? AND status = 'Pendente' AND valor_mensalidade > 0 ORDER BY mes_referencia ASC LIMIT 1");
+    $stmtFatPend->execute([$usuario_id]);
+    $faturaPendente = $stmtFatPend->fetch();
+
+    if ($faturaPendente) {
+        $valF = number_format(floatval($faturaPendente['valor_total']), 2, ',', '.');
+        throw new Exception("Você possui a fatura de assinatura de {$faturaPendente['mes_referencia']} em aberto (R$ {$valF}). Por favor, quite a fatura pendente na seção 'Minhas Faturas' do seu perfil antes de realizar novos pedidos.");
     }
 
     // Validações locais críticas antes de efetuar a cobrança

@@ -10,6 +10,8 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
       return null;
     }
 
+    window.podeFazerPedidos = true;
+
     function renderizarCarrinho() {
       const container = document.getElementById('lista-itens');
       const totalDisplay = document.getElementById('total-display');
@@ -68,7 +70,14 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
         pesoDisplay.innerText = '';
       }
 
-      btn.disabled = false;
+      if (window.podeFazerPedidos === false) {
+        btn.disabled = true;
+      } else {
+        btn.disabled = false;
+        btn.innerText = 'Finalizar Pedido';
+        btn.style.backgroundColor = '';
+        btn.style.cursor = '';
+      }
     }
 
     function alterarQtd(index, delta) {
@@ -122,6 +131,12 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
     }
 
     async function finalizarPedido() {
+      if (window.podeFazerPedidos === false) {
+          alert('Você possui uma fatura de assinatura em aberto. Por favor, quite a sua fatura no seu Perfil antes de finalizar pedidos.');
+          window.location.href = 'perfil.html';
+          return;
+      }
+
       const totalCalculado = carrinho.reduce((acc, item) => acc + (item.preco_estimado_calculado !== undefined ? item.preco_estimado_calculado : (item.preco * item.quantidade)), 0);
       
       if (totalCalculado <= 0) {
@@ -155,7 +170,11 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
               window.location.href = 'catalogo.html';
           } else {
               alert('❌ ' + json.message);
-              if (json.message.includes('login')) window.location.href = 'login.html';
+              if (json.message.includes('login')) {
+                  window.location.href = 'login.html';
+              } else if (json.message.includes('fatura') || json.message.includes('assinatura')) {
+                  window.location.href = 'perfil.html';
+              }
               document.getElementById('btn-finalizar').disabled = false;
               document.getElementById('btn-finalizar').innerText = 'Finalizar Pedido';
           }
@@ -169,6 +188,7 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
     async function carregarResumoFiscal() {
         const nfBox = document.getElementById('nota-fiscal-box');
         const nfContent = document.getElementById('nota-fiscal-content');
+        const alertaBox = document.getElementById('alerta-bloqueio-box');
 
         try {
              const [resPerfil, resConfig, resAssinatura] = await Promise.all([
@@ -182,6 +202,51 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
             const jsonAssinatura = await resAssinatura.json();
 
             const temAssinatura = jsonAssinatura.success && jsonAssinatura.data && jsonAssinatura.data.status === 'Ativa';
+            const possuiFaturaPendente = jsonAssinatura.success && jsonAssinatura.possui_fatura_pendente;
+
+            if (jsonAssinatura.success) {
+                window.podeFazerPedidos = (jsonAssinatura.pode_fazer_pedidos === true);
+            }
+
+            if (alertaBox) {
+                if (possuiFaturaPendente) {
+                    const fat = jsonAssinatura.fatura_pendente;
+                    const valF = parseFloat(fat.valor_total || 0).toFixed(2).replace('.', ',');
+                    alertaBox.innerHTML = `
+                        <div style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:15px; border-radius:8px; text-align:center;">
+                            <h4 style="margin:0 0 6px 0; font-size:15px; color:#991b1b;">⚠️ Pagamento de Assinatura Pendente</h4>
+                            <p style="margin:0 0 10px 0; font-size:13px; color:#7f1d1d;">Você possui a fatura de assinatura de <strong>${escapeHTML(fat.mes_referencia)}</strong> em aberto (R$ ${valF}). Para realizar novos pedidos de itens adicionais, é necessário quitar a assinatura pendente.</p>
+                            <a href="perfil.html" style="background:#dc2626; color:white; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block;">Ir para Minhas Faturas</a>
+                        </div>
+                    `;
+                    alertaBox.style.display = 'block';
+                    const btn = document.getElementById('btn-finalizar');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerText = 'Assinatura Pendente';
+                        btn.style.backgroundColor = '#9ca3af';
+                        btn.style.cursor = 'not-allowed';
+                    }
+                } else if (!temAssinatura) {
+                    alertaBox.innerHTML = `
+                        <div style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:15px; border-radius:8px; text-align:center;">
+                            <h4 style="margin:0 0 6px 0; font-size:15px; color:#991b1b;">⚠️ Assinatura Inativa</h4>
+                            <p style="margin:0 0 10px 0; font-size:13px; color:#7f1d1d;">Você precisa de uma assinatura ativa para poder realizar pedidos de itens adicionais.</p>
+                            <a href="perfil.html" style="background:#dc2626; color:white; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block;">Ver Meu Perfil</a>
+                        </div>
+                    `;
+                    alertaBox.style.display = 'block';
+                    const btn = document.getElementById('btn-finalizar');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerText = 'Assinatura Inativa';
+                        btn.style.backgroundColor = '#9ca3af';
+                        btn.style.cursor = 'not-allowed';
+                    }
+                } else {
+                    alertaBox.style.display = 'none';
+                }
+            }
 
             let htmlNota = '';
 
@@ -207,7 +272,7 @@ let carrinho = JSON.parse(localStorage.getItem('fazbem_carrinho')) || [];
 
             if (carrinho.length > 0) {
                 htmlNota += `<div>
-                    <strong style="color:#1d4ed8;">🛒 Adicionais (Cobrados à parte):</strong><ul style="margin:4px 0 0 0; padding-left:20px; color:#4b5563;">`;
+                    <strong style="color:#1d4ed8;">🛒 Adicionais (Cobrados à parte na Fatura Mensal):</strong><ul style="margin:4px 0 0 0; padding-left:20px; color:#4b5563;">`;
                 carrinho.forEach(item => {
                     let safeQtd = item.input_qtd || item.quantidade || 0;
                     let qtyLabel = (item.preco_estimado_calculado !== undefined) ? (item.tipo_compra === 'Unidade' ? `${safeQtd}x` : `${safeQtd}g de`) : `${item.quantidade}x`;

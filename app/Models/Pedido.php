@@ -179,8 +179,8 @@ class Pedido {
             $this->pdo->beginTransaction();
 
             // Inserir o pedido com o valor total recalculado e seguro
-            $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, forma_pagamento, transacao_id) 
-                          VALUES (?, ?, ?, 'Em separação', ?, ?)";
+            $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, forma_pagamento, transacao_id) 
+                          VALUES (?, ?, ?, 'Em separação', 'Extra', ?, ?)";
             $stmtPedido = $this->pdo->prepare($sqlPedido);
             $stmtPedido->execute([$usuario_id, $total_calculado, $status_pagamento, $forma_pagamento, $transacao_id]);
             
@@ -208,9 +208,9 @@ class Pedido {
                 $stmtUpdFatura = $this->pdo->prepare("UPDATE faturas_mensais SET valor_extras = valor_extras + ?, valor_total = valor_total + ? WHERE id = ?");
                 $stmtUpdFatura->execute([$total_calculado, $total_calculado, $fatura['id']]);
             } else {
-                // Se não tem fatura pendente, cria uma nova pro próximo mês com o valor extra
-                $mes_referencia = date('Y-m', strtotime('+1 month'));
-                $stmtInsFatura = $this->pdo->prepare("INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_total, status) VALUES (?, ?, 0, ?, ?, 'Pendente')");
+                // Se não tem fatura pendente, cria uma pro mês atual com o valor extra
+                $mes_referencia = date('Y-m');
+                $stmtInsFatura = $this->pdo->prepare("INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_total, status) VALUES (?, ?, 0.00, ?, ?, 'Pendente')");
                 $stmtInsFatura->execute([$usuario_id, $mes_referencia, $total_calculado, $total_calculado]);
             }
 

@@ -137,7 +137,40 @@ try {
             break;
         case 'cancelar':
             $status = 'Cancelada';
-            $mensagem = 'Assinatura cancelada com sucesso.';
+            $pdo = Database::getConexao();
+            $pdo->beginTransaction();
+
+            // Buscar faturas pendentes do usuário
+            $stmtFaturas = $pdo->prepare("SELECT id, mes_referencia, valor_mensalidade, valor_extras, valor_desconto_creditos, valor_total FROM faturas_mensais WHERE usuario_id = ? AND status = 'Pendente'");
+            $stmtFaturas->execute([$usuario_id]);
+            $faturasPendentes = $stmtFaturas->fetchAll();
+
+            $tinhaExtras = false;
+            foreach ($faturasPendentes as $fat) {
+                $vExtras = floatval($fat['valor_extras']);
+                if ($vExtras > 0) {
+                    $tinhaExtras = true;
+                    // Remove a cobrança da mensalidade e mantém exclusivamente os itens adicionais consumidos
+                    $desconto = min(floatval($fat['valor_desconto_creditos']), $vExtras);
+                    $novoTotal = max(0, $vExtras - $desconto);
+
+                    $stmtUpd = $pdo->prepare("UPDATE faturas_mensais SET valor_mensalidade = 0.00, valor_desconto_creditos = ?, valor_total = ? WHERE id = ?");
+                    $stmtUpd->execute([$desconto, $novoTotal, $fat['id']]);
+                } else {
+                    // Se não possui adicionais (era apenas mensalidade não paga), remove a cobrança da mensalidade
+                    $stmtDel = $pdo->prepare("DELETE FROM faturas_mensais WHERE id = ?");
+                    $stmtDel->execute([$fat['id']]);
+                }
+            }
+
+            $assinaturaModel->atualizar($usuario_id, $frequencia, $status, $update_pausa);
+            $pdo->commit();
+
+            if ($tinhaExtras) {
+                $mensagem = 'Assinatura cancelada com sucesso. A cobrança da mensalidade foi removida e você pode quitar apenas os itens adicionais pendentes na seção "Minhas Faturas".';
+            } else {
+                $mensagem = 'Assinatura cancelada com sucesso e a mensalidade em aberto foi removida.';
+            }
             break;
         case 'alterar_plano':
             if (empty($data['nova_frequencia'])) throw new Exception("Novo plano não informado.");

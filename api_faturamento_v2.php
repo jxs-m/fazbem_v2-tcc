@@ -233,12 +233,20 @@ try {
                     ->execute([$statusFatura, $statusFatura, $mpPaymentId, $formaPagamento, $f_id, $_SESSION['usuario_id']]);
 
                 if ($statusFatura === 'Pago') {
-                    $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ?");
-                    $stmtSub->execute([$_SESSION['usuario_id']]);
-                    $subStatus = $stmtSub->fetchColumn();
-                    if ($subStatus === 'Cancelada') {
-                        $pdo->prepare("UPDATE assinaturas SET status = 'Ativa' WHERE usuario_id = ?")
-                            ->execute([$_SESSION['usuario_id']]);
+                    // Verificar se a fatura incluía mensalidade de assinatura
+                    $stmtFatMens = $pdo->prepare("SELECT valor_mensalidade FROM faturas_mensais WHERE id = ?");
+                    $stmtFatMens->execute([$f_id]);
+                    $vMensalidadePaga = floatval($stmtFatMens->fetchColumn());
+
+                    // Apenas reativa assinaturas canceladas se o pagamento foi da mensalidade (e não apenas itens avulsos/extras)
+                    if ($vMensalidadePaga > 0) {
+                        $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ?");
+                        $stmtSub->execute([$_SESSION['usuario_id']]);
+                        $subStatus = $stmtSub->fetchColumn();
+                        if ($subStatus === 'Cancelada') {
+                            $pdo->prepare("UPDATE assinaturas SET status = 'Ativa' WHERE usuario_id = ?")
+                                ->execute([$_SESSION['usuario_id']]);
+                        }
                     }
                 }
 

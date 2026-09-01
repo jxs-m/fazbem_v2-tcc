@@ -127,15 +127,21 @@ try {
                     $stmtUpdate = $pdo->prepare("UPDATE faturas_mensais SET status = 'Pago', pago_em = NOW(), transacao_id = ?, forma_pagamento = ? WHERE id = ?");
                     $stmtUpdate->execute([$paymentId, $formaPagamento, $faturaIdReal]);
 
-                    // Ativar assinatura caso esteja Cancelada
-                    $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ?");
-                    $stmtSub->execute([$u_id]);
-                    $subStatus = $stmtSub->fetchColumn();
+                    // Ativar assinatura caso esteja Cancelada e a fatura incluía mensalidade
+                    $stmtFatInfo = $pdo->prepare("SELECT valor_mensalidade FROM faturas_mensais WHERE id = ?");
+                    $stmtFatInfo->execute([$faturaIdReal]);
+                    $vMensalidade = floatval($stmtFatInfo->fetchColumn());
 
-                    if ($subStatus === 'Cancelada') {
-                        $pdo->prepare("UPDATE assinaturas SET status = 'Ativa' WHERE usuario_id = ?")
-                            ->execute([$u_id]);
-                        error_log("Webhook MP: Assinatura do usuário $u_id reativada.");
+                    if ($vMensalidade > 0) {
+                        $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ?");
+                        $stmtSub->execute([$u_id]);
+                        $subStatus = $stmtSub->fetchColumn();
+
+                        if ($subStatus === 'Cancelada') {
+                            $pdo->prepare("UPDATE assinaturas SET status = 'Ativa' WHERE usuario_id = ?")
+                                ->execute([$u_id]);
+                            error_log("Webhook MP: Assinatura do usuário $u_id reativada após pagamento da mensalidade.");
+                        }
                     }
 
                     $pdo->commit();
