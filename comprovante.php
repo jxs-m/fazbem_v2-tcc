@@ -9,8 +9,9 @@ if (!isset($_SESSION['usuario_id'])) {
 require_once __DIR__ . '/app/Database.php';
 $pdo = Database::getConexao();
 
-$tipo = $_GET['tipo'] ?? 'pedido';
-$id = intval($_GET['id'] ?? 0);
+$tipo = in_array($_GET['tipo'] ?? '', ['pedido', 'fatura'], true) ? $_GET['tipo'] : 'pedido';
+$id = filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
+$id = ($id !== false && $id > 0) ? $id : 0;
 $usuario_id = $_SESSION['usuario_id'];
 $tipo_usuario = $_SESSION['tipo_usuario'];
 
@@ -82,7 +83,8 @@ try {
         die("Tipo de comprovante inválido.");
     }
 } catch (Exception $e) {
-    die("Erro ao carregar dados do comprovante: " . $e->getMessage());
+    error_log("Erro no comprovante: " . $e->getMessage());
+    die("Erro ao carregar dados do comprovante.");
 }
 
 // Formatação dos dados para exibição segura (XSS protection)
@@ -95,7 +97,7 @@ function clean($str) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprovante de Pagamento #<?php echo $id; ?></title>
+    <title>Comprovante de Pagamento #<?php echo htmlspecialchars((string)$id, ENT_QUOTES, 'UTF-8'); ?></title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -251,12 +253,12 @@ function clean($str) {
     
     <div class="data-row">
         <span class="data-label">Tipo de Comprovante:</span>
-        <span class="data-value"><?php echo $tipo === 'pedido' ? 'Pedido Avulso / Adicional' : 'Fatura Mensal de Assinatura'; ?></span>
+        <span class="data-value"><?php echo htmlspecialchars($tipo === 'pedido' ? 'Pedido Avulso / Adicional' : 'Fatura Mensal de Assinatura', ENT_QUOTES, 'UTF-8'); ?></span>
     </div>
     
     <div class="data-row">
         <span class="data-label">ID Local:</span>
-        <span class="data-value">#<?php echo $id; ?></span>
+        <span class="data-value">#<?php echo htmlspecialchars((string)$id, ENT_QUOTES, 'UTF-8'); ?></span>
     </div>
 
     <div class="data-row">

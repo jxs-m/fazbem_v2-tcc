@@ -1,4 +1,5 @@
 app/rate_limit.json
+uploads
 .env
 .env.php
 popular_banco.php

@@ -225,10 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 document.getElementById('kit-semana-atual').innerText = "Aguardando atualização...";
             }
-        } catch(e) { console.error(e); }
+        } catch(e) { console.warn("Não foi possível carregar o kit da semana atual."); }
 
       } catch (e) {
-        console.error("Erro ao carregar perfil:", e);
+        console.warn("Falha ao carregar dados do perfil do usuário.");
       }
     }
 
@@ -380,9 +380,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let paymentBrickControllerPerfil = null;
     let faturaAtualId = null;
 
+    async function carregarSdkMercadoPago() {
+      if (typeof MercadoPago !== 'undefined') return true;
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://sdk.mercadopago.com/js/v2';
+        script.crossOrigin = 'anonymous';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      });
+    }
+
     async function initMercadoPagoPerfil() {
       if (bricksBuilderPerfil) return bricksBuilderPerfil;
       try {
+        await carregarSdkMercadoPago();
         const res = await fetch('api_mp_key.php');
         const json = await res.json();
         if (json.public_key && typeof MercadoPago !== 'undefined') {
@@ -390,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bricksBuilderPerfil = mpPerfil.bricks();
             return bricksBuilderPerfil;
         }
-      } catch (e) { console.error('Erro ao carregar MP Key no Perfil', e); }
+      } catch (e) { console.warn('Não foi possível carregar a integração do Mercado Pago.'); }
       return null;
     }
     
@@ -458,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             .catch(reject);
                     });
                 },
-                onError: (error) => { console.error('Erro no Brick:', error); }
+                onError: (error) => { console.warn('Falha na validação do componente de pagamento.'); }
             }
         };
 
@@ -470,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
             paymentBrickControllerPerfil = await bricksBuilderPerfil.create('payment', 'paymentBrick_container', settings);
         } catch (err) {
-            console.error('Erro ao renderizar Brick:', err);
+            console.warn('Erro ao renderizar componente de pagamento.');
             container.innerHTML = `
                 <div style="text-align:center; padding:20px; color:#dc2626;">
                     <p style="font-weight:bold; margin-bottom:8px;">Erro ao carregar o menu de pagamento.</p>
@@ -514,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(json.message);
             }
         } catch(e) { 
-            console.error(e);
+            console.warn('Falha na comunicação de pagamento da fatura.');
             throw e; 
         }
     }

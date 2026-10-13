@@ -118,7 +118,7 @@ function renderizarProdutos(lista) {
     limite.forEach(p => {
         const precoFormatado = parseFloat(p.preco).toFixed(2).replace('.', ',');
         const displayImagem = p.imagem_url 
-            ? `<img src="${escapeHTML(window.getAbsoluteUrl(p.imagem_url))}" alt="${escapeHTML(p.nome)}" class="product-image">`
+            ? `<img src="${escapeHTML(window.getAbsoluteUrl(p.imagem_url))}" alt="${escapeHTML(p.nome)}" class="product-image" loading="lazy" decoding="async">`
             : `<div class="product-no-image">📦</div>`;
 
         const tagCategoria = (parseInt(p.temporario) === 1) ? 'Temporários' : p.categoria;

@@ -21,11 +21,8 @@ if (window.location.protocol === 'http:' && window.location.hostname !== 'localh
     window.location.href = window.location.href.replace('http:', 'https:');
 }
 
-// Configuração do servidor backend (ex: 'https://seu-backend-oracle.com' ou 'http://129.151.x.x')
-// Deixe como string vazia '' se o backend estiver no mesmo servidor que o frontend.
-window.API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.'))
-    ? ''
-    : 'https://clubefazbem.duckdns.org';
+// Servidor único (VM Oracle Cloud): frontend e backend hospedados na mesma máquina
+window.API_BASE_URL = '';
 
 /**
  * Converte um caminho relativo de recurso ou API em um URL absoluto para o backend.

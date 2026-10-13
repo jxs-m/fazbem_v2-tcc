@@ -26,6 +26,7 @@ $produtosKit = $data['produtos_kit'];
 require_once __DIR__ . '/app/Database.php';
 require_once __DIR__ . '/app/Models/Pedido.php';
 require_once __DIR__ . '/app/Models/Preferencia.php';
+require_once __DIR__ . '/app/Models/Producao.php';
 
 try {
     $pdo = Database::getConexao();
@@ -41,10 +42,15 @@ try {
 
     // Pre-fetch product info to avoid N+1 queries
     $infoProdutosCache = [];
-    $idsProdKit = array_map(function($p) { return intval($p['id']); }, $produtosKit);
+    $idsProdKit = [];
+    foreach ($produtosKit as $p) {
+        if (isset($p['id']) && is_numeric($p['id'])) {
+            $idsProdKit[] = intval($p['id']);
+        }
+    }
     if (!empty($idsProdKit)) {
         $placeholdersProds = implode(',', array_fill(0, count($idsProdKit), '?'));
-        $sqlProds = "SELECT id, unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id IN ($placeholdersProds)";
+        $sqlProds = "SELECT id, nome, unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id IN ($placeholdersProds)";
         $stmtProds = $pdo->prepare($sqlProds);
         $stmtProds->execute($idsProdKit);
         while ($row = $stmtProds->fetch(PDO::FETCH_ASSOC)) {
@@ -77,7 +83,7 @@ try {
 
          $itensDoPedido = [];
         foreach ($produtosKit as $prod) {
-            $nomeProd = trim($prod['nome']);
+            $nomeProd = trim($prod['nome'] ?? ($infoProdutosCache[$prod['id']]['nome'] ?? ''));
             if (!in_array($nomeProd, $exclusoes)) {
                 $itensDoPedido[] = $prod;
             }
@@ -123,11 +129,12 @@ try {
     error_log("DB Error ao gerar pedidos: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno de banco de dados.']);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
+    error_log("Erro ao gerar pedidos: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Ocorreu um erro inesperado.']);
+    echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
 }
 ?>

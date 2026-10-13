@@ -34,7 +34,7 @@ async function carregarVitrine() {
                 const precoFormatado = parseFloat(p.preco).toFixed(2).replace('.', ',');
 
                 const displayImagem = p.imagem_url
-                    ? `<img src="${escapeHTML(window.getAbsoluteUrl(p.imagem_url))}" alt="${escapeHTML(p.nome)}" class="imagem-produto">`
+                    ? `<img src="${escapeHTML(window.getAbsoluteUrl(p.imagem_url))}" alt="${escapeHTML(p.nome)}" class="imagem-produto" loading="lazy" decoding="async">`
                     : `<div class="sem-foto">📦</div>`;
 
                 const tagCategoria = (parseInt(p.temporario) === 1) ? 'Temporários' : p.categoria;

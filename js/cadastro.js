@@ -164,7 +164,8 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
     referencia: document.getElementById('referencia').value,
     frequencia: document.getElementById('frequencia').value,
     latitude: lat,
-    longitude: lng
+    longitude: lng,
+    aceite_privacidade: document.getElementById('aceite').checked
   };
 
   try {

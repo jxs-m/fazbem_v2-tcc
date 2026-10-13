@@ -20,7 +20,6 @@ Env::load(__DIR__ . '/.env');
 $ambiente = $_ENV['AMBIENTE'] ?? 'producao';
 if ($ambiente === 'local') {
     $origensPermitidas = array_merge($origensPermitidas, [
-        'https://jxs-m.github.io',
         'http://localhost',
         'http://127.0.0.1',
         'http://localhost:5500',

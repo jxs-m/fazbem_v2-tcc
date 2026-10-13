@@ -412,7 +412,7 @@ async function carregarProducao() {
                 if (jsonConfig.success && jsonConfig.data.kit_semana) {
                     document.getElementById('config-kit-semana').value = jsonConfig.data.kit_semana;
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.warn("Não foi possível carregar a configuração do kit da semana."); }
 
             const kitsCount = parseInt(json.kitsNaSemana);
             const limite = parseInt(json.limiteMaximo);
@@ -983,7 +983,7 @@ async function confirmarGerarPedidos() {
         if(document.getElementById('config-kit-semana')) {
             document.getElementById('config-kit-semana').value = kitText;
         }
-    } catch(e) { console.error('Erro ao salvar kit_semana automaticamente:', e); }
+    } catch(e) { console.warn('Falha ao salvar kit_semana automaticamente.'); }
 
     const btn = document.getElementById('btnConfirmarGerarPedidos');
     btn.innerText = 'Processando...';

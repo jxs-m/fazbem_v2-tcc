@@ -21,7 +21,26 @@ Sistema de gestão e e-commerce focado na venda e assinatura de kits de produtos
 1. Clone o repositório:
    ```bash
    git clone https://github.com/jxs-m/fazbem_v2-tcc.git
+   cd fazbem_v2-tcc
    ```
-2. Importe a estrutura do banco de dados utilizando o arquivo `db_schema.sql`.
-3. Configure as credenciais do banco de dados e as chaves da API do Mercado Pago no ambiente (`api_mp_key.php`, `.env`, ou conforme estrutura de configuração do projeto).
-4. Hospede os arquivos em um servidor com suporte a PHP (como Apache ou Nginx).
+2. Crie o banco de dados e importe a estrutura (DDL):
+   ```bash
+   mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS fazbem_v2;"
+   mysql -u root -p fazbem_v2 < db_schema.sql
+   ```
+3. *(Opcional)* Popule o banco com dados de demonstração (clientes, pedidos, rotas e catálogo):
+   ```bash
+   mysql -u root -p fazbem_v2 < db_seeds.sql
+   ```
+4. Configure as variáveis de ambiente:
+   ```bash
+   cp .env.example .env
+   # Edite o .env com as credenciais do banco e chaves do Mercado Pago
+   ```
+5. Hospede os arquivos em um servidor web com suporte a PHP 8+ e MySQL/MariaDB (como Apache ou Nginx).
+
+### 👥 Credenciais de Demonstração (com `db_seeds.sql`)
+- **Administrador:** `admin@fazbem.com` | Senha: `admin123`
+- **Entregador:** `entregador@fazbem.com` | Senha: `equipe123`
+- **Separador:** `separador@fazbem.com` | Senha: `equipe123`
+- **Clientes:** `carlos@email.com`, `ana@email.com`, `marcos@email.com` | Senha: `cliente123`

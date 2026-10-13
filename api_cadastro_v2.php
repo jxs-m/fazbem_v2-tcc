@@ -29,6 +29,12 @@ if (strlen($data['senha']) < 8) {
     exit;
 }
 
+if (($data['aceite_privacidade'] ?? false) !== true) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'É necessário aceitar a Política de Privacidade.']);
+    exit;
+}
+
 try {
     $usuarioModel = new Usuario();
 

@@ -60,19 +60,28 @@ try {
             if (!in_array($mime, $mimePermitidos)) {
                 throw new Exception("Formato de imagem inválido. Use JPG, PNG ou WEBP.");
             }
-            
-            $extensao = strtolower(pathinfo($imagem['name'], PATHINFO_EXTENSION));
-            $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
-            if (!in_array($extensao, $extensoesPermitidas)) {
-                throw new Exception("Extensão de arquivo inválida.");
-            }
 
-            $novoNome = uniqid() . '.' . $extensao;
+            $img = @imagecreatefromstring(file_get_contents($imagem['tmp_name']));
+            if (!$img) {
+                throw new Exception("Não foi possível processar a imagem enviada.");
+            }
+            imagepalettetotruecolor($img);
+            if (imagesx($img) > 800) {
+                $img = imagescale($img, 800);
+            }
+            imagesavealpha($img, true);
+
+            $novoNome = uniqid() . '.webp';
             $caminhoFisico = __DIR__ . '/uploads/' . $novoNome;
             $caminhoBanco = 'uploads/' . $novoNome;
 
-            if (!move_uploaded_file($imagem['tmp_name'], $caminhoFisico)) {
-                throw new Exception("Falha ao guardar a imagem no servidor.");
+            if (!is_dir(__DIR__ . '/uploads')) {
+                mkdir(__DIR__ . '/uploads', 0755, true);
+            }
+
+            if (!imagewebp($img, $caminhoFisico, 80)) {
+                error_log("Falha ao gravar imagem em uploads/ (verifique permissões).");
+                throw new Exception("Erro ao salvar a imagem no servidor.");
             }
         } else if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
              throw new Exception("Erro no upload da imagem: código " . $_FILES['imagem']['error']);

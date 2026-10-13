@@ -97,6 +97,13 @@
     
     .login-link a:hover { text-decoration: underline; }
 
+    .consent { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; }
+    .consent input { width: auto; margin-top: 3px; }
+    .consent a, .policy a { color: var(--green-primary); }
+
+    .policy { max-width: 760px; line-height: 1.6; }
+    .policy h2 { font-size: 18px; color: var(--green-primary); margin: 24px 0 8px; }
+
     @media (max-width: 480px) {
         body {
             padding: 10px;

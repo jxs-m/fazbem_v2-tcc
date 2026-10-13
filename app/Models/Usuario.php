@@ -26,8 +26,8 @@ class Usuario {
             $this->pdo->beginTransaction();
 
             
-            $sqlUser = "INSERT INTO usuarios (nome, email, senha, telefone, cpf, endereco, ponto_referencia, tipo_usuario) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'cliente')";
+            $sqlUser = "INSERT INTO usuarios (nome, email, senha, telefone, cpf, endereco, ponto_referencia, tipo_usuario, aceite_privacidade_em) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'cliente', NOW())";
             $stmtUser = $this->pdo->prepare($sqlUser);
             $stmtUser->execute([$nome, $email, $senhaCriptografada, $telefone, $cpf, $endereco, $referencia]);
             
