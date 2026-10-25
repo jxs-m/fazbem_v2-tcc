@@ -4,8 +4,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portal de Apresentação e Monografia do TCC - Sistema FazBem V2">
-    <title>TCC FazBem V2 — Portal Acadêmico</title>
+    <meta name="description" content="FazBem V2: plataforma web de e-commerce e logística para clube de assinatura de hortaliças em Uruguaiana/RS. TCC do IFFAR com PHP 8, MySQL e Leaflet.js.">
+    <title>FazBem V2 — Clube de Assinatura de Hortaliças | TCC IFFAR Uruguaiana</title>
+    <link rel="canonical" href="https://clubefazbem.duckdns.org/">
+
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="Clube Faz Bem">
+    <meta property="og:title" content="FazBem V2 — E-commerce e logística para hortaliças orgânicas">
+    <meta property="og:description" content="Clube de assinatura de hortaliças com pesagem fracionada, rotas de entrega no mapa e segurança OWASP. TCC do IFFAR Campus Uruguaiana.">
+    <meta property="og:url" content="https://clubefazbem.duckdns.org/">
+    <meta property="og:image" content="https://clubefazbem.duckdns.org/img/og-fazbem.jpg">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="420">
+    <meta property="og:image:alt" content="Cesta com alface, brócolis, espinafre e tomates">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <meta name="geo.region" content="BR-RS">
+    <meta name="geo.placename" content="Uruguaiana">
+    <meta name="geo.position" content="-29.7603;-57.0811">
+    <meta name="ICBM" content="-29.7603, -57.0811">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "ScholarlyArticle",
+          "@id": "https://clubefazbem.duckdns.org/#artigo",
+          "headline": "Sistema FazBem V2: Desenvolvimento de uma Plataforma de E-Commerce e Gestão Logística para Curtos Circuitos de Alimentos Orgânicos",
+          "inLanguage": "pt-BR",
+          "datePublished": "2026-05-25",
+          "keywords": "Curtos Circuitos, E-commerce Orgânico, PHP Orientado a Objetos, Leaflet.js, Segurança Web",
+          "abstract": "Plataforma web integrada de e-commerce e gestão operacional para Curtos Circuitos de Cadeias Alimentares, com frontend em HTML5, CSS3 e JavaScript puro, backend em PHP 8 orientado a objetos e MySQL, roteirização com Leaflet.js, pesagem assíncrona de produtos fracionados e proteção contra XSS, CSRF e força bruta.",
+          "image": "https://clubefazbem.duckdns.org/img/og-fazbem.jpg",
+          "author": [
+            {"@type": "Person", "name": "Murilo S. Jaques", "affiliation": {"@id": "#iffar"}},
+            {"@type": "Person", "name": "Antonio B.", "affiliation": {"@id": "#iffar"}}
+          ],
+          "contributor": {"@type": "Person", "name": "Thiago Krug", "jobTitle": "Orientador", "affiliation": {"@id": "#iffar"}},
+          "about": {"@id": "https://clubefazbem.duckdns.org/#software"}
+        },
+        {
+          "@type": "CollegeOrUniversity",
+          "@id": "#iffar",
+          "name": "Instituto Federal Farroupilha — Campus Uruguaiana",
+          "address": {"@type": "PostalAddress", "addressLocality": "Uruguaiana", "addressRegion": "RS", "addressCountry": "BR"}
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://clubefazbem.duckdns.org/#software",
+          "name": "FazBem V2",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "url": "https://clubefazbem.duckdns.org/",
+          "description": "Sistema de clube de assinatura de hortaliças: catálogo com venda por peso, assinaturas semanais ou quinzenais, separação de pedidos e rotas de entrega em mapa.",
+          "areaServed": {"@type": "City", "name": "Uruguaiana"}
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {"@type": "Question", "name": "O que é o FazBem V2?", "acceptedAnswer": {"@type": "Answer", "text": "Uma plataforma web para clubes de assinatura de hortaliças que integra catálogo, assinaturas, estoque, separação de pedidos e rotas de entrega. Foi desenvolvida como TCC no IFFAR Campus Uruguaiana para o Clube Faz Bem."}},
+            {"@type": "Question", "name": "Como o sistema cobra produtos vendidos por peso?", "acceptedAnswer": {"@type": "Answer", "text": "O cliente vê um preço estimado pelo peso médio do item. Na separação, a equipe registra o peso real e o sistema recalcula o valor proporcional na fatura."}},
+            {"@type": "Question", "name": "Como as entregas são organizadas?", "acceptedAnswer": {"@type": "Answer", "text": "O endereço de cada cliente é marcado no mapa no cadastro. O administrador define a ordem das paradas e o entregador acompanha a rota no celular com Leaflet.js e OpenStreetMap."}},
+            {"@type": "Question", "name": "Quais tecnologias foram usadas?", "acceptedAnswer": {"@type": "Answer", "text": "HTML5, CSS3 e JavaScript puro no frontend; PHP 8 orientado a objetos em arquitetura MVC e MySQL no backend; Leaflet.js para mapas e Mercado Pago para pagamentos."}},
+            {"@type": "Question", "name": "Como os dados dos clientes são protegidos?", "acceptedAnswer": {"@type": "Answer", "text": "Senhas com hash bcrypt, consultas parametrizadas com PDO contra injeção SQL, tokens CSRF, escape de saída contra XSS, limite de tentativas de login e HTTPS, seguindo o OWASP Top 10."}}
+          ]
+        }
+      ]
+    }
+    </script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,6 +120,7 @@
                 <li class="toc-item"><a href="#resultados">4. Resultados e Discussão</a></li>
                 <li class="toc-item"><a href="#conclusao">5. Conclusão</a></li>
                 <li class="toc-item"><a href="#referencias">Referências</a></li>
+                <li class="toc-item"><a href="#faq">Perguntas Frequentes</a></li>
             </ul>
 
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
@@ -71,9 +140,9 @@
                 <!-- Section: Cover Page -->
                 <section id="capa" class="cover-page">
                     <div class="academic-journal-header">
-                        <span>V. 12 / 2026</span>
-                        <span>ISSN 2448-4091</span>
-                        <span>DOI 00.00000/0000-0000.0000.000</span>
+                        <span>Trabalho de Conclusão de Curso</span>
+                        <span>IFFAR Campus Uruguaiana</span>
+                        <span>2026</span>
                     </div>
 
                     <h1 class="cover-title">SISTEMA FAZBEM V2</h1>
@@ -100,7 +169,7 @@
                     </div>
 
                     <div class="academic-dates" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-top: 16px; margin-bottom: 24px; letter-spacing: 0.5px;">
-                        RECEBIDO EM 25/05/2026 &nbsp;&bull;&nbsp; ACEITO EM 25/05/2026
+                        <time datetime="2026-05-25">Publicado em 25/05/2026</time>
                     </div>
 
                     <div class="cover-meta" style="font-size: 12px; font-weight: 500; color: var(--text-muted);">
@@ -625,6 +694,21 @@
                                 Programming</strong>. London: Packt Publishing, 2022.
                         </li>
                     </ul>
+                </section>
+
+                <!-- Section: FAQ (mesmo conteúdo do JSON-LD FAQPage) -->
+                <section id="faq" style="margin-bottom: 48px;">
+                    <h2>Perguntas Frequentes</h2>
+                    <h3>O que é o FazBem V2?</h3>
+                    <p>Uma plataforma web para clubes de assinatura de hortaliças que integra catálogo, assinaturas, estoque, separação de pedidos e rotas de entrega. Foi desenvolvida como TCC no IFFAR Campus Uruguaiana para o Clube Faz Bem.</p>
+                    <h3>Como o sistema cobra produtos vendidos por peso?</h3>
+                    <p>O cliente vê um preço estimado pelo peso médio do item. Na separação, a equipe registra o peso real e o sistema recalcula o valor proporcional na fatura.</p>
+                    <h3>Como as entregas são organizadas?</h3>
+                    <p>O endereço de cada cliente é marcado no mapa no cadastro. O administrador define a ordem das paradas e o entregador acompanha a rota no celular com Leaflet.js e OpenStreetMap.</p>
+                    <h3>Quais tecnologias foram usadas?</h3>
+                    <p>HTML5, CSS3 e JavaScript puro no frontend; PHP 8 orientado a objetos em arquitetura MVC e MySQL no backend; Leaflet.js para mapas e Mercado Pago para pagamentos.</p>
+                    <h3>Como os dados dos clientes são protegidos?</h3>
+                    <p>Senhas com hash bcrypt, consultas parametrizadas com PDO contra injeção SQL, tokens CSRF, escape de saída contra XSS, limite de tentativas de login e HTTPS, seguindo o OWASP Top 10. Veja a <a href="privacidade.html">Política de Privacidade</a>.</p>
                 </section>
 
             </article>

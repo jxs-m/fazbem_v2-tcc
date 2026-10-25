@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /api_
+Disallow: /admin.html
+Disallow: /entregador.html
+Disallow: /separador.html
+Disallow: /perfil.html
+Disallow: /carrinho.html
+Disallow: /catalogo.html
+Disallow: /comprovante.php
+Disallow: /logout.php
+Disallow: /app/
+
+Sitemap: https://clubefazbem.duckdns.org/sitemap.xml
