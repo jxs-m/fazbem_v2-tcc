@@ -10,8 +10,8 @@ Security::checkCSRF();
 require_once __DIR__ . '/app/Models/Pedido.php';
 require_once __DIR__ . '/app/Models/Preferencia.php';
 
-// 1. Verificação de Segurança (Bloqueia quem não é admin)
-if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
+// 1. Verificação de Segurança (Bloqueia quem não é admin autenticado)
+if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado. Área restrita.']);
     exit;
@@ -68,7 +68,15 @@ try {
             throw new Exception("Dados incompletos para atualização.");
         }
 
-        $atualizou = $pedidoModel->atualizarStatus($data['id'], $data['tipo'], $data['valor']);
+        $motivo = isset($data['motivo']) ? trim((string) $data['motivo']) : null;
+        $atualizou = $pedidoModel->atualizarStatus(
+            (int) $data['id'],
+            (string) $data['tipo'],
+            (string) $data['valor'],
+            (int) $_SESSION['usuario_id'],
+            'admin',
+            $motivo
+        );
 
         if ($atualizou) {
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
@@ -86,7 +94,11 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno de banco de dados.']);
 } catch (Exception $e) {
-    http_response_code(400);
+    $code = (int) $e->getCode();
+    if (!in_array($code, [400, 403, 404], true)) {
+        $code = 400;
+    }
+    http_response_code($code);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 ?>

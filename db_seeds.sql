@@ -75,21 +75,25 @@ INSERT INTO `produtos` (`id`, `nome`, `categoria`, `tipo_venda`, `preco`, `unida
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`), `preco` = VALUES(`preco`);
 
 -- ------------------------------------------------------------------------------
--- 6. PEDIDOS DA SEMANA E HISTÓRICO (Em Separação, Aguardando Entrega, Entregue)
+-- 6. ROTAS E PEDIDOS DA SEMANA E HISTÓRICO (Em Separação, Aguardando Entrega, Entregue)
 -- ------------------------------------------------------------------------------
-INSERT INTO `pedidos` (`id`, `usuario_id`, `valor_total`, `status_pagamento`, `status_entrega`, `obs_pontual`, `data_pedido`, `tipo_pedido`, `ordem_entrega`, `entregue_em`) VALUES
+INSERT INTO `rotas` (`id`, `entregador_id`, `data_rota`, `status`) VALUES
+(1, 2, CURDATE(), 'Rota Iniciada')
+ON DUPLICATE KEY UPDATE `entregador_id` = VALUES(`entregador_id`), `data_rota` = VALUES(`data_rota`), `status` = VALUES(`status`);
+
+INSERT INTO `pedidos` (`id`, `usuario_id`, `valor_total`, `status_pagamento`, `status_entrega`, `obs_pontual`, `data_entrega`, `data_pedido`, `tipo_pedido`, `rota_id`, `ordem_entrega`, `entregue_em`) VALUES
 -- Pedido 1: Carlos Silva — Em separação (Para visualização no Painel do Separador)
-(1, 4, 25.00, 'Pago', 'Em separação', 'Cliente não consome cebola (substituir por alface)', NOW(), 'Assinatura', 9999, NULL),
+(1, 4, 25.00, 'Pago', 'Em separação', 'Cliente não consome cebola (substituir por alface)', CURDATE(), NOW(), 'Assinatura', NULL, 9999, NULL),
 
 -- Pedido 2: Ana Pereira — Aguardando Entrega (Ordem 1 no Painel do Entregador)
-(2, 5, 25.00, 'Pago', 'Aguardando Entrega', NULL, NOW(), 'Assinatura', 1, NULL),
+(2, 5, 25.00, 'Pago', 'Aguardando Entrega', NULL, CURDATE(), NOW(), 'Assinatura', 1, 1, NULL),
 
 -- Pedido 3: Carla Uhmann — Saiu para entrega (Ordem 2 no Painel do Entregador)
-(3, 7, 25.00, 'Pago', 'Saiu para entrega', 'Entregar com o porteiro', NOW(), 'Assinatura', 2, NULL),
+(3, 7, 25.00, 'Pago', 'Saiu para entrega', 'Entregar com o porteiro', CURDATE(), NOW(), 'Assinatura', 1, 2, NULL),
 
 -- Pedido 4: Carlos Silva — Entregue semana anterior (Histórico com comprovante)
-(4, 4, 25.00, 'Pago', 'Entregue', NULL, DATE_SUB(NOW(), INTERVAL 7 DAY), 'Assinatura', 1, DATE_SUB(NOW(), INTERVAL 6 DAY))
-ON DUPLICATE KEY UPDATE `status_entrega` = VALUES(`status_entrega`);
+(4, 4, 25.00, 'Pago', 'Entregue', NULL, DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY), 'Assinatura', NULL, 1, DATE_SUB(NOW(), INTERVAL 6 DAY))
+ON DUPLICATE KEY UPDATE `status_entrega` = VALUES(`status_entrega`), `rota_id` = VALUES(`rota_id`), `data_entrega` = VALUES(`data_entrega`);
 
 -- ------------------------------------------------------------------------------
 -- 7. ITENS DOS PEDIDOS (Composição das cestas)

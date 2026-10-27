@@ -100,6 +100,7 @@ CREATE TABLE `rotas` (
   `criado_em` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_rotas_entregador` (`entregador_id`),
+  KEY `idx_rotas_entregador_data_status` (`entregador_id`, `data_rota`, `status`),
   CONSTRAINT `fk_rotas_entregador` FOREIGN KEY (`entregador_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -119,15 +120,22 @@ CREATE TABLE `pedidos` (
   `data_pedido` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `tipo_pedido` ENUM('Assinatura', 'Avulso', 'Extra', 'Reposicao') DEFAULT 'Avulso',
   `rota_id` INT(11) DEFAULT NULL,
+  `fatura_id` INT(11) DEFAULT NULL,
   `ordem_entrega` INT(11) DEFAULT 9999,
   `entregue_em` TIMESTAMP NULL DEFAULT NULL,
   `transacao_id` VARCHAR(100) DEFAULT NULL,
   `forma_pagamento` VARCHAR(50) DEFAULT NULL,
+  `idempotency_key` VARCHAR(100) DEFAULT NULL,
+  `mp_status` VARCHAR(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_pedidos_usuario` (`usuario_id`),
   KEY `idx_pedidos_rota` (`rota_id`),
+  KEY `idx_pedidos_fatura` (`fatura_id`),
+  UNIQUE KEY `uq_pedidos_idempotency` (`idempotency_key`),
+  KEY `idx_pedidos_transacao` (`transacao_id`),
   CONSTRAINT `fk_pedidos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_pedidos_rota` FOREIGN KEY (`rota_id`) REFERENCES `rotas` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_pedidos_rota` FOREIGN KEY (`rota_id`) REFERENCES `rotas` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_pedidos_fatura` FOREIGN KEY (`fatura_id`) REFERENCES `faturas_mensais` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
@@ -168,8 +176,13 @@ CREATE TABLE `faturas_mensais` (
   `pago_em` TIMESTAMP NULL DEFAULT NULL,
   `transacao_id` VARCHAR(100) DEFAULT NULL,
   `forma_pagamento` VARCHAR(50) DEFAULT NULL,
+  `idempotency_key` VARCHAR(100) DEFAULT NULL,
+  `mp_status` VARCHAR(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_faturas_usuario` (`usuario_id`),
+  UNIQUE KEY `uq_faturas_usuario_mes` (`usuario_id`, `mes_referencia`),
+  UNIQUE KEY `uq_faturas_idempotency` (`idempotency_key`),
+  KEY `idx_faturas_transacao` (`transacao_id`),
   CONSTRAINT `fk_faturas_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -262,6 +275,28 @@ CREATE TABLE `substituicoes_produto` (
   KEY `idx_subst_substituto` (`produto_substituto_id`),
   CONSTRAINT `fk_subst_original` FOREIGN KEY (`produto_original_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_subst_substituto` FOREIGN KEY (`produto_substituto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------------------
+-- 15. TABELA: historico_status_pedidos
+-- Auditoria de transições de status operacional e financeiro de pedidos
+-- ------------------------------------------------------------------------------
+DROP TABLE IF EXISTS `historico_status_pedidos`;
+CREATE TABLE `historico_status_pedidos` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `pedido_id` INT(11) NOT NULL,
+  `usuario_id` INT(11) DEFAULT NULL,
+  `papel_usuario` VARCHAR(30) DEFAULT NULL,
+  `campo` ENUM('status_entrega', 'status_pagamento') NOT NULL,
+  `estado_anterior` VARCHAR(50) NOT NULL,
+  `estado_novo` VARCHAR(50) NOT NULL,
+  `motivo` VARCHAR(255) DEFAULT NULL,
+  `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_hist_pedido` (`pedido_id`),
+  KEY `idx_hist_usuario` (`usuario_id`),
+  CONSTRAINT `fk_hist_pedido` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_hist_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -84,7 +84,7 @@ async function carregarEntregas() {
                 let btnAction = '';
                 let btnMaps = '';
 
-                if (e.status_entrega === 'Aguardando Entrega' || e.status_entrega === 'Em separação') {
+                if (e.status_entrega === 'Aguardando Entrega') {
                     btnAction = `<button class="btn btn-action" onclick="atualizarStatus(${e.pedido_id}, 'Saiu para entrega')">📍 Iniciar Rota</button>`;
                 } else if (e.status_entrega === 'Saiu para entrega') {
                     btnAction = `<button class="btn btn-action" onclick="atualizarStatus(${e.pedido_id}, 'Entregue')">✅ Finalizar</button>`;

@@ -80,14 +80,21 @@ try {
                 $mes_referencia = date('Y-m');
                 $pdo = Database::getConexao();
                 
-                $checkFatura = $pdo->prepare("SELECT id FROM faturas_mensais WHERE usuario_id = ? AND mes_referencia = ? AND status = 'Pendente'");
+                $checkFatura = $pdo->prepare("SELECT id, status, valor_extras, valor_desconto_creditos FROM faturas_mensais WHERE usuario_id = ? AND mes_referencia = ?");
                 $checkFatura->execute([$usuario_id, $mes_referencia]);
-                if ($checkFatura->rowCount() === 0) {
-                    $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
+                $fatMes = $checkFatura->fetch();
+                $valor_mensal = isset($assinaturaAtual['valor_mensal']) ? floatval($assinaturaAtual['valor_mensal']) : 100.00;
+                if (!$fatMes) {
                     $sqlInsertFatura = "INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_desconto_creditos, valor_total, status) 
                                         VALUES (?, ?, ?, 0.00, 0.00, ?, 'Pendente')";
                     $stmtInsert = $pdo->prepare($sqlInsertFatura);
                     $stmtInsert->execute([$usuario_id, $mes_referencia, $valor_mensal, $valor_mensal]);
+                } elseif ($fatMes['status'] !== 'Pago') {
+                    $vExtras = floatval($fatMes['valor_extras'] ?? 0);
+                    $vDesc = floatval($fatMes['valor_desconto_creditos'] ?? 0);
+                    $novoTotal = max(0, round($valor_mensal + $vExtras - $vDesc, 2));
+                    $pdo->prepare("UPDATE faturas_mensais SET valor_mensalidade = ?, valor_total = ?, status = 'Pendente', mp_status = NULL, idempotency_key = NULL WHERE id = ?")
+                        ->execute([$valor_mensal, $novoTotal, $fatMes['id']]);
                 }
                 throw new Exception("Sua assinatura está inativa. Para ativá-la, por favor efetue o pagamento da fatura de assinatura pendente na seção 'Minhas Faturas' abaixo.");
             }

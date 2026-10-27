@@ -9,9 +9,10 @@ Security::checkCSRF();
 Security::checkRateLimit(60, 60);
 
 require_once __DIR__ . '/app/Database.php';
+require_once __DIR__ . '/app/Models/Pedido.php';
 
-// Apenas admin ou separador
-if (!isset($_SESSION['tipo_usuario']) || !in_array($_SESSION['tipo_usuario'], ['admin', 'separador'])) {
+// Apenas admin ou separador autenticado
+if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['tipo_usuario']) || !in_array($_SESSION['tipo_usuario'], ['admin', 'separador'], true)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado.']);
     exit;
@@ -19,14 +20,22 @@ if (!isset($_SESSION['tipo_usuario']) || !in_array($_SESSION['tipo_usuario'], ['
 
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = Database::getConexao();
+$usuarioId = (int) $_SESSION['usuario_id'];
+$papel = (string) $_SESSION['tipo_usuario'];
 
 try {
     if ($method === 'GET') {
-        // Listar todos os pedidos 'Em separação'
+        // Listar apenas pedidos autorizados para a operação de separação (não cancelados e dentro do ciclo operacional)
         $sql = "SELECT p.id, p.data_pedido, p.obs_pontual, u.nome as cliente 
                 FROM pedidos p 
                 JOIN usuarios u ON p.usuario_id = u.id 
                 WHERE p.status_entrega = 'Em separação' 
+                  AND p.status_pagamento != 'Cancelado'
+                  AND p.fatura_id IS NULL
+                  AND (
+                      (p.data_entrega IS NOT NULL AND p.data_entrega >= CURDATE())
+                      OR (p.data_entrega IS NULL AND YEARWEEK(p.data_pedido, 0) = YEARWEEK(NOW(), 0))
+                  )
                 ORDER BY p.id ASC";
         $pedidos = $pdo->query($sql)->fetchAll();
 
@@ -51,48 +60,19 @@ try {
     }
 
     if ($method === 'POST') {
-        // Salvar a pesagem
         $data = json_decode(file_get_contents('php://input'), true);
-        $pedido_id = $data['pedido_id'] ?? null;
-        $itensPesados = $data['itens'] ?? []; // [{item_id: 1, quantidade_real: 2.5}, ...]
+        $pedido_id = filter_var($data['pedido_id'] ?? null, FILTER_VALIDATE_INT);
+        $itensPesados = is_array($data['itens'] ?? null) ? $data['itens'] : [];
+        $motivo = isset($data['motivo']) ? trim((string) $data['motivo']) : null;
 
         if (!$pedido_id || empty($itensPesados)) {
-            throw new Exception("Dados inválidos.");
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Dados inválidos.']);
+            exit;
         }
 
-        $pdo->beginTransaction();
-
-        $novoTotalPedido = 0;
-
-        foreach ($itensPesados as $item) {
-            $item_id = $item['item_id'];
-            $q_real = floatval($item['quantidade_real']); // Pode ser 0 se estiver em falta
-            
-            // Buscar infos do item para calcular preço real
-            $sqlInfo = "SELECT i.preco_unitario FROM itens_pedido i WHERE i.id = ? AND i.pedido_id = ?";
-            $stmtInfo = $pdo->prepare($sqlInfo);
-            $stmtInfo->execute([$item_id, $pedido_id]);
-            $info = $stmtInfo->fetch();
-
-            if ($info) {
-                $preco_real = $q_real * floatval($info['preco_unitario']);
-                $novoTotalPedido += $preco_real;
-
-                // Atualizar item
-                $sqlUpdate = "UPDATE itens_pedido SET quantidade_real = ?, preco_real = ? WHERE id = ? AND pedido_id = ?";
-                $pdo->prepare($sqlUpdate)->execute([$q_real, $preco_real, $item_id, $pedido_id]);
-            }
-        }
-
-        $sqlPedUpdate = "UPDATE pedidos SET valor_total = ?, status_entrega = 'Aguardando Entrega', obs_pontual = CONCAT(IFNULL(obs_pontual,''), ' [Pesado]') WHERE id = ? AND status_entrega = 'Em separação'";
-        $stmtUpdatePed = $pdo->prepare($sqlPedUpdate);
-        $stmtUpdatePed->execute([$novoTotalPedido, $pedido_id]);
-        
-        if ($stmtUpdatePed->rowCount() === 0) {
-            throw new Exception("Pedido não encontrado ou não está em separação.");
-        }
-
-        $pdo->commit();
+        $pedidoModel = new Pedido();
+        $pedidoModel->registrarPesagemSeparacao($pedido_id, $itensPesados, $usuarioId, $papel, $motivo);
 
         echo json_encode(['success' => true, 'message' => 'Pesagem registrada com sucesso! Pedido aguardando entrega.']);
         exit;
@@ -101,12 +81,22 @@ try {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método não permitido.']);
 
+} catch (PDOException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log("DB Error na separação: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    error_log("Erro na separação: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
+    $code = (int) $e->getCode();
+    if (!in_array($code, [400, 403, 404], true)) {
+        $code = 400;
+    }
+    http_response_code($code);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 ?>

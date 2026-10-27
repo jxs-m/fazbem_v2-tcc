@@ -60,6 +60,7 @@ try {
 
     // Verificar se o usuário possui alguma fatura de assinatura pendente
     require_once __DIR__ . '/app/Database.php';
+    require_once __DIR__ . '/app/MercadoPagoService.php';
     $pdo = Database::getConexao();
     $stmtFatPend = $pdo->prepare("SELECT id, mes_referencia, valor_total FROM faturas_mensais WHERE usuario_id = ? AND status = 'Pendente' AND valor_mensalidade > 0 ORDER BY mes_referencia ASC LIMIT 1");
     $stmtFatPend->execute([$usuario_id]);
@@ -70,21 +71,84 @@ try {
         throw new Exception("Você possui a fatura de assinatura de {$faturaPendente['mes_referencia']} em aberto (R$ {$valF}). Por favor, quite a fatura pendente na seção 'Minhas Faturas' do seu perfil antes de realizar novos pedidos.");
     }
 
-    // Validações locais críticas antes de efetuar a cobrança
-    if ($pedidoModel->verificarPedidoExistenteSemana($usuario_id)) {
-        throw new Exception("Você já realizou um pedido esta semana. O limite é de apenas um pedido por pessoa.");
+    $usaMercadoPago = isset($data['mercado_pago_data']) && is_array($data['mercado_pago_data']);
+    $tipo_pedido = (isset($data['tipo_pedido']) && in_array($data['tipo_pedido'], ['Avulso', 'Extra'], true)) ? $data['tipo_pedido'] : 'Extra';
+    $clientKey = trim((string) ($data['idempotency_key'] ?? ($_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? '')));
+    $contextoChave = $clientKey !== '' ? $clientKey : (date('oW') . '_' . number_format($valor_total_real, 2, '.', ''));
+    $idempotencyKey = MercadoPagoService::buildIdempotencyKey('pedido_u' . $usuario_id, date('oW'), $contextoChave);
+
+    // 1. Transação local para validar concorrência semanal e persistir chave de idempotência ANTES do Mercado Pago
+    $pdo->beginTransaction();
+    try {
+        // Serializa operações concorrentes do mesmo cliente
+        $stmtLockUser = $pdo->prepare("SELECT id FROM usuarios WHERE id = ? FOR UPDATE");
+        $stmtLockUser->execute([$usuario_id]);
+
+        $pedidoExistente = $pedidoModel->buscarPedidoAtivoSemanaOuChave($usuario_id, $idempotencyKey);
+
+        if ($pedidoExistente) {
+            $mpStatusExistente = $pedidoExistente['mp_status'] ?? null;
+            if ($pedidoExistente['status_pagamento'] === 'Pago' || in_array($mpStatusExistente, ['approved', 'in_process', 'pending', 'processing'], true)) {
+                throw new Exception("Já existe um pagamento aprovado ou em processamento para o pedido desta semana.");
+            }
+
+            if ($usaMercadoPago && $mpStatusExistente === 'timeout' && !empty($pedidoExistente['idempotency_key'])) {
+                // Reutiliza o pedido e a chave de idempotência após timeout de transporte
+                $numero_pedido = (int) $pedidoExistente['id'];
+                $idempotencyKey = $pedidoExistente['idempotency_key'];
+                $valor_total_real = floatval($pedidoExistente['valor_total']);
+                $pedidoModel->atualizarPagamentoMercadoPago($numero_pedido, $usuario_id, 'Pendente', 'processing', null, null, false);
+            } else {
+                throw new Exception("Você já realizou um pedido esta semana. O limite é de apenas um pedido por pessoa.");
+            }
+        } else {
+            $mpStatusInicial = $usaMercadoPago ? 'processing' : null;
+            $numero_pedido = $pedidoModel->criarPedido(
+                $usuario_id,
+                $valor_total_real,
+                $forma_pagamento,
+                $itens_processados,
+                null,
+                'Pendente',
+                $idempotencyKey,
+                $mpStatusInicial,
+                $tipo_pedido
+            );
+        }
+
+        $pdo->commit();
+    } catch (PDOException $LockEx) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $sqlState = $LockEx->getCode();
+        $driverCode = $LockEx->errorInfo[1] ?? null;
+        if ($sqlState === '23000' || $driverCode === 1062) {
+            throw new Exception("Operação de pedido já registrada ou em processamento. Aguarde antes de tentar novamente.");
+        }
+        throw $LockEx;
+    } catch (Exception $validationEx) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $validationEx;
     }
 
-    // Integração com Mercado Pago (Checkout Transparente)
-    $payment_response = null;
-    if (isset($data['mercado_pago_data'])) {
-        require_once __DIR__ . '/app/MercadoPagoService.php';
+    // 2. Integração com Mercado Pago (Checkout Transparente) usando a chave persistida e external_reference tipada
+    if ($usaMercadoPago) {
         $mpService = new MercadoPagoService();
         $mpData = $data['mercado_pago_data'];
-        
+        $forma_pagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
+
         $paymentPayload = [
             "transaction_amount" => (float) $valor_total_real,
-            "description" => "Pedido Cesta Faz Bem",
+            "description" => "Pedido Cesta Faz Bem #" . $numero_pedido,
+            "external_reference" => "pedido:" . $numero_pedido,
+            "metadata" => [
+                "recurso_tipo" => "pedido",
+                "recurso_id" => (int) $numero_pedido,
+                "usuario_id" => (int) $usuario_id
+            ],
             "payment_method_id" => $mpData['payment_method_id'] ?? null,
             "payer" => [
                 "email" => $mpData['payer']['email'] ?? ''
@@ -94,7 +158,7 @@ try {
         // Se for Cartão de Crédito
         if (isset($mpData['token'])) {
             $paymentPayload["token"] = $mpData['token'];
-            $paymentPayload["installments"] = $mpData['installments'] ?? 1;
+            $paymentPayload["installments"] = isset($mpData['installments']) ? (int) $mpData['installments'] : 1;
             if (isset($mpData['issuer_id'])) {
                 $paymentPayload["issuer_id"] = $mpData['issuer_id'];
             }
@@ -105,28 +169,36 @@ try {
             $paymentPayload['payer']['identification'] = $mpData['payer']['identification'];
         }
 
-        $mpResult = $mpService->createPayment($paymentPayload);
+        $mpResult = $mpService->createPayment($paymentPayload, $idempotencyKey);
 
-        // O Mercado Pago retorna 200 OK ou 201 Created para sucesso.
-        if ($mpResult['status'] !== 200 && $mpResult['status'] !== 201) {
-            $errorMsg = $mpResult['response']['message'] ?? ($mpResult['response']['error'] ?? 'Erro desconhecido no Mercado Pago.');
-            throw new Exception("Falha ao processar pagamento no Mercado Pago: " . $errorMsg);
+        if ($mpResult['error_type'] === 'transport') {
+            // Mantém pedido e idempotency_key com mp_status='timeout' para permitir retry seguro ou conciliação via webhook
+            $pedidoModel->atualizarPagamentoMercadoPago($numero_pedido, $usuario_id, 'Pendente', 'timeout', null, $forma_pagamento, false);
+            throw new Exception($mpResult['message']);
         }
 
-        $payment_response = $mpResult['response'];
-        $forma_pagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
-    }
-
-    $mpPaymentId = null;
-    $status_pagamento = 'Pendente';
-    if (isset($payment_response)) {
-        $mpPaymentId = $payment_response['id'] ?? null;
-        if (isset($payment_response['status']) && $payment_response['status'] === 'approved') {
-            $status_pagamento = 'Pago';
+        if (!$mpResult['success']) {
+            $statusFalha = $mpResult['payment_status'] ?? 'rejected';
+            // Cancela a tentativa recusada e libera a chave para que o cliente possa tentar novamente com outros dados
+            $pedidoModel->atualizarPagamentoMercadoPago($numero_pedido, $usuario_id, 'Cancelado', $statusFalha, null, $forma_pagamento, true);
+            throw new Exception("Falha ao processar pagamento no Mercado Pago: " . $mpResult['message']);
         }
-    }
 
-    $numero_pedido = $pedidoModel->criarPedido($usuario_id, $valor_total_real, $forma_pagamento, $itens_processados, $mpPaymentId, $status_pagamento);
+        $payment_response = $mpResult['response'] ?? [];
+        $mpPaymentId = isset($payment_response['id']) ? (string) $payment_response['id'] : null;
+        $mpPaymentStatus = $mpResult['payment_status'] ?? ($payment_response['status'] ?? 'pending');
+        $status_pagamento = ($mpPaymentStatus === 'approved') ? 'Pago' : 'Pendente';
+
+        $pedidoModel->atualizarPagamentoMercadoPago(
+            $numero_pedido,
+            $usuario_id,
+            $status_pagamento,
+            $mpPaymentStatus,
+            $mpPaymentId,
+            $forma_pagamento,
+            false
+        );
+    }
 
     echo json_encode([
         'success' => true, 

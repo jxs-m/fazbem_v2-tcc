@@ -34,7 +34,7 @@ try {
             $mes_referencia = date('Y-m'); // Ex: 2026-05
 
             // Buscar todos os clientes com assinaturas Ativas ou Pausadas
-            $sql = "SELECT a.usuario_id, a.valor_mensal, u.saldo_compensacao 
+            $sql = "SELECT a.usuario_id 
                     FROM assinaturas a 
                     JOIN usuarios u ON a.usuario_id = u.id 
                     WHERE a.status IN ('Ativa', 'Pausada')";
@@ -43,51 +43,111 @@ try {
 
             $faturas_geradas = 0;
             foreach ($assinantes as $ass) {
-                $u_id = $ass['usuario_id'];
-                
-                // Verifica se já gerou fatura para este mes
-                $check = $pdo->prepare("SELECT id FROM faturas_mensais WHERE usuario_id = ? AND mes_referencia = ?");
-                $check->execute([$u_id, $mes_referencia]);
-                if ($check->rowCount() > 0) continue;
-
-                $valor_mensalidade = floatval($ass['valor_mensal']);
-                $saldo = floatval($ass['saldo_compensacao']);
-
-                // Buscar total de extras pendentes e que já passaram pela balança (Aguardando Entrega, Saiu para entrega, Entregue)
-                $sqlExtras = "SELECT IFNULL(SUM(valor_total), 0) as total_extras 
-                              FROM pedidos 
-                              WHERE usuario_id = ? AND tipo_pedido IN ('Extra', 'Avulso') AND status_pagamento = 'Pendente' AND status_entrega != 'Em separação'";
-                $stmtExt = $pdo->prepare($sqlExtras);
-                $stmtExt->execute([$u_id]);
-                $valor_extras = floatval($stmtExt->fetchColumn());
-
-                $subtotal = $valor_mensalidade + $valor_extras;
-                $desconto = min($saldo, $subtotal); // Não desconta mais do que a fatura
-                $total = $subtotal - $desconto;
+                $u_id = (int) $ass['usuario_id'];
 
                 $pdo->beginTransaction();
-                
-                // Insere Fatura
-                $sqlInsert = "INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_desconto_creditos, valor_total) VALUES (?, ?, ?, ?, ?, ?)";
-                $stmtInsert = $pdo->prepare($sqlInsert);
-                $stmtInsert->execute([$u_id, $mes_referencia, $valor_mensalidade, $valor_extras, $desconto, $total]);
-                
-                // Abate o saldo do usuario
-                if ($desconto > 0) {
-                    $sqlUpdateSaldo = "UPDATE usuarios SET saldo_compensacao = saldo_compensacao - ? WHERE id = ?";
-                    $pdo->prepare($sqlUpdateSaldo)->execute([$desconto, $u_id]);
-                    
-                    // Registra debito na carteira
-                    $pdo->prepare("INSERT INTO transacoes_financeiras (usuario_id, tipo, valor, motivo) VALUES (?, 'Debito', ?, ?)")
-                        ->execute([$u_id, $desconto, "Abatimento na Fatura de $mes_referencia"]);
+                try {
+                    // Bloqueia registro do assinante/usuário para leitura consistente do saldo e mensalidade
+                    $stmtAss = $pdo->prepare(
+                        "SELECT a.usuario_id, a.valor_mensal, u.saldo_compensacao 
+                         FROM assinaturas a 
+                         JOIN usuarios u ON a.usuario_id = u.id 
+                         WHERE a.usuario_id = ? AND a.status IN ('Ativa', 'Pausada')
+                         FOR UPDATE"
+                    );
+                    $stmtAss->execute([$u_id]);
+                    $dadosAss = $stmtAss->fetch();
+                    if (!$dadosAss) {
+                        $pdo->rollBack();
+                        continue;
+                    }
+
+                    // Verifica dentro da transação se já gerou fatura para este mês
+                    $check = $pdo->prepare("SELECT id FROM faturas_mensais WHERE usuario_id = ? AND mes_referencia = ? FOR UPDATE");
+                    $check->execute([$u_id, $mes_referencia]);
+                    if ($check->fetch()) {
+                        $pdo->rollBack();
+                        continue;
+                    }
+
+                    $valor_mensalidade = round(floatval($dadosAss['valor_mensal']), 2);
+                    $saldo = max(0.0, round(floatval($dadosAss['saldo_compensacao']), 2));
+
+                    // Seleciona previamente apenas os pedidos elegíveis (já pesados e ainda não vinculados a fatura)
+                    $sqlPedidosElegiveis = "SELECT id, valor_total 
+                                            FROM pedidos 
+                                            WHERE usuario_id = ? 
+                                              AND tipo_pedido IN ('Extra', 'Avulso') 
+                                              AND status_pagamento = 'Pendente' 
+                                              AND status_entrega != 'Em separação' 
+                                              AND fatura_id IS NULL
+                                            FOR UPDATE";
+                    $stmtElegiveis = $pdo->prepare($sqlPedidosElegiveis);
+                    $stmtElegiveis->execute([$u_id]);
+                    $pedidosElegiveis = $stmtElegiveis->fetchAll();
+
+                    $valor_extras = 0.0;
+                    $pedidoIds = [];
+                    foreach ($pedidosElegiveis as $ped) {
+                        $valor_extras += floatval($ped['valor_total']);
+                        $pedidoIds[] = (int) $ped['id'];
+                    }
+                    $valor_extras = round($valor_extras, 2);
+
+                    $subtotal = round($valor_mensalidade + $valor_extras, 2);
+                    $desconto = round(min($saldo, $subtotal), 2);
+                    $total = round($subtotal - $desconto, 2);
+
+                    // Insere Fatura
+                    $sqlInsert = "INSERT INTO faturas_mensais (usuario_id, mes_referencia, valor_mensalidade, valor_extras, valor_desconto_creditos, valor_total) VALUES (?, ?, ?, ?, ?, ?)";
+                    $stmtInsert = $pdo->prepare($sqlInsert);
+                    $stmtInsert->execute([$u_id, $mes_referencia, $valor_mensalidade, $valor_extras, $desconto, $total]);
+                    $faturaId = (int) $pdo->lastInsertId();
+
+                    // Abate o saldo do usuário de forma condicional
+                    if ($desconto > 0) {
+                        $sqlUpdateSaldo = "UPDATE usuarios SET saldo_compensacao = saldo_compensacao - ? WHERE id = ? AND saldo_compensacao >= ?";
+                        $stmtSaldo = $pdo->prepare($sqlUpdateSaldo);
+                        $stmtSaldo->execute([$desconto, $u_id, $desconto]);
+                        if ($stmtSaldo->rowCount() === 0) {
+                            throw new Exception("Saldo de compensação insuficiente durante geração da fatura.");
+                        }
+
+                        // Registra débito na carteira
+                        $pdo->prepare("INSERT INTO transacoes_financeiras (usuario_id, tipo, valor, motivo) VALUES (?, 'Debito', ?, ?)")
+                            ->execute([$u_id, $desconto, "Abatimento na Fatura de $mes_referencia"]);
+                    }
+
+                    // Atualiza SOMENTE os pedidos previamente selecionados e vincula explicitamente à fatura
+                    if (!empty($pedidoIds)) {
+                        $placeholders = implode(',', array_fill(0, count($pedidoIds), '?'));
+                        $sqlUpdatePedidos = "UPDATE pedidos 
+                                             SET status_pagamento = 'Pago', 
+                                                 fatura_id = ?, 
+                                                 obs_pontual = CONCAT(IFNULL(obs_pontual,''), ' [Faturado em ', ?, ']') 
+                                             WHERE id IN ($placeholders) 
+                                               AND usuario_id = ? 
+                                               AND status_pagamento = 'Pendente' 
+                                               AND fatura_id IS NULL";
+                        $paramsUpdate = array_merge([$faturaId, $mes_referencia], $pedidoIds, [$u_id]);
+                        $stmtUpdPed = $pdo->prepare($sqlUpdatePedidos);
+                        $stmtUpdPed->execute($paramsUpdate);
+                    }
+
+                    $pdo->commit();
+                    $faturas_geradas++;
+                } catch (PDOException $ex) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    // Trata concorrência de chave única (usuario_id, mes_referencia) como operação já concluída
+                    $sqlState = $ex->getCode();
+                    $driverCode = $ex->errorInfo[1] ?? null;
+                    if ($sqlState === '23000' || $driverCode === 1062) {
+                        continue;
+                    }
+                    throw $ex;
                 }
-
-                // Marca pedidos como 'Faturado' (ou 'Pago' para não entrarem no próximo mês)
-                $pdo->prepare("UPDATE pedidos SET status_pagamento = 'Pago', obs_pontual = CONCAT(IFNULL(obs_pontual,''), ' [Faturado em ', ?, ']') WHERE usuario_id = ? AND tipo_pedido IN ('Extra', 'Avulso') AND status_pagamento = 'Pendente'")
-                    ->execute([$mes_referencia, $u_id]);
-
-                $pdo->commit();
-                $faturas_geradas++;
             }
 
             echo json_encode(['success' => true, 'message' => "Foram geradas $faturas_geradas faturas com sucesso."]);
@@ -112,30 +172,75 @@ try {
             break;
 
         case 'pagar_fatura':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                throw new Exception("Método não permitido. Utilize POST.");
+            }
             Security::checkCSRF();
             if ($_SESSION['tipo_usuario'] !== 'cliente') throw new Exception("Apenas clientes.");
             
             $rawData = file_get_contents('php://input');
-            error_log("PAGAR_FATURA - METHOD: " . $_SERVER['REQUEST_METHOD'] . " | BODY: " . $rawData);
-            
             $data = json_decode($rawData, true);
             $f_id = filter_var($data['fatura_id'] ?? null, FILTER_VALIDATE_INT);
             if (!$f_id) throw new Exception("ID da fatura inválido.");
 
-            $stmtF = $pdo->prepare("SELECT valor_total FROM faturas_mensais WHERE id = ? AND usuario_id = ? AND status != 'Pago'");
-            $stmtF->execute([$f_id, $_SESSION['usuario_id']]);
-            $fatura = $stmtF->fetch();
-            if (!$fatura) throw new Exception("Fatura não encontrada ou já paga.");
-            $valor_total = $fatura['valor_total'];
+            $u_id = (int) $_SESSION['usuario_id'];
+            error_log("PAGAR_FATURA iniciado: fatura_id={$f_id} usuario_id={$u_id}");
 
-            if (isset($data['mercado_pago_data'])) {
-                require_once __DIR__ . '/app/MercadoPagoService.php';
+            require_once __DIR__ . '/app/MercadoPagoService.php';
+
+            // 1. Bloqueia a fatura e persiste chave de idempotência ANTES da chamada externa
+            $pdo->beginTransaction();
+            $stmtF = $pdo->prepare(
+                "SELECT id, usuario_id, mes_referencia, valor_mensalidade, valor_total, status, transacao_id, idempotency_key, mp_status 
+                 FROM faturas_mensais 
+                 WHERE id = ? AND usuario_id = ? 
+                 FOR UPDATE"
+            );
+            $stmtF->execute([$f_id, $u_id]);
+            $fatura = $stmtF->fetch();
+
+            if (!$fatura) {
+                $pdo->rollBack();
+                throw new Exception("Fatura não encontrada.");
+            }
+            if ($fatura['status'] === 'Pago' || $fatura['mp_status'] === 'approved') {
+                $pdo->rollBack();
+                throw new Exception("Fatura não encontrada ou já paga.");
+            }
+            if ($fatura['status'] === 'Cancelado') {
+                $pdo->rollBack();
+                throw new Exception("Esta fatura está cancelada.");
+            }
+            if (in_array($fatura['mp_status'], ['processing', 'in_process'], true) || ($fatura['mp_status'] === 'pending' && !empty($fatura['transacao_id']))) {
+                $pdo->rollBack();
+                throw new Exception("Já existe um pagamento em processamento para esta fatura. Aguarde a confirmação.");
+            }
+
+            $valor_total = floatval($fatura['valor_total']);
+
+            // Reutiliza chave persistida em caso de timeout/retry ou gera chave estável da operação
+            $clientKey = trim((string) ($data['idempotency_key'] ?? ($_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? '')));
+            if (!empty($fatura['idempotency_key']) && ($fatura['mp_status'] === 'timeout' || $fatura['mp_status'] === null)) {
+                $idempotencyKey = $fatura['idempotency_key'];
+            } else {
+                $contextoChave = $clientKey !== '' ? $clientKey : ($fatura['mes_referencia'] . '_' . number_format($valor_total, 2, '.', ''));
+                $idempotencyKey = MercadoPagoService::buildIdempotencyKey('fatura', $f_id, $contextoChave);
+            }
+
+            $pdo->prepare("UPDATE faturas_mensais SET idempotency_key = ?, mp_status = 'processing' WHERE id = ? AND usuario_id = ?")
+                ->execute([$idempotencyKey, $f_id, $u_id]);
+            $pdo->commit();
+
+            $mpResult = null;
+            $mpData = $data['mercado_pago_data'] ?? null;
+
+            if (is_array($mpData)) {
                 $mpService = new MercadoPagoService();
-                $mpData = $data['mercado_pago_data'];
-                
+
                 // Busca dados cadastrais do cliente no banco
                 $stmtUser = $pdo->prepare("SELECT nome, email, cpf, telefone FROM usuarios WHERE id = ?");
-                $stmtUser->execute([$_SESSION['usuario_id']]);
+                $stmtUser->execute([$u_id]);
                 $usuario = $stmtUser->fetch();
 
                 $nomeCompleto = trim($usuario['nome'] ?? '');
@@ -149,7 +254,12 @@ try {
                 $paymentPayload = [
                     "transaction_amount" => (float) $valor_total,
                     "description" => "Pagamento de Fatura Mensal #" . $f_id,
-                    "external_reference" => (string) $f_id,
+                    "external_reference" => "fatura:" . $f_id,
+                    "metadata" => [
+                        "recurso_tipo" => "fatura",
+                        "recurso_id" => (int) $f_id,
+                        "usuario_id" => (int) $u_id
+                    ],
                     "payment_method_id" => $mpData['payment_method_id'] ?? null,
                     "payer" => [
                         "email" => $payerEmail,
@@ -169,39 +279,30 @@ try {
 
                 if (isset($mpData['token'])) {
                     $paymentPayload["token"] = $mpData['token'];
-                    $paymentPayload["installments"] = isset($mpData['installments']) ? (int)$mpData['installments'] : 1;
+                    $paymentPayload["installments"] = isset($mpData['installments']) ? (int) $mpData['installments'] : 1;
                     if (isset($mpData['issuer_id'])) {
                         $paymentPayload["issuer_id"] = $mpData['issuer_id'];
                     }
                 }
 
-                $mpResult = $mpService->createPayment($paymentPayload);
+                $mpResult = $mpService->createPayment($paymentPayload, $idempotencyKey);
 
-                if ($mpResult['status'] !== 200 && $mpResult['status'] !== 201) {
-                    $errorMsg = $mpResult['response']['message'] ?? ($mpResult['response']['error'] ?? 'Erro no Mercado Pago.');
-                    throw new Exception("Falha ao processar pagamento: " . $errorMsg);
+                if ($mpResult['error_type'] === 'transport') {
+                    // Preserva idempotency_key para reutilização segura em retry após falha de transporte/timeout
+                    $pdo->prepare("UPDATE faturas_mensais SET mp_status = 'timeout' WHERE id = ? AND usuario_id = ?")
+                        ->execute([$f_id, $u_id]);
+                    throw new Exception($mpResult['message']);
                 }
 
-                $response = $mpResult['response'] ?? [];
-                $paymentStatus = $response['status'] ?? 'rejected';
-
-                if ($paymentStatus === 'rejected') {
-                    $statusDetail = $response['status_detail'] ?? '';
-                    $rejectionMessages = [
-                        'cc_rejected_insufficient_amount' => 'Saldo/limite insuficiente no cartão.',
-                        'cc_rejected_bad_filled_security_code' => 'Código de segurança (CVV) incorreto.',
-                        'cc_rejected_bad_filled_date' => 'Data de vencimento do cartão incorreta.',
-                        'cc_rejected_bad_filled_card_number' => 'Número do cartão inválido.',
-                        'cc_rejected_call_for_authorize' => 'Pagamento recusado. Entre em contato com a operadora do cartão para autorizar.',
-                        'cc_rejected_card_disabled' => 'O cartão informado está desativado.',
-                        'cc_rejected_duplicated_payment' => 'Pagamento duplicado. Aguarde alguns instantes antes de tentar novamente.',
-                        'cc_rejected_high_risk' => 'Pagamento recusado pela análise de segurança do Mercado Pago.',
-                        'cc_rejected_blacklist' => 'O cartão está bloqueado para esta transação.',
-                    ];
-                    $msg = $rejectionMessages[$statusDetail] ?? 'Transação recusada pela operadora do cartão.';
-                    throw new Exception($msg);
-                } elseif ($paymentStatus !== 'approved' && $paymentStatus !== 'pending' && $paymentStatus !== 'in_process') {
-                    throw new Exception("Pagamento não aprovado. Status: " . $paymentStatus);
+                if (!$mpResult['success']) {
+                    $statusFalha = $mpResult['payment_status'] ?? 'rejected';
+                    // Limpa a chave em caso de rejeição definitiva ou erro de validação para permitir nova tentativa com outro cartão/dados
+                    $pdo->prepare("UPDATE faturas_mensais SET mp_status = ?, idempotency_key = NULL WHERE id = ? AND usuario_id = ?")
+                        ->execute([$statusFalha, $f_id, $u_id]);
+                    if ($mpResult['error_type'] === 'rejected') {
+                        throw new Exception($mpResult['message']);
+                    }
+                    throw new Exception("Falha ao processar pagamento: " . $mpResult['message']);
                 }
             }
 
@@ -209,14 +310,15 @@ try {
             $formaPagamento = 'Saldo/Crédito';
             $pixData = null;
             $statusFatura = 'Pago';
+            $mpStatusFinal = 'approved';
 
-            if (isset($mpResult) && isset($mpResult['response'])) {
-                $mpPaymentId = $mpResult['response']['id'] ?? null;
-                $formaPagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
-                
+            if (is_array($mpResult) && isset($mpResult['response'])) {
                 $response = $mpResult['response'];
-                $paymentStatus = $response['status'] ?? 'approved';
-                if ($paymentStatus === 'pending' || $paymentStatus === 'in_process') {
+                $mpPaymentId = isset($response['id']) ? (string) $response['id'] : null;
+                $formaPagamento = 'Mercado Pago - ' . ($mpData['payment_method_id'] ?? 'Online');
+                $mpStatusFinal = $mpResult['payment_status'] ?? ($response['status'] ?? 'approved');
+
+                if (in_array($mpStatusFinal, ['pending', 'in_process', 'authorized'], true)) {
                     $statusFatura = 'Pendente';
                     if (isset($mpData['payment_method_id']) && $mpData['payment_method_id'] === 'pix') {
                         $pixData = [
@@ -229,23 +331,27 @@ try {
 
             $pdo->beginTransaction();
             try {
-                $pdo->prepare("UPDATE faturas_mensais SET status = ?, pago_em = IF(? = 'Pago', NOW(), NULL), transacao_id = ?, forma_pagamento = ? WHERE id = ? AND usuario_id = ?")
-                    ->execute([$statusFatura, $statusFatura, $mpPaymentId, $formaPagamento, $f_id, $_SESSION['usuario_id']]);
+                $pdo->prepare(
+                    "UPDATE faturas_mensais 
+                     SET status = ?, 
+                         pago_em = IF(? = 'Pago', NOW(), pago_em), 
+                         transacao_id = COALESCE(?, transacao_id), 
+                         forma_pagamento = ?, 
+                         mp_status = ? 
+                     WHERE id = ? AND usuario_id = ?"
+                )->execute([$statusFatura, $statusFatura, $mpPaymentId, $formaPagamento, $mpStatusFinal, $f_id, $u_id]);
 
                 if ($statusFatura === 'Pago') {
-                    // Verificar se a fatura incluía mensalidade de assinatura
-                    $stmtFatMens = $pdo->prepare("SELECT valor_mensalidade FROM faturas_mensais WHERE id = ?");
-                    $stmtFatMens->execute([$f_id]);
-                    $vMensalidadePaga = floatval($stmtFatMens->fetchColumn());
+                    $vMensalidadePaga = floatval($fatura['valor_mensalidade']);
 
-                    // Apenas reativa assinaturas canceladas se o pagamento foi da mensalidade (e não apenas itens avulsos/extras)
+                    // Apenas reativa assinaturas canceladas se o pagamento foi da mensalidade
                     if ($vMensalidadePaga > 0) {
-                        $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ?");
-                        $stmtSub->execute([$_SESSION['usuario_id']]);
+                        $stmtSub = $pdo->prepare("SELECT status FROM assinaturas WHERE usuario_id = ? FOR UPDATE");
+                        $stmtSub->execute([$u_id]);
                         $subStatus = $stmtSub->fetchColumn();
                         if ($subStatus === 'Cancelada') {
                             $pdo->prepare("UPDATE assinaturas SET status = 'Ativa' WHERE usuario_id = ?")
-                                ->execute([$_SESSION['usuario_id']]);
+                                ->execute([$u_id]);
                         }
                     }
                 }
@@ -253,7 +359,7 @@ try {
                 $pdo->commit();
             } catch (Exception $dbEx) {
                 $pdo->rollBack();
-                error_log("CRITICAL ERROR: Fatura processada no MP mas falhou ao atualizar localmente. ID Fatura: " . $f_id . " | Erro: " . $dbEx->getMessage());
+                error_log("CRITICAL ERROR: Fatura processada no MP mas falhou ao atualizar localmente. fatura_id={$f_id}");
                 throw new Exception("Ocorreu um erro ao registrar localmente. Entre em contato com o suporte informando a Fatura #" . $f_id);
             }
             

@@ -9,6 +9,13 @@ class Database {
 
     private function __construct() {}
 
+    /**
+     * Permite injetar ou resetar a conexão (útil para testes automatizados em banco isolado).
+     */
+    public static function setConexao(?PDO $pdo = null) {
+        self::$conexao = $pdo;
+    }
+
     public static function getConexao() {
         if (!isset(self::$conexao)) {
             try {
@@ -19,14 +26,24 @@ class Database {
                 if (isset($pdo) && $pdo instanceof PDO) {
                     self::$conexao = $pdo;
                 } else {
-                    $host = defined('DB_HOST') ? DB_HOST : ($_ENV['DB_HOST'] ?? (getenv('DB_HOST') ?: 'localhost'));
-                    $dbname = defined('DB_NAME') ? DB_NAME : ($_ENV['DB_NAME'] ?? (getenv('DB_NAME') ?: 'fazbem_v2'));
-                    $user = defined('DB_USER') ? DB_USER : ($_ENV['DB_USER'] ?? (getenv('DB_USER') ?: 'root'));
-                    $pass = defined('DB_PASS') ? DB_PASS : ($_ENV['DB_PASS'] ?? (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '')); 
+                    $host = defined('DB_HOST') ? DB_HOST : Env::get('DB_HOST', 'localhost');
+                    $dbname = defined('DB_NAME') ? DB_NAME : Env::get('DB_NAME', 'fazbem_v2');
+                    $user = defined('DB_USER') ? DB_USER : Env::get('DB_USER', 'root');
+                    $pass = defined('DB_PASS') ? DB_PASS : (Env::get('DB_PASS') !== null ? Env::get('DB_PASS') : '');
+                    $port = defined('DB_PORT') ? DB_PORT : Env::get('DB_PORT', '');
+                    $socket = defined('DB_SOCKET') ? DB_SOCKET : Env::get('DB_SOCKET', '');
+
+                    if (!empty($socket)) {
+                        $dsn = "mysql:unix_socket=$socket;dbname=$dbname;charset=utf8mb4";
+                    } else {
+                        $portPart = (!empty($port)) ? ";port=$port" : "";
+                        $dsn = "mysql:host=$host$portPart;dbname=$dbname;charset=utf8mb4";
+                    }
 
                     self::$conexao = new PDO(
-                        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-                        $user, $pass,
+                        $dsn,
+                        $user,
+                        $pass,
                         [PDO::ATTR_EMULATE_PREPARES => false]
                     );
                 }
@@ -34,8 +51,8 @@ class Database {
                 self::$conexao->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 
             } catch (PDOException $e) {
-                $isLocal = (defined('AMBIENTE') && AMBIENTE === 'local') || (isset($_ENV['AMBIENTE']) && $_ENV['AMBIENTE'] === 'local');
-                if ($isLocal) {
+                $ambiente = defined('AMBIENTE') ? AMBIENTE : Env::getAmbiente();
+                if (in_array($ambiente, ['local', 'test'], true)) {
                     die("Erro de conexão com o banco de dados: " . $e->getMessage());
                 } else {
                     die("Erro temporário de conexão. Por favor, tente mais tarde.");
