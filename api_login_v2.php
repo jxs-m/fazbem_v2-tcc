@@ -37,6 +37,7 @@ try {
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['nome'] = $user['nome'];
         $_SESSION['tipo_usuario'] = $user['tipo_usuario'];
+        $_SESSION['session_version'] = (int) ($user['session_version'] ?? 1);
 
         if ($user['tipo_usuario'] === 'admin') {
             $redirect = 'admin.html';

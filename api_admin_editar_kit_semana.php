@@ -33,28 +33,28 @@ try {
 
     $pdo->beginTransaction();
 
-    // Passo 1: Encontrar todos os pedidos de assinatura gerados esta semana que ainda estão "Em separação"
+    // Passo 1: Encontrar todos os pedidos de assinatura ativos gerados esta semana que ainda estão "Em separação"
     $sqlPedidosSemana = "SELECT id FROM pedidos 
                          WHERE tipo_pedido = 'Assinatura' 
                          AND status_entrega = 'Em separação' 
+                         AND status_pagamento != 'Cancelado'
                          AND YEARWEEK(data_pedido, 0) = YEARWEEK(NOW(), 0)";
     $stmtPedidos = $pdo->query($sqlPedidosSemana);
     $pedidosExistentes = $stmtPedidos->fetchAll(PDO::FETCH_ASSOC);
 
-    // Passo 2: Para cada pedido, deletar itens e pedidos antigos de forma unificada
+    // Passo 2: Cancelar e estornar os pedidos substituídos (preservando o histórico de pedidos e itens)
     if (!empty($pedidosExistentes)) {
         $ids = array_column($pedidosExistentes, 'id');
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-
-        // 1. Deletar todos os itens_pedido relacionados
-        $sqlDeleteItens = "DELETE FROM itens_pedido WHERE pedido_id IN ($placeholders)";
-        $stmtDelItens = $pdo->prepare($sqlDeleteItens);
-        $stmtDelItens->execute($ids);
-
-        // 2. Deletar os pedidos
-        $sqlDeletePedido = "DELETE FROM pedidos WHERE id IN ($placeholders)";
-        $stmtDelPedido = $pdo->prepare($sqlDeletePedido);
-        $stmtDelPedido->execute($ids);
+        foreach ($ids as $pedIdAntigo) {
+            $pedidoModel->atualizarStatus(
+                (int) $pedIdAntigo,
+                'pagamento',
+                'Cancelado',
+                (int) $_SESSION['usuario_id'],
+                'admin',
+                'Substituição do Kit da Semana'
+            );
+        }
     }
 
     // Passo 3: Agora recriar com base nos novos selecionados para todos os assinantes ATIVOS
@@ -74,7 +74,7 @@ try {
     }
     if (!empty($idsProdKit)) {
         $placeholdersProds = implode(',', array_fill(0, count($idsProdKit), '?'));
-        $sqlProds = "SELECT id, nome, unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id IN ($placeholdersProds)";
+        $sqlProds = "SELECT id, nome, unidade, tipo_venda, peso_estimado_g, ativo FROM produtos WHERE id IN ($placeholdersProds) AND ativo = 1";
         $stmtProds = $pdo->prepare($sqlProds);
         $stmtProds->execute($idsProdKit);
         while ($row = $stmtProds->fetch(PDO::FETCH_ASSOC)) {
@@ -82,15 +82,19 @@ try {
         }
     }
 
-    $sqlPedidoNovo = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, obs_pontual) 
-                  VALUES (?, ?, 'Pendente', 'Em separação', 'Assinatura', ?)";
+    $sqlPedidoNovo = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, obs_pontual, estoque_reservado, semana_ativa_chave) 
+                  VALUES (?, ?, 'Pendente', 'Em separação', 'Assinatura', ?, 0, CONCAT(?, '_', YEARWEEK(NOW(), 0)))";
     $stmtPedidoNovo = $pdo->prepare($sqlPedidoNovo);
 
-    $sqlItemNovo = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, 0)";
+    $sqlItemNovo = "INSERT INTO itens_pedido (pedido_id, produto_id, produto_nome, produto_unidade, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?, 0)";
     $stmtItemNovo = $pdo->prepare($sqlItemNovo);
 
     foreach ($assinantes as $assinante) {
         $usuarioId = $assinante['usuario_id'];
+
+        if ($pedidoModel->verificarPedidoExistenteSemana($usuarioId)) {
+            continue;
+        }
 
         $prefs = $prefModel->buscarPorUsuario($usuarioId);
         $exclusoes = [];
@@ -108,7 +112,7 @@ try {
         $itensDoPedido = [];
         foreach ($produtosKit as $prod) {
             if (!isset($infoProdutosCache[$prod['id']])) {
-                continue; // Prevent inserting fake product IDs
+                continue; // Prevent inserting fake or inactive product IDs
             }
             $nomeProd = trim($prod['nome'] ?? ($infoProdutosCache[$prod['id']]['nome'] ?? ''));
             if (!in_array($nomeProd, $exclusoes)) {
@@ -122,18 +126,31 @@ try {
 
         $valorFixoSemanal = 25.00;
         
-        $stmtPedidoNovo->execute([$usuarioId, $valorFixoSemanal, $observacao]);
-        $pedidoNovoId = $pdo->lastInsertId();
+        $stmtPedidoNovo->execute([(int) $usuarioId, $valorFixoSemanal, $observacao, (int) $usuarioId]);
+        $pedidoNovoId = (int) $pdo->lastInsertId();
+        $itensParaReserva = [];
 
         foreach ($itensDoPedido as $item) {
-            $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
+            $qtd = isset($item['quantidade']) ? floatval($item['quantidade']) : 1.0;
             
             $prodInfo = $infoProdutosCache[$item['id']] ?? null;
             
-            $estoqueDecremento = Producao::calcularEstoqueDecremento($qtd, $prodInfo, $item['unidade_escolhida'] ?? null);
+            $estoqueDecremento = round(floatval(Producao::calcularEstoqueDecremento($qtd, $prodInfo, $item['unidade_escolhida'] ?? null)), 3);
 
-            $stmtItemNovo->execute([$pedidoNovoId, $item['id'], $estoqueDecremento]);
+            $stmtItemNovo->execute([
+                $pedidoNovoId,
+                (int) $item['id'],
+                $prodInfo['nome'] ?? null,
+                $prodInfo['unidade'] ?? null,
+                $estoqueDecremento
+            ]);
+            $itensParaReserva[] = [
+                'produto_id' => (int) $item['id'],
+                'estoque_decremento' => $estoqueDecremento
+            ];
         }
+
+        $pedidoModel->reservarEstoqueItens($pedidoNovoId, $itensParaReserva, 'Kit Assinatura Editado');
 
         $qtdGerados++;
     }

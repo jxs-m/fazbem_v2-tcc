@@ -25,6 +25,7 @@ CREATE TABLE `usuarios` (
   `tipo_usuario` ENUM('cliente', 'admin', 'entregador', 'separador') DEFAULT 'cliente',
   `saldo_compensacao` DECIMAL(10,2) DEFAULT 0.00,
   `aceite_privacidade_em` DATETIME DEFAULT NULL,
+  `session_version` INT(11) NOT NULL DEFAULT 1,
   `criado_em` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_usuarios_email` (`email`)
@@ -83,8 +84,10 @@ CREATE TABLE `produtos` (
   `peso_estimado_g` INT(11) DEFAULT 0,
   `temporario` TINYINT(1) DEFAULT 0,
   `duracao_dias` INT(11) DEFAULT NULL,
+  `ativo` TINYINT(1) NOT NULL DEFAULT 1,
   `criado_em` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_produtos_ativo` (`ativo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
@@ -127,26 +130,31 @@ CREATE TABLE `pedidos` (
   `forma_pagamento` VARCHAR(50) DEFAULT NULL,
   `idempotency_key` VARCHAR(100) DEFAULT NULL,
   `mp_status` VARCHAR(50) DEFAULT NULL,
+  `estoque_reservado` TINYINT(1) NOT NULL DEFAULT 0,
+  `semana_ativa_chave` VARCHAR(30) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_pedidos_usuario` (`usuario_id`),
   KEY `idx_pedidos_rota` (`rota_id`),
   KEY `idx_pedidos_fatura` (`fatura_id`),
   UNIQUE KEY `uq_pedidos_idempotency` (`idempotency_key`),
+  UNIQUE KEY `uq_pedidos_usuario_semana_ativa` (`semana_ativa_chave`),
   KEY `idx_pedidos_transacao` (`transacao_id`),
-  CONSTRAINT `fk_pedidos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pedidos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_pedidos_rota` FOREIGN KEY (`rota_id`) REFERENCES `rotas` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_pedidos_fatura` FOREIGN KEY (`fatura_id`) REFERENCES `faturas_mensais` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
 -- 7. TABELA: itens_pedido
--- Produtos vinculados a cada pedido com quantidades teóricas e pesadas
+-- Produtos vinculados a cada pedido com quantidades teóricas, pesadas e snapshots
 -- ------------------------------------------------------------------------------
 DROP TABLE IF EXISTS `itens_pedido`;
 CREATE TABLE `itens_pedido` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `pedido_id` INT(11) NOT NULL,
   `produto_id` INT(11) NOT NULL,
+  `produto_nome` VARCHAR(100) DEFAULT NULL,
+  `produto_unidade` VARCHAR(20) DEFAULT NULL,
   `quantidade` DECIMAL(10,3) NOT NULL,
   `quantidade_real` DECIMAL(10,3) DEFAULT NULL,
   `preco_unitario` DECIMAL(10,2) NOT NULL,
@@ -154,8 +162,8 @@ CREATE TABLE `itens_pedido` (
   PRIMARY KEY (`id`),
   KEY `idx_itens_pedido` (`pedido_id`),
   KEY `idx_itens_produto` (`produto_id`),
-  CONSTRAINT `fk_itens_pedido` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_itens_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_itens_pedido` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_itens_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
@@ -183,7 +191,7 @@ CREATE TABLE `faturas_mensais` (
   UNIQUE KEY `uq_faturas_usuario_mes` (`usuario_id`, `mes_referencia`),
   UNIQUE KEY `uq_faturas_idempotency` (`idempotency_key`),
   KEY `idx_faturas_transacao` (`transacao_id`),
-  CONSTRAINT `fk_faturas_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_faturas_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
@@ -209,13 +217,16 @@ DROP TABLE IF EXISTS `movimentacoes_estoque`;
 CREATE TABLE `movimentacoes_estoque` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `produto_id` INT(11) NOT NULL,
-  `tipo` ENUM('Entrada', 'Saída', 'Descarte') NOT NULL,
+  `pedido_id` INT(11) DEFAULT NULL,
+  `tipo` ENUM('Entrada', 'Saída', 'Descarte', 'Reserva', 'Estorno') NOT NULL,
   `quantidade` DECIMAL(10,3) NOT NULL,
   `descricao` VARCHAR(255) DEFAULT NULL,
   `data_movimentacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_movimentacoes_produto` (`produto_id`),
-  CONSTRAINT `fk_movimentacoes_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE
+  KEY `idx_movimentacoes_pedido` (`pedido_id`),
+  CONSTRAINT `fk_movimentacoes_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_movimentacoes_pedido` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
@@ -232,7 +243,7 @@ CREATE TABLE `transacoes_financeiras` (
   `data_transacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_transacoes_usuario` (`usuario_id`),
-  CONSTRAINT `fk_transacoes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_transacoes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
@@ -297,6 +308,44 @@ CREATE TABLE `historico_status_pedidos` (
   KEY `idx_hist_usuario` (`usuario_id`),
   CONSTRAINT `fk_hist_pedido` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_hist_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------------------
+-- 16. TABELA: recuperacao_senha_tokens
+-- Tokens de recuperação de senha (armazena exclusivamente o hash SHA-256)
+-- ------------------------------------------------------------------------------
+DROP TABLE IF EXISTS `recuperacao_senha_tokens`;
+CREATE TABLE `recuperacao_senha_tokens` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` INT(11) NOT NULL,
+  `token_hash` CHAR(64) NOT NULL,
+  `canal` VARCHAR(30) NOT NULL DEFAULT 'email',
+  `ip_solicitante` VARCHAR(45) DEFAULT NULL,
+  `expira_em` DATETIME NOT NULL,
+  `usado_em` DATETIME DEFAULT NULL,
+  `invalidado_em` DATETIME DEFAULT NULL,
+  `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_rec_token_hash` (`token_hash`),
+  KEY `idx_rec_usuario_ativo` (`usuario_id`, `usado_em`, `invalidado_em`, `expira_em`),
+  CONSTRAINT `fk_rec_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------------------
+-- 17. TABELA: auditoria_seguranca
+-- Auditoria de eventos de segurança da conta (sem armazenamento de tokens ou senhas)
+-- ------------------------------------------------------------------------------
+DROP TABLE IF EXISTS `auditoria_seguranca`;
+CREATE TABLE `auditoria_seguranca` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` INT(11) DEFAULT NULL,
+  `evento` VARCHAR(60) NOT NULL,
+  `ip` VARCHAR(45) DEFAULT NULL,
+  `detalhes` VARCHAR(255) DEFAULT NULL,
+  `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_aud_seg_usuario` (`usuario_id`),
+  CONSTRAINT `fk_aud_seg_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

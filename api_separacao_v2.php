@@ -40,8 +40,11 @@ try {
         $pedidos = $pdo->query($sql)->fetchAll();
 
         foreach ($pedidos as &$ped) {
-            // Buscar itens
-            $sqlItens = "SELECT i.id as item_id, i.quantidade, i.preco_unitario, pr.nome, pr.unidade, pr.tipo_venda, pr.peso_estimado_g 
+            // Buscar itens preservando snapshot
+            $sqlItens = "SELECT i.id as item_id, i.quantidade, i.preco_unitario,
+                                COALESCE(i.produto_nome, pr.nome) as nome,
+                                COALESCE(i.produto_unidade, pr.unidade) as unidade,
+                                pr.tipo_venda, pr.peso_estimado_g 
                          FROM itens_pedido i 
                          JOIN produtos pr ON i.produto_id = pr.id 
                          WHERE i.pedido_id = ?";

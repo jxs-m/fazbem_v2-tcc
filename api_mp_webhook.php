@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/app/Env.php';
 require_once __DIR__ . '/app/Database.php';
 require_once __DIR__ . '/app/MercadoPagoService.php';
+require_once __DIR__ . '/app/Models/Pedido.php';
 
 Env::load(__DIR__ . '/.env');
 
@@ -288,8 +289,10 @@ try {
                 $pdo->prepare("UPDATE faturas_mensais SET status = 'Pendente', transacao_id = ?, mp_status = ?, idempotency_key = NULL WHERE id = ?")
                     ->execute([$paymentIdStr, $status, $recursoId]);
             } else {
-                $pdo->prepare("UPDATE pedidos SET status_pagamento = 'Cancelado', transacao_id = ?, mp_status = ?, idempotency_key = NULL WHERE id = ?")
+                $pdo->prepare("UPDATE pedidos SET status_pagamento = 'Cancelado', transacao_id = ?, mp_status = ?, idempotency_key = NULL, semana_ativa_chave = NULL WHERE id = ?")
                     ->execute([$paymentIdStr, $status, $recursoId]);
+                $pedidoModel = new Pedido();
+                $pedidoModel->estornarEstoquePedido($recursoId, "Webhook MP ({$status})");
             }
         }
     } elseif (in_array($status, ['refunded', 'charged_back'], true)) {
@@ -299,8 +302,10 @@ try {
                 $pdo->prepare("UPDATE faturas_mensais SET status = 'Cancelado', pago_em = NULL, transacao_id = ?, mp_status = ? WHERE id = ?")
                     ->execute([$paymentIdStr, $status, $recursoId]);
             } else {
-                $pdo->prepare("UPDATE pedidos SET status_pagamento = 'Cancelado', transacao_id = ?, mp_status = ? WHERE id = ?")
+                $pdo->prepare("UPDATE pedidos SET status_pagamento = 'Cancelado', transacao_id = ?, mp_status = ?, semana_ativa_chave = NULL WHERE id = ?")
                     ->execute([$paymentIdStr, $status, $recursoId]);
+                $pedidoModel = new Pedido();
+                $pedidoModel->estornarEstoquePedido($recursoId, "Webhook MP ({$status})");
             }
         }
     }

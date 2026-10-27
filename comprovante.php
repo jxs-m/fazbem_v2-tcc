@@ -52,8 +52,8 @@ try {
             die("Acesso negado.");
         }
 
-        // Busca itens do pedido
-        $sqlItens = "SELECT i.*, pr.nome as produto_nome, pr.unidade 
+        // Busca itens do pedido preservando snapshots históricos de nome e unidade
+        $sqlItens = "SELECT i.*, COALESCE(i.produto_nome, pr.nome) as produto_nome, COALESCE(i.produto_unidade, pr.unidade) as unidade 
                      FROM itens_pedido i 
                      JOIN produtos pr ON i.produto_id = pr.id 
                      WHERE i.pedido_id = ?";

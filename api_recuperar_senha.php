@@ -1,65 +1,87 @@
 <?php
 require_once __DIR__ . '/cors.php';
-
 require_once __DIR__ . '/app/Database.php';
+require_once __DIR__ . '/app/Models/Usuario.php';
 
 header('Content-Type: application/json');
 
 Security::checkCSRF();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Método inválido']);
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Método inválido.']);
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
-
-$email = trim($input['email'] ?? '');
-$telefone = preg_replace('/\D/', '', $input['telefone'] ?? '');
-$cpf = preg_replace('/\D/', '', $input['cpf'] ?? '');
-$nova_senha = trim($input['nova_senha'] ?? '');
-
-// Previne bruteforce no reset de senha (5 tentativas por hora por IP)
+// Previne bruteforce no fluxo de recuperação de senha (5 tentativas por hora por IP)
 Security::checkRateLimit(5, 3600);
 
-if (empty($email) || empty($telefone) || empty($cpf) || empty($nova_senha)) {
-    echo json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios.']);
+$rawBody = file_get_contents('php://input');
+if ($rawBody === '' && PHP_SAPI === 'cli') {
+    $rawBody = file_get_contents('php://stdin');
+}
+$input = json_decode($rawBody, true);
+if (!is_array($input)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Payload inválido.']);
     exit;
 }
 
-if (strlen($nova_senha) < 8) {
-    echo json_encode(['success' => false, 'message' => 'A senha deve ter pelo menos 8 caracteres.']);
-    exit;
-}
+$acao = strtolower(trim((string) ($input['acao'] ?? '')));
+$email = trim((string) ($input['email'] ?? ''));
+$token = trim((string) ($input['token'] ?? ''));
+$nova_senha = trim((string) ($input['nova_senha'] ?? ''));
 
 try {
-    $pdo = Database::getConexao();
+    $usuarioModel = new Usuario();
 
-    // Remove non-numeric characters from the database phone numbers for a reliable match
-    $stmt = $pdo->prepare("SELECT id, telefone, cpf FROM usuarios WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    // Etapa 1: Solicitação de recuperação (gera token CSPRNG, salva apenas o hash SHA-256 e envia ao canal verificado)
+    if ($acao === 'solicitar' || ($token === '' && $nova_senha === '' && $email !== '')) {
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Informe um endereço de e-mail válido.']);
+            exit;
+        }
 
-    if (!$user) {
-        echo json_encode(['success' => false, 'message' => 'Dados incorretos.']);
+        $res = $usuarioModel->solicitarRecuperacaoSenha($email);
+        http_response_code(200);
+        echo json_encode($res);
         exit;
     }
 
-    $dbTelefone = preg_replace('/\D/', '', $user['telefone']);
-    $dbCpf = preg_replace('/\D/', '', $user['cpf']);
-    
-    if ($dbTelefone !== $telefone || $dbCpf !== $cpf) {
-        echo json_encode(['success' => false, 'message' => 'Dados incorretos.']);
+    // Etapa 2: Redefinição mediante posse do token de uso único enviado ao canal verificado
+    if ($token === '' || $nova_senha === '') {
+        $usuarioModel->registrarAuditoriaSeguranca(
+            null,
+            'redefinir_senha_falha',
+            $_SERVER['REMOTE_ADDR'] ?? null,
+            'Tentativa de redefinição sem token de canal verificado'
+        );
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'O código de recuperação enviado ao canal verificado e a nova senha são obrigatórios.']);
         exit;
     }
 
-    $senhaHash = password_hash($nova_senha, PASSWORD_DEFAULT);
+    if (strlen($nova_senha) < 8) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'A senha deve ter pelo menos 8 caracteres.']);
+        exit;
+    }
 
-    $upd = $pdo->prepare("UPDATE usuarios SET senha = ? WHERE id = ?");
-    $upd->execute([$senhaHash, $user['id']]);
+    $usuarioModel->redefinirSenhaComToken($token, $nova_senha, $email !== '' ? $email : null);
 
-    echo json_encode(['success' => true]);
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Senha redefinida com sucesso. Todas as sessões anteriores foram encerradas.'
+    ]);
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor.']);
+    $code = (int) $e->getCode();
+    if (!in_array($code, [400, 403, 429], true)) {
+        $code = 400;
+    }
+    http_response_code($code);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+?>

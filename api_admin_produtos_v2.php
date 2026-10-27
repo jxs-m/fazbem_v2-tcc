@@ -38,11 +38,18 @@ try {
         $tipo_venda = $_POST['tipo_venda'] ?? 'Inteiro';
         $temporario = isset($_POST['temporario']) ? (int)$_POST['temporario'] : 0;
         $duracao_dias = (isset($_POST['duracao_dias']) && $_POST['duracao_dias'] !== '') ? (int)$_POST['duracao_dias'] : null;
+        $ativo = isset($_POST['ativo']) ? (int)$_POST['ativo'] : 1;
 
         
         if (empty($nome) || empty($categoria)) {
             throw new Exception("Nome e categoria são obrigatórios.");
         }
+
+        $estoqueStr = str_replace(',', '.', (string) $estoque);
+        if (!is_numeric($preco) || floatval($preco) < 0 || !is_numeric($estoqueStr) || floatval($estoqueStr) < 0) {
+            throw new Exception("Preço e estoque devem ser valores numéricos não negativos.");
+        }
+        $estoque = floatval($estoqueStr);
 
         $caminhoBanco = null;
 
@@ -91,10 +98,10 @@ try {
         }
 
          if (!empty($id)) {
-            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco, $tipo_venda, $temporario, $duracao_dias);
+            $sucesso = $produtoModel->atualizar($id, $nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco, $tipo_venda, $temporario, $duracao_dias, $ativo);
             $mensagem = 'Produto atualizado com sucesso!';
         } else {
-            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco, $tipo_venda, $temporario, $duracao_dias);
+            $sucesso = $produtoModel->salvar($nome, $categoria, $preco, $unidade, $estoque, $peso_estimado_g, $caminhoBanco, $tipo_venda, $temporario, $duracao_dias, $ativo);
             $mensagem = 'Produto cadastrado com sucesso!';
         }
 
@@ -114,9 +121,9 @@ try {
 
         $sucesso = $produtoModel->deletar($data['id']);
         if ($sucesso) {
-            echo json_encode(['success' => true, 'message' => 'Produto excluído com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Produto desativado com sucesso (histórico de vendas preservado)!']);
         } else {
-            throw new Exception("Não foi possível excluir o produto. Pode estar vinculado a um pedido.");
+            throw new Exception("Produto não encontrado ou já desativado.");
         }
         exit;
     }

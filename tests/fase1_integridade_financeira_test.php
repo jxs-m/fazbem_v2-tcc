@@ -119,14 +119,14 @@ $pdo->exec("INSERT INTO produtos (id, nome, categoria, tipo_venda, preco, unidad
             VALUES (100, 'Tomate Orgânico', 'Legumes', 'Inteiro', 10.00, 'kg', 50.000, 1000)");
 
 // Pedido 101: Extra, Pendente, MAS 'Em separação' (NÃO elegível para fatura!)
-$pdo->exec("INSERT INTO pedidos (id, usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido)
-            VALUES (101, 10, 15.00, 'Pendente', 'Em separação', 'Extra')");
+$pdo->exec("INSERT INTO pedidos (id, usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, data_pedido)
+            VALUES (101, 10, 15.00, 'Pendente', 'Em separação', 'Extra', DATE_SUB(NOW(), INTERVAL 14 DAY))");
 // Pedido 102: Extra, Pendente, 'Aguardando Entrega' (Elegível: R$ 20,00)
-$pdo->exec("INSERT INTO pedidos (id, usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido)
-            VALUES (102, 10, 20.00, 'Pendente', 'Aguardando Entrega', 'Extra')");
+$pdo->exec("INSERT INTO pedidos (id, usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, data_pedido)
+            VALUES (102, 10, 20.00, 'Pendente', 'Aguardando Entrega', 'Extra', DATE_SUB(NOW(), INTERVAL 14 DAY))");
 // Pedido 103: Avulso, Pendente, 'Entregue' (Elegível: R$ 10,00)
-$pdo->exec("INSERT INTO pedidos (id, usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido)
-            VALUES (103, 10, 10.00, 'Pendente', 'Entregue', 'Avulso')");
+$pdo->exec("INSERT INTO pedidos (id, usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, data_pedido)
+            VALUES (103, 10, 10.00, 'Pendente', 'Entregue', 'Avulso', DATE_SUB(NOW(), INTERVAL 14 DAY))");
 
 // Executar lógica de geração de faturas via helper em processo isolado simulando requisição admin
 function runGerarFaturas(PDO $pdo, string $mes_referencia): int {

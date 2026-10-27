@@ -17,10 +17,13 @@ try {
 
     if ($kitsDisponiveis < 0) $kitsDisponiveis = 0;
 
-    $produtos = $produtoModel->listarTodos();
+    $produtos = $produtoModel->listarTodos(true);
     $produtosFiltrados = [];
 
     foreach ($produtos as $p) {
+        if (isset($p['ativo']) && (int)$p['ativo'] !== 1) {
+            continue;
+        }
         $p['dias_restantes'] = null;
         if (isset($p['temporario']) && (int)$p['temporario'] === 1 && !empty($p['duracao_dias'])) {
             $criado_ts = strtotime(date('Y-m-d', strtotime($p['criado_em'])));

@@ -50,7 +50,7 @@ try {
     }
     if (!empty($idsProdKit)) {
         $placeholdersProds = implode(',', array_fill(0, count($idsProdKit), '?'));
-        $sqlProds = "SELECT id, nome, unidade, tipo_venda, peso_estimado_g FROM produtos WHERE id IN ($placeholdersProds)";
+        $sqlProds = "SELECT id, nome, unidade, tipo_venda, peso_estimado_g, ativo FROM produtos WHERE id IN ($placeholdersProds) AND ativo = 1";
         $stmtProds = $pdo->prepare($sqlProds);
         $stmtProds->execute($idsProdKit);
         while ($row = $stmtProds->fetch(PDO::FETCH_ASSOC)) {
@@ -81,40 +81,62 @@ try {
             }
         }
 
-         $itensDoPedido = [];
+        $itensDoPedido = [];
         foreach ($produtosKit as $prod) {
+            if (!isset($infoProdutosCache[$prod['id']])) {
+                continue;
+            }
             $nomeProd = trim($prod['nome'] ?? ($infoProdutosCache[$prod['id']]['nome'] ?? ''));
             if (!in_array($nomeProd, $exclusoes)) {
                 $itensDoPedido[] = $prod;
             }
         }
 
-       if (empty($itensDoPedido)) {
+        if (empty($itensDoPedido)) {
             continue;
         }
 
         $pdo->beginTransaction();
 
-        $valorFixoSemanal = 25.00;
-        
-        $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, obs_pontual) 
-                      VALUES (?, ?, 'Pendente', 'Em separação', 'Assinatura', ?)";
-        $stmtPedido = $pdo->prepare($sqlPedido);
-        $stmtPedido->execute([$usuarioId, $valorFixoSemanal, $observacao]);
-        $pedidoId = $pdo->lastInsertId();
+        $stmtLockUser = $pdo->prepare("SELECT id FROM usuarios WHERE id = ? FOR UPDATE");
+        $stmtLockUser->execute([(int) $usuarioId]);
 
-        $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, 0)";
+        if ($pedidoModel->verificarPedidoExistenteSemana($usuarioId)) {
+            $pdo->rollBack();
+            continue;
+        }
+
+        $valorFixoSemanal = 25.00;
+
+        $sqlPedido = "INSERT INTO pedidos (usuario_id, valor_total, status_pagamento, status_entrega, tipo_pedido, obs_pontual, estoque_reservado, semana_ativa_chave) 
+                      VALUES (?, ?, 'Pendente', 'Em separação', 'Assinatura', ?, 0, CONCAT(?, '_', YEARWEEK(NOW(), 0)))";
+        $stmtPedido = $pdo->prepare($sqlPedido);
+        $stmtPedido->execute([(int) $usuarioId, $valorFixoSemanal, $observacao, (int) $usuarioId]);
+        $pedidoId = (int) $pdo->lastInsertId();
+
+        $sqlItem = "INSERT INTO itens_pedido (pedido_id, produto_id, produto_nome, produto_unidade, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?, 0)";
         $stmtItem = $pdo->prepare($sqlItem);
+        $itensParaReserva = [];
 
         foreach ($itensDoPedido as $item) {
-            $qtd = isset($item['quantidade']) ? intval($item['quantidade']) : 1;
-            
+            $qtd = isset($item['quantidade']) ? floatval($item['quantidade']) : 1.0;
             $prodInfo = $infoProdutosCache[$item['id']] ?? null;
-            
-            $estoqueDecremento = Producao::calcularEstoqueDecremento($qtd, $prodInfo, $item['unidade_escolhida'] ?? null);
+            $estoqueDecremento = round(floatval(Producao::calcularEstoqueDecremento($qtd, $prodInfo, $item['unidade_escolhida'] ?? null)), 3);
 
-            $stmtItem->execute([$pedidoId, $item['id'], $estoqueDecremento]);
+            $stmtItem->execute([
+                $pedidoId,
+                (int) $item['id'],
+                $prodInfo['nome'] ?? null,
+                $prodInfo['unidade'] ?? null,
+                $estoqueDecremento
+            ]);
+            $itensParaReserva[] = [
+                'produto_id' => (int) $item['id'],
+                'estoque_decremento' => $estoqueDecremento
+            ];
         }
+
+        $pedidoModel->reservarEstoqueItens($pedidoId, $itensParaReserva, 'Kit Assinatura');
 
         $pdo->commit();
         $qtdGerados++;

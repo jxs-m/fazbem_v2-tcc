@@ -36,14 +36,35 @@ async function handleLogin() {
       }
     }
 
+    async function solicitarTokenRecuperacao() {
+      const email = document.getElementById('recEmail').value.trim();
+      if (!email) {
+        alert('Informe o seu e-mail cadastrado.');
+        return;
+      }
+
+      try {
+        const response = await fetch('api_recuperar_senha.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ acao: 'solicitar', email })
+        });
+        const result = await response.json();
+        alert(result.message || 'Solicitação processada.');
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao conectar com o servidor.');
+      }
+    }
+
     async function recuperarSenha() {
       const email = document.getElementById('recEmail').value.trim();
-      const telefone = document.getElementById('recTelefone').value.trim().replace(/\D/g, '');
-      const cpf = document.getElementById('recCpf').value.trim().replace(/\D/g, '');
+      const tokenEl = document.getElementById('recToken');
+      const token = tokenEl ? tokenEl.value.trim() : '';
       const novaSenha = document.getElementById('recNovaSenha').value.trim();
 
-      if (!email || !telefone || !cpf || !novaSenha) {
-        alert('Por favor, preencha todos os campos.');
+      if (!token || !novaSenha) {
+        alert('Por favor, informe o código de recuperação recebido e a nova senha.');
         return;
       }
 
@@ -56,7 +77,7 @@ async function handleLogin() {
         const response = await fetch('api_recuperar_senha.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, telefone, cpf, nova_senha: novaSenha })
+          body: JSON.stringify({ acao: 'redefinir', email, token, nova_senha: novaSenha })
         });
 
         const result = await response.json();
@@ -66,8 +87,7 @@ async function handleLogin() {
           document.getElementById('modalRecuperarSenha').style.display = 'none';
           document.getElementById('senha').value = '';
           document.getElementById('recEmail').value = '';
-          document.getElementById('recTelefone').value = '';
-          document.getElementById('recCpf').value = '';
+          if (tokenEl) tokenEl.value = '';
           document.getElementById('recNovaSenha').value = '';
         } else {
           alert('Erro: ' + result.message);
