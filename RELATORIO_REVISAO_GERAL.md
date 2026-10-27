@@ -1,13 +1,13 @@
 # Relatório de Revisão Geral — FazBem V2
 
-**Data da revisão:** 25/10/2026  
+**Data da revisão:** 27/10/2026
 **Escopo:** backend PHP, banco MySQL, frontend HTML/CSS/JavaScript, autenticação, autorização, checkout, Mercado Pago, faturamento, estoque, separação e logística.
 
 ## 1. Resumo executivo
 
 O FazBem V2 já possui uma base funcional de e-commerce e operação logística para kits de hortaliças. O repositório contém telas para cliente, administração, separação e entrega; APIs PHP; modelos orientados a objetos; esquema de banco relacional; integração com Mercado Pago; controle de sessão, CSRF e rate limiting.
 
-O principal risco atual não é a ausência de funcionalidades, mas a falta de consistência transacional entre os módulos. Pagamento, fatura, pedido, estoque e entrega podem assumir estados diferentes quando ocorre uma repetição de requisição, uma falha externa ou duas operações simultâneas. Antes de uma publicação real, o sistema deve priorizar a integridade financeira e a autorização operacional.
+O principal risco atual não é a ausência de funcionalidades, mas a falta de consistência transacional entre os módulos. Pagamento, fatura, pedido, estoque e entrega podem assumir estados diferentes quando ocorre uma repetição de requisição, uma falha externa ou duas operações simultâneas. A varredura complementar de 27/10/2026 confirmou esses riscos e identificou ainda uma recuperação de senha sem prova de posse, exclusão destrutiva de histórico e endpoints potencialmente abandonados. Antes de uma publicação real, o sistema deve priorizar a integridade financeira e a autorização operacional.
 
 ### Classificação geral
 
@@ -25,6 +25,7 @@ O principal risco atual não é a ausência de funcionalidades, mas a falta de c
 | Frontend | Abrangente, com risco de XSS por uso distribuído de `innerHTML` | Média |
 | Testes e CI | Não identificados | Crítica |
 | Documentação | README inicial e documentação acadêmica presentes | Média |
+| Código não utilizado/configuração | Endpoints sem consumidores conhecidos e carregamento alternativo de ambiente | Baixa, com risco operacional |
 
 ## 2. O que foi verificado
 
@@ -33,6 +34,8 @@ O principal risco atual não é a ausência de funcionalidades, mas a falta de c
 - Não foram encontrados `composer.json`, `package.json`, PHPUnit ou uma suíte automatizada de testes.
 - O estado do Git estava limpo durante a revisão.
 - Foram revisados os principais endpoints, modelos, esquema SQL, configuração de sessão, CORS, integração de pagamento e telas operacionais.
+- Em 27/10/2026 foi realizada uma varredura complementar específica para falhas de lógica, segurança e código morto/redundante.
+- A varredura complementar identificou 11 achados: 9 de alta ou média prioridade e 2 de baixa prioridade, incluindo os riscos já descritos neste relatório e dois pontos adicionais de manutenção.
 - O arquivo `.env` não aparece rastreado no Git; existe `.env.example`.
 - Existem regras `.htaccess` para bloquear arquivos de ambiente, código interno e execução em `uploads/`.
 
@@ -147,6 +150,77 @@ A relação entre itens de pedido e produtos utiliza `ON DELETE CASCADE`.
 - Trocar para `ON DELETE RESTRICT` ou `NO ACTION`.
 - Implementar exclusão lógica com `ativo` ou `excluido_em`.
 - Manter snapshots de nome, unidade e preço no item do pedido.
+
+### 4.7 Recuperação de senha não comprova posse da conta
+
+O endpoint redefine a senha depois de comparar e-mail, telefone e CPF, sem token aleatório, código temporário, expiração, uso único ou invalidação das sessões existentes.
+
+**Arquivo:** [api_recuperar_senha.php](api_recuperar_senha.php)
+
+**Risco:** quem obtiver ou descobrir dados pessoais do cliente pode assumir a conta sem controlar o e-mail ou outro canal verificado. A combinação de dados cadastrais não deve ser tratada como fator suficiente de autenticação.
+
+**Correção recomendada:**
+
+- Criar uma solicitação de recuperação com token aleatório armazenado de forma segura.
+- Enviar o token por canal previamente verificado, com validade curta e uso único.
+- Responder de forma uniforme para evitar enumeração de contas.
+- Invalidar sessões e tokens anteriores depois da troca da senha.
+- Registrar a operação sem armazenar o token em logs.
+
+### 4.8 Checkout não valida nem reserva estoque de forma transacional
+
+O checkout consulta dados de produto e calcula preço, mas não lê `estoque_atual`, não reserva quantidade e não realiza baixa condicional protegida contra concorrência. O controle de um pedido semanal também depende de uma consulta anterior à inserção.
+
+**Arquivos:** [app/Models/Pedido.php](app/Models/Pedido.php), [api_checkout_v2.php](api_checkout_v2.php)
+
+**Risco:** dois checkouts concorrentes podem consumir a mesma disponibilidade, permitir estoque negativo ou criar pedidos acima do limite semanal. Isso compromete a operação e a conciliação financeira.
+
+**Correção recomendada:**
+
+- Validar estoque e quantidade no servidor.
+- Reservar ou baixar com `UPDATE` condicional (`estoque_atual >= quantidade`) dentro de transação.
+- Registrar a movimentação de estoque e definir estorno para cancelamento ou falta.
+- Adicionar uma regra única/idempotente para o limite semanal.
+- Testar concorrência e rollback após falha do pagamento.
+
+### 4.9 Endpoints sem consumidores conhecidos devem ser confirmados
+
+Não foram encontradas referências internas para [api_estoque_v2.php](api_estoque_v2.php) e [api_admin_relatorio_compras.php](api_admin_relatorio_compras.php), embora os demais endpoints administrativos possuam chamadas identificáveis no frontend.
+
+**Risco:** código abandonado pode permanecer publicado, aumentar a superfície de ataque e manter regras divergentes das interfaces atuais. A ausência de referência interna não prova que não existam consumidores externos.
+
+**Correção recomendada:**
+
+- Confirmar integrações externas, tarefas agendadas e chamadas manuais antes de remover.
+- Se não houver consumidor, remover ou desativar as rotas.
+- Se forem necessárias, documentar os consumidores e aplicar autorização, CSRF e validações no mesmo padrão dos endpoints atuais.
+
+### 4.10 Carregamento implícito de `.env.php` é redundante e ambíguo
+
+`Env::load()` procura automaticamente um arquivo com o sufixo `.php` antes de carregar o caminho informado. As chamadas atuais apontam para `.env`, portanto um `.env.php` presente no ambiente pode substituir silenciosamente a configuração esperada.
+
+**Arquivo:** [app/Env.php](app/Env.php)
+
+**Risco:** credenciais, banco ou ambiente incorretos podem ser carregados sem indicação clara ao operador, especialmente em instalações que mantêm arquivos de configuração antigos.
+
+**Correção recomendada:**
+
+- Carregar exclusivamente o caminho explicitamente configurado.
+- Se `.env.php` for necessário, torná-lo uma opção explícita e documentada.
+- Validar variáveis obrigatórias e registrar apenas o nome do ambiente ativo, nunca os segredos.
+
+### 4.11 Resumo da varredura complementar
+
+Os achados confirmados nesta atualização são:
+
+| Categoria | Quantidade | Prioridade |
+|---|---:|---|
+| Integridade financeira e pagamentos | 4 | Alta |
+| Autorização e autenticação | 2 | Alta |
+| Integridade operacional e histórica | 3 | Média |
+| Código morto ou configuração redundante | 2 | Baixa |
+
+Os itens de idempotência, webhook, faturamento concorrente, autorização de logística, transições de entrega e recuperação de senha devem ser tratados antes de produção. Os itens de estoque e preservação de histórico devem ser tratados antes de uso operacional contínuo.
 
 ## 5. Achados de alta prioridade
 
