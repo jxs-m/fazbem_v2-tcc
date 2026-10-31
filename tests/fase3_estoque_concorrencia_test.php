@@ -26,9 +26,22 @@ function assertTrue(bool $condition, string $message): void {
 
 echo "=== INICIANDO TESTES AUTOMATIZADOS: FASE 3 (ESTOQUE E CONCORRÊNCIA) ===\n\n";
 
+$dbName = getenv('DB_NAME') ?: 'fazbem_v2_test';
+$socket = getenv('TEST_DB_SOCKET') ?: (getenv('DB_SOCKET') ?: '');
+$host = getenv('TEST_DB_HOST') ?: (getenv('DB_HOST') ?: '127.0.0.1');
+$port = getenv('TEST_DB_PORT') ?: (getenv('DB_PORT') ?: '');
+$user = getenv('TEST_DB_USER') ?: (getenv('DB_USER') ?: 'root');
+$pass = getenv('TEST_DB_PASS') !== false ? getenv('TEST_DB_PASS') : (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+$adminDsn = $socket !== '' ? "mysql:unix_socket={$socket};charset=utf8mb4" : ("mysql:host={$host}" . ($port !== '' ? ";port={$port}" : "") . ";charset=utf8mb4");
+$adminPdo = new PDO($adminDsn, $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+$adminPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+$_ENV['DB_NAME'] = $dbName;
+putenv("DB_NAME={$dbName}");
+if ($socket !== '') { $_ENV['DB_SOCKET'] = $socket; putenv("DB_SOCKET={$socket}"); }
+
 $pdo = Database::getConexao();
-$schemaSql = str_replace('`fazbem_v2`', '`' . (getenv('DB_NAME') ?: 'fazbem_v2_test') . '`', file_get_contents(__DIR__ . '/../db_schema.sql'));
-$seedsSql = str_replace('`fazbem_v2`', '`' . (getenv('DB_NAME') ?: 'fazbem_v2_test') . '`', file_get_contents(__DIR__ . '/../db_seeds.sql'));
+$schemaSql = str_replace('`fazbem_v2`', '`' . $dbName . '`', file_get_contents(__DIR__ . '/../db_schema.sql'));
+$seedsSql = str_replace('`fazbem_v2`', '`' . $dbName . '`', file_get_contents(__DIR__ . '/../db_seeds.sql'));
 $pdo->exec($schemaSql);
 $pdo->exec($seedsSql);
 

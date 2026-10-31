@@ -45,9 +45,9 @@ try {
     if ($method === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $nome = trim($data['nome'] ?? '');
-        $telefone = trim($data['telefone'] ?? '');
-        $endereco = trim($data['endereco'] ?? '');
+        $nome = Security::sanitizeText($data['nome'] ?? '');
+        $telefone = Security::sanitizeText($data['telefone'] ?? '');
+        $endereco = Security::sanitizeText($data['endereco'] ?? '');
 
         if (empty($nome) || empty($telefone) || empty($endereco)) {
             throw new Exception("Nome, telefone e endereço são obrigatórios.");
@@ -65,7 +65,7 @@ try {
             $novaSenhaHash = password_hash($data['senha'], PASSWORD_DEFAULT);
         }
 
-        $referencia = trim($data['referencia'] ?? '');
+        $referencia = Security::sanitizeText($data['referencia'] ?? '');
         $cpf = !empty($data['cpf']) ? trim($data['cpf']) : null;
 
         require_once __DIR__ . '/app/Validator.php';
@@ -75,17 +75,17 @@ try {
 
         $atualizou = $usuarioModel->atualizarPerfil(
             $usuario_id, 
-            $data['nome'], 
-            $data['telefone'], 
+            $nome, 
+            $telefone, 
             $cpf,
-            $data['endereco'], 
+            $endereco, 
             $referencia, 
             $novaSenhaHash
         );
 
         if ($atualizou) {
             // Atualiza o nome na sessão caso ele tenha mudado
-            $_SESSION['nome'] = $data['nome'];
+            $_SESSION['nome'] = $nome;
             echo json_encode(['success' => true, 'message' => 'Perfil atualizado com sucesso!']);
         } else {
             throw new Exception("Nenhuma alteração foi realizada.");

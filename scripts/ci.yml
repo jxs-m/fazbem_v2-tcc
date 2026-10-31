@@ -1,0 +1,47 @@
+name: CI — FazBem V2
+
+on:
+  push:
+    branches: [ main, master, "feat/**" ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-verify:
+    name: Lint, Análise Estática, Migrações e Testes (PHP 8.3 + MariaDB)
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+          MARIADB_DATABASE: fazbem_v2_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP 8.3 com extensões necessárias
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo, pdo_mysql, mbstring, gd, fileinfo, curl
+          coverage: none
+
+      - name: Executar Pipeline de CI (Lint, Análise Estática, Migrações e Testes Fases 1-5)
+        env:
+          AMBIENTE: test
+          TEST_DB_HOST: 127.0.0.1
+          TEST_DB_PORT: 3306
+          TEST_DB_USER: root
+          TEST_DB_PASS: ""
+          DB_NAME: fazbem_v2_test
+        run: bash scripts/ci.sh

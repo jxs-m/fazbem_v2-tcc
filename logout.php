@@ -8,6 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'OPT
     exit;
 }
 
+Security::checkCSRF();
+
 $_SESSION = array();
 
 if (ini_get("session.use_cookies")) {

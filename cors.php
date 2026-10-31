@@ -49,6 +49,7 @@ if ($origemRequisicao) {
 }
 
 // Define o cabeçalho Access-Control-Allow-Origin se a origem for permitida
+$GLOBALS['__CORS_ALLOWED_ORIGIN'] = $permitido ? $origemRequisicao : null;
 if ($permitido) {
     header("Access-Control-Allow-Origin: $origemRequisicao");
 }

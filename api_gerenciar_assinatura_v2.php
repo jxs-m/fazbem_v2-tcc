@@ -188,7 +188,7 @@ try {
             $mensagem = 'Plano alterado para ' . $frequencia . ' com sucesso.';
             break;
         case 'nova_preferencia':
-            $desc = trim($data['descricao'] ?? '');
+            $desc = Security::sanitizeText($data['descricao'] ?? '');
             if (empty($desc)) {
                 throw new Exception("Descrição da preferência é obrigatória.");
             }

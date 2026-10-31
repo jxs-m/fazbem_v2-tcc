@@ -39,11 +39,11 @@ function assertThrows(callable $fn, int $expectedCode, string $message) {
     }
 }
 
-$socket = getenv('TEST_DB_SOCKET') ?: '';
-$host = getenv('TEST_DB_HOST') ?: '127.0.0.1';
-$port = getenv('TEST_DB_PORT') ?: '';
-$user = getenv('TEST_DB_USER') ?: 'root';
-$pass = getenv('TEST_DB_PASS') !== false ? getenv('TEST_DB_PASS') : '';
+$socket = getenv('TEST_DB_SOCKET') ?: (getenv('DB_SOCKET') ?: '');
+$host = getenv('TEST_DB_HOST') ?: (getenv('DB_HOST') ?: '127.0.0.1');
+$port = getenv('TEST_DB_PORT') ?: (getenv('DB_PORT') ?: '');
+$user = getenv('TEST_DB_USER') ?: (getenv('DB_USER') ?: 'root');
+$pass = getenv('TEST_DB_PASS') !== false ? getenv('TEST_DB_PASS') : (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
 $testDbName = 'fazbem_v2_test';
 
 if ($socket !== '') {

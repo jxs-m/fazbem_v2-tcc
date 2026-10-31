@@ -29,10 +29,10 @@ try {
 
     if ($method === 'POST') {
         $id = $_POST['id'] ?? ''; // Se vier ID, é edição. Se não vier, é novo.
-        $nome = $_POST['nome'] ?? '';
-        $categoria = $_POST['categoria'] ?? '';
+        $nome = Security::sanitizeText($_POST['nome'] ?? '');
+        $categoria = Security::sanitizeText($_POST['categoria'] ?? '');
         $preco = str_replace(',', '.', $_POST['preco'] ?? '0');
-        $unidade = $_POST['unidade'] ?? '';
+        $unidade = Security::sanitizeText($_POST['unidade'] ?? '');
         $estoque = $_POST['estoque'] ?? 0;
         $peso_estimado_g = $_POST['peso_estimado_g'] ?? 0;
         $tipo_venda = $_POST['tipo_venda'] ?? 'Inteiro';

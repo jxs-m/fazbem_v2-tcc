@@ -3,6 +3,7 @@
 require_once __DIR__ . '/cors.php';
 
 if (!isset($_SESSION['usuario_id'])) {
+    http_response_code(403);
     die("Acesso negado. Por favor, faça login.");
 }
 
@@ -29,6 +30,7 @@ if ($tipo_usuario === 'admin') {
 }
 
 if ($id <= 0) {
+    http_response_code(400);
     die("ID inválido.");
 }
 
@@ -44,11 +46,13 @@ try {
         $dados = $stmt->fetch();
 
         if (!$dados) {
+            http_response_code(404);
             die("Pedido não encontrado.");
         }
 
         // Restrição de segurança: cliente só vê seus próprios pedidos
         if ($tipo_usuario !== 'admin' && $dados['usuario_id'] != $usuario_id) {
+            http_response_code(403);
             die("Acesso negado.");
         }
 
@@ -72,14 +76,17 @@ try {
         $dados = $stmt->fetch();
 
         if (!$dados) {
+            http_response_code(404);
             die("Fatura não encontrada.");
         }
 
         // Restrição de segurança
         if ($tipo_usuario !== 'admin' && $dados['usuario_id'] != $usuario_id) {
+            http_response_code(403);
             die("Acesso negado.");
         }
     } else {
+        http_response_code(400);
         die("Tipo de comprovante inválido.");
     }
 } catch (Exception $e) {

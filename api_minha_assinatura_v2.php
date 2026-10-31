@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/app/Models/Assinatura.php';
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo_usuario'] !== 'cliente') {
+    http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado.']); exit;
 }
 

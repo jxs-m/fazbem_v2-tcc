@@ -11,7 +11,11 @@ Security::checkRateLimit(5, 120);
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!$data || empty($data['nome']) || empty($data['email']) || empty($data['senha'])) {
+$nomeLimpo = isset($data['nome']) ? Security::sanitizeText((string) $data['nome']) : '';
+$telefoneLimpo = isset($data['telefone']) ? Security::sanitizeText((string) $data['telefone']) : '';
+$enderecoLimpo = isset($data['endereco']) ? Security::sanitizeText((string) $data['endereco']) : '';
+
+if (!$data || empty($nomeLimpo) || empty($data['email']) || empty($data['senha'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Dados incompletos.']);
     exit;
@@ -55,17 +59,17 @@ try {
     $senhaHash = password_hash($data['senha'], PASSWORD_DEFAULT);
 
     
-    $referencia = $data['referencia'] ?? null;
+    $referencia = isset($data['referencia']) ? Security::sanitizeText((string) $data['referencia']) : null;
     $lat = isset($data['latitude']) ? (float)$data['latitude'] : null;
     $lng = isset($data['longitude']) ? (float)$data['longitude'] : null;
     $cpf = $data['cpf'] ?? null;
     
     $usuarioId = $usuarioModel->cadastrarCliente(
-        $data['nome'], 
+        $nomeLimpo, 
         $data['email'], 
         $senhaHash, 
-        $data['telefone'], 
-        $data['endereco'], 
+        $telefoneLimpo, 
+        $enderecoLimpo, 
         $referencia, 
         $data['frequencia'],
         $lat,
@@ -78,12 +82,18 @@ try {
 
     if (!empty($data['exclusoes']) && is_array($data['exclusoes'])) {
         foreach ($data['exclusoes'] as $produtoNome) {
-            $prefModel->adicionar($usuarioId, 'Troca Fixa', "Não consumo: " . $produtoNome);
+            $prodNomeLimpo = Security::sanitizeText((string) $produtoNome);
+            if ($prodNomeLimpo !== '') {
+                $prefModel->adicionar($usuarioId, 'Troca Fixa', "Não consumo: " . $prodNomeLimpo);
+            }
         }
     }
 
     if (!empty($data['observacao'])) {
-        $prefModel->adicionar($usuarioId, 'Observação', $data['observacao']);
+        $obsLimpa = Security::sanitizeText((string) $data['observacao']);
+        if ($obsLimpa !== '') {
+            $prefModel->adicionar($usuarioId, 'Observação', $obsLimpa);
+        }
     }
 
     echo json_encode(['success' => true, 'message' => 'Cadastro realizado com sucesso!']);

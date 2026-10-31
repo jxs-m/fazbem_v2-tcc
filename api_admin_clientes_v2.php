@@ -32,11 +32,13 @@ try {
     if ($method === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (empty($data['id']) || empty($data['nome']) || empty($data['telefone'])) {
+        $nomeLimpo = Security::sanitizeText($data['nome'] ?? '');
+        $telefoneLimpo = Security::sanitizeText($data['telefone'] ?? '');
+        if (empty($data['id']) || empty($nomeLimpo) || empty($telefoneLimpo)) {
             throw new Exception("Dados obrigatórios incompletos.");
         }
 
-        $endereco = $data['endereco'] ?? '';
+        $endereco = Security::sanitizeText($data['endereco'] ?? '');
         $frequencia = $data['frequencia'] ?? '';
         $status = $data['status'] ?? 'Ativa';
         $latitude = isset($data['latitude']) && $data['latitude'] !== "" ? (float)$data['latitude'] : null;
@@ -44,8 +46,8 @@ try {
 
         $atualizou = $clienteModel->atualizar(
             $data['id'],
-            $data['nome'],
-            $data['telefone'],
+            $nomeLimpo,
+            $telefoneLimpo,
             $endereco,
             $frequencia,
             $status,

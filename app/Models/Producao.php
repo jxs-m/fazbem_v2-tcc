@@ -93,6 +93,11 @@ class Producao {
     }
 
     public function catalogoAberto() {
+        $forceAberto = Env::get('FORCE_CATALOGO_ABERTO');
+        if ($forceAberto === '1' || $forceAberto === 'true') {
+            return $this->obterContagemKitsSemana() < 200;
+        }
+
         date_default_timezone_set('America/Sao_Paulo');
         $diaSemana = date('w'); // 0 = Domingo, 1 = Segunda, 2 = Terça
         $hora = date('H');

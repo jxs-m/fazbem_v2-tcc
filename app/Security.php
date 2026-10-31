@@ -62,6 +62,18 @@ class Security {
     }
 
     /**
+     * Sanitiza textos de entrada removendo blocos de script/style e tags HTML (defesa contra XSS).
+     */
+    public static function sanitizeText(?string $value): string {
+        if ($value === null) {
+            return '';
+        }
+        $clean = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', $value);
+        $clean = strip_tags((string) $clean);
+        return trim($clean);
+    }
+
+    /**
      * Valida se a sessão autenticada continua íntegra em relação à versão de sessão do usuário (invalidação pós-reset de senha).
      */
     public static function validateActiveSession(): bool {
